@@ -701,12 +701,47 @@ class WearableConnection(Base):
     family = relationship("Family", back_populates="wearable_connections")
     subject = relationship("CareSubject", back_populates="wearable_connections")
     profile = relationship("AppProfile")
+    data_sources = relationship("WearableDataSource", back_populates="connection", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("subject_id", "provider", name="uq_wearable_connections_subject_provider"),
         Index("ix_wearable_conns_provider_status", "provider", "connection_status"),
         CheckConstraint("connection_status IN ('connected', 'disconnected', 'pending', 'error', 'revoked')", name="ck_wearable_conn_status"),
     )
+
+
+class WearableDataSource(Base):
+    """
+    Persistent physical device or source stream representing a connected wearable hardware/service.
+    Table: wearable_data_sources
+    Examples:
+    - Apple Watch
+    - Garmin Venu
+    - Fitbit Charge
+    - Oura Ring
+    """
+    __tablename__ = "wearable_data_sources"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    connection_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("wearable_connections.id", ondelete="CASCADE"), nullable=False, index=True)
+    provider: Mapped[str] = mapped_column(String(100), nullable=False)  # garmin, fitbit, oura, apple_health, etc.
+    source_type: Mapped[str] = mapped_column(String(50), nullable=False)  # smartwatch, smart_ring, fitness_tracker, mobile_sdk, cgm
+    device_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # "Apple Watch", "Garmin Venu", "Fitbit Charge", "Oura Ring"
+    device_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # hardware serial or external device UUID
+    status: Mapped[str] = mapped_column(String(50), default="active", nullable=False)  # active, inactive, paired, disconnected
+    last_data_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    metadata_json: Mapped[dict] = mapped_column("metadata", JSON, default=dict, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    connection = relationship("WearableConnection", back_populates="data_sources")
+
+    __table_args__ = (
+        Index("ix_wearable_sources_provider_type", "provider", "source_type"),
+        Index("ix_wearable_sources_status", "status"),
+    )
+
 
 
 

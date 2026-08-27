@@ -29,8 +29,10 @@ from app.domains.family.infrastructure.models import (
     CareSubject,
     CareSubjectWearableIdentity,
     WearableProviderConnection,
-    WearableConnection
+    WearableConnection,
+    WearableDataSource
 )
+
 
 
 @pytest.mark.asyncio
@@ -293,3 +295,131 @@ async def test_wearable_relational_hierarchy_and_constraints(test_db_session: As
     with pytest.raises(IntegrityError):
         await session.commit()
     await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_wearable_data_sources_table_examples(test_db_session: AsyncSession):
+    """
+    Tests the wearable_data_sources table matching the user specification:
+    wearable_data_sources:
+    - id UUID PK
+    - connection_id UUID FK
+    - provider VARCHAR
+    - source_type VARCHAR
+    - device_name VARCHAR NULL
+    - device_id VARCHAR NULL
+    - status VARCHAR
+    - last_data_at TIMESTAMPTZ NULL
+    - metadata JSONB
+    - created_at TIMESTAMPTZ
+    - updated_at TIMESTAMPTZ
+
+    Examples verified:
+    1. Apple Watch
+    2. Garmin Venu
+    3. Fitbit Charge
+    4. Oura Ring
+    """
+    session = test_db_session
+
+    # 1. Family & Subject Setup
+    user_id = uuid.uuid4()
+    profile = AppProfile(id=user_id, iam_subject_id="iam_user_ds_01", email="user_ds@family.org", display_name="Ravi Kumar")
+    family = Family(id=uuid.uuid4(), name="Kumar Circle", primary_coordinator_profile_id=user_id)
+    session.add_all([profile, family])
+
+    subject = CareSubject(
+        id=uuid.uuid4(),
+        family_id=family.id,
+        fhir_patient_id="pat_kumar_001",
+        relationship_to_coordinator="Father",
+        city="Chennai",
+        status="active"
+    )
+    session.add(subject)
+    await session.commit()
+
+    # 2. Setup Connections for Garmin, Apple, Fitbit, Oura
+    garmin_conn = WearableConnection(
+        id=uuid.uuid4(), family_id=family.id, subject_id=subject.id, profile_id=user_id,
+        provider="garmin", open_wearables_user_id=f"kinguard_{subject.id}", connection_status="connected"
+    )
+    apple_conn = WearableConnection(
+        id=uuid.uuid4(), family_id=family.id, subject_id=subject.id, profile_id=user_id,
+        provider="apple_health", open_wearables_user_id=f"kinguard_{subject.id}", connection_status="connected"
+    )
+    fitbit_conn = WearableConnection(
+        id=uuid.uuid4(), family_id=family.id, subject_id=subject.id, profile_id=user_id,
+        provider="fitbit", open_wearables_user_id=f"kinguard_{subject.id}", connection_status="connected"
+    )
+    oura_conn = WearableConnection(
+        id=uuid.uuid4(), family_id=family.id, subject_id=subject.id, profile_id=user_id,
+        provider="oura", open_wearables_user_id=f"kinguard_{subject.id}", connection_status="connected"
+    )
+    session.add_all([garmin_conn, apple_conn, fitbit_conn, oura_conn])
+    await session.commit()
+
+    # 3. Create Hardware Data Sources: Apple Watch, Garmin Venu, Fitbit Charge, Oura Ring
+    apple_watch = WearableDataSource(
+        id=uuid.uuid4(),
+        connection_id=apple_conn.id,
+        provider="apple_health",
+        source_type="smartwatch",
+        device_name="Apple Watch",
+        device_id="apple_watch_series_9_sn_88219",
+        status="active",
+        metadata_json={"hardware_generation": "Series 9", "os_version": "watchOS 10.4"}
+    )
+    garmin_venu = WearableDataSource(
+        id=uuid.uuid4(),
+        connection_id=garmin_conn.id,
+        provider="garmin",
+        source_type="smartwatch",
+        device_name="Garmin Venu",
+        device_id="garmin_venu_3_sn_44901",
+        status="active",
+        metadata_json={"model": "Venu 3", "battery_level_pct": 82}
+    )
+    fitbit_charge = WearableDataSource(
+        id=uuid.uuid4(),
+        connection_id=fitbit_conn.id,
+        provider="fitbit",
+        source_type="fitness_tracker",
+        device_name="Fitbit Charge",
+        device_id="fitbit_charge_6_sn_11928",
+        status="active",
+        metadata_json={"model": "Charge 6", "sensors": ["ECG", "SpO2", "EDA"]}
+    )
+    oura_ring = WearableDataSource(
+        id=uuid.uuid4(),
+        connection_id=oura_conn.id,
+        provider="oura",
+        source_type="smart_ring",
+        device_name="Oura Ring",
+        device_id="oura_ring_gen3_sn_77182",
+        status="active",
+        metadata_json={"generation": "Gen 3 Heritage", "ring_size": 10}
+    )
+    session.add_all([apple_watch, garmin_venu, fitbit_charge, oura_ring])
+    await session.commit()
+
+    # 4. Query and verify navigation and attributes
+    from sqlalchemy.orm import selectinload
+    res = await session.execute(
+        select(WearableConnection)
+        .where(WearableConnection.subject_id == subject.id)
+        .options(selectinload(WearableConnection.data_sources))
+    )
+    connections = res.scalars().all()
+    assert len(connections) == 4
+
+    all_device_names = []
+    for conn in connections:
+        assert len(conn.data_sources) == 1
+        all_device_names.append(conn.data_sources[0].device_name)
+
+    assert "Apple Watch" in all_device_names
+    assert "Garmin Venu" in all_device_names
+    assert "Fitbit Charge" in all_device_names
+    assert "Oura Ring" in all_device_names
+

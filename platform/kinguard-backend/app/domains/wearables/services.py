@@ -475,9 +475,14 @@ class WearableService:
         sleeps = await self.get_sleep_history(subject_id, days=7)
         recoveries = await self.get_recovery_history(subject_id, days=7)
 
-        latest_activity = activities[-1] if activities else None
-        latest_sleep = sleeps[-1] if sleeps else None
-        latest_recovery = recoveries[-1] if recoveries else None
+        sorted_activities = sorted(activities, key=lambda x: x.date, reverse=True) if activities else []
+        sorted_sleeps = sorted(sleeps, key=lambda x: x.date, reverse=True) if sleeps else []
+        sorted_recoveries = sorted(recoveries, key=lambda x: x.date, reverse=True) if recoveries else []
+
+        latest_activity = sorted_activities[0] if sorted_activities else None
+        latest_sleep = sorted_sleeps[0] if sorted_sleeps else None
+        latest_recovery = sorted_recoveries[0] if sorted_recoveries else None
+
 
         # Calculate weekly averages
         total_steps = sum(a.steps for a in activities)

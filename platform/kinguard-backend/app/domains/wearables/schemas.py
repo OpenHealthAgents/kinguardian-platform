@@ -234,4 +234,44 @@ class WearableConsentGrantRequest(BaseModel):
     )
 
 
+class PaginationMetadata(BaseModel):
+    """Metadata for paginated time-series queries."""
+    page: int = Field(1, ge=1, description="Current 1-indexed page number")
+    page_size: int = Field(20, ge=1, le=100, description="Number of items per page")
+    total_items: int = Field(0, ge=0, description="Total number of items in query")
+    total_pages: int = Field(0, ge=0, description="Total number of pages")
+    has_next: bool = False
+    has_previous: bool = False
+
+
+class PaginatedActivityResponse(BaseModel):
+    """Paginated daily activity time-series data."""
+    items: List[WearableActivitySummary] = Field(default_factory=list)
+    pagination: PaginationMetadata
+
+
+class PaginatedSleepResponse(BaseModel):
+    """Paginated sleep architecture time-series data."""
+    items: List[WearableSleepSummary] = Field(default_factory=list)
+    pagination: PaginationMetadata
+
+
+class PaginatedHeartRateResponse(BaseModel):
+    """Paginated cardiovascular and recovery vitals time-series data."""
+    items: List[WearableRecoverySummary] = Field(default_factory=list)
+    pagination: PaginationMetadata
+
+
+class WearableSubjectOverview(BaseModel):
+    """Root wearable overview for a care subject."""
+    subject_id: uuid.UUID
+    open_wearables_user_id: str
+    active_connections: List[DeviceConnectionResponse] = Field(default_factory=list)
+    latest_activity: Optional[WearableActivitySummary] = None
+    latest_sleep: Optional[WearableSleepSummary] = None
+    latest_heart_rate: Optional[WearableRecoverySummary] = None
+    sync_status: WearableSyncStatus
+
+
+
 

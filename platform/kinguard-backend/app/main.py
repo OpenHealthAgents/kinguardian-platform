@@ -31,6 +31,10 @@ from app.domains.family.presentation.realtime_router import router as realtime_r
 from app.domains.events.router import router as events_router
 from app.domains.wearables.router import router as wearables_router
 from app.domains.wearables.webhook_router import router as wearables_webhook_router
+from app.domains.wearables.read_router import router as wearables_read_router
+
+
+
 
 
 
@@ -211,8 +215,10 @@ api_routers = [
     i18n_router,
     events_router,
     wearables_router,
-    wearables_webhook_router
+    wearables_webhook_router,
+    wearables_read_router
 ]
+
 
 
 for r in api_routers:

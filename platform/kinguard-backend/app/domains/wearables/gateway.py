@@ -517,7 +517,9 @@ class MockWearableDataGateway(WearableDataGateway):
             self._user_workouts[user_id] = workouts
 
     def _ensure_default_seed(self, user_id: str):
-        today_str = datetime.utcnow().strftime("%Y-%m-%d")
+        today = datetime.utcnow()
+        today_str = today.strftime("%Y-%m-%d")
+
         if user_id not in self._user_connections:
             self._user_connections[user_id] = [
                 DeviceConnectionResponse(
@@ -539,46 +541,61 @@ class MockWearableDataGateway(WearableDataGateway):
             ]
 
         if user_id not in self._user_activity:
-            self._user_activity[user_id] = [
-                WearableActivitySummary(
-                    date=today_str,
-                    steps=5840,
-                    active_duration_minutes=48,
-                    calories_burned_kcal=2150.0,
-                    distance_meters=4120.0,
-                    floors_climbed=6,
-                    source_provider="garmin"
+            activities = []
+            for i in range(14):
+                d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+                activities.append(
+                    WearableActivitySummary(
+                        date=d_str,
+                        steps=5840 - (i * 120),
+                        active_duration_minutes=48 - (i * 2),
+                        calories_burned_kcal=2150.0 - (i * 15),
+                        distance_meters=4120.0 - (i * 80),
+                        floors_climbed=6,
+                        source_provider="garmin"
+                    )
                 )
-            ]
+            self._user_activity[user_id] = activities
 
         if user_id not in self._user_sleep:
-            self._user_sleep[user_id] = [
-                WearableSleepSummary(
-                    date=today_str,
-                    total_sleep_minutes=440,
-                    deep_sleep_minutes=75,
-                    light_sleep_minutes=240,
-                    rem_sleep_minutes=95,
-                    awake_minutes=30,
-                    sleep_score=84,
-                    efficiency_percentage=93.5,
-                    source_provider="garmin"
+            sleeps = []
+            for i in range(14):
+                d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+                sleeps.append(
+                    WearableSleepSummary(
+                        date=d_str,
+                        total_sleep_minutes=440 + (i * 5),
+                        deep_sleep_minutes=75,
+                        light_sleep_minutes=240,
+                        rem_sleep_minutes=95,
+                        awake_minutes=30,
+                        sleep_score=84 - (i % 5),
+                        efficiency_percentage=93.5,
+                        source_provider="garmin"
+                    )
                 )
-            ]
+            self._user_sleep[user_id] = sleeps
 
         if user_id not in self._user_recovery:
-            self._user_recovery[user_id] = [
-                WearableRecoverySummary(
-                    date=today_str,
-                    resting_heart_rate_bpm=64,
-                    hrv_ms=48.5,
-                    spo2_percentage=98.2,
-                    skin_temperature_celsius=36.4,
-                    recovery_score=82,
-                    respiratory_rate_bpm=14.2,
-                    source_provider="garmin"
+            recoveries = []
+            for i in range(14):
+                d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+                recoveries.append(
+                    WearableRecoverySummary(
+                        date=d_str,
+                        resting_heart_rate_bpm=64 + (i % 4),
+                        hrv_ms=48.5 - (i * 0.5),
+                        spo2_percentage=98.2,
+                        skin_temperature_celsius=36.4,
+                        recovery_score=82 - (i % 6),
+                        respiratory_rate_bpm=14.2,
+                        source_provider="garmin"
+                    )
                 )
-            ]
+            self._user_recovery[user_id] = recoveries
+
+
+
 
         if user_id not in self._user_workouts:
             self._user_workouts[user_id] = [

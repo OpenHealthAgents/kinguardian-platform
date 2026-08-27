@@ -801,12 +801,17 @@ class AIContextBuilder:
                     acts = await self.wearable_gateway.get_activity_summaries(wearable_uid, start_d, end_d)
                     slps = await self.wearable_gateway.get_sleep_summaries(wearable_uid, start_d, end_d)
                     recs = await self.wearable_gateway.get_recovery_summaries(wearable_uid, start_d, end_d)
+                    sorted_acts = sorted(acts, key=lambda x: x.date, reverse=True) if acts else []
+                    sorted_slps = sorted(slps, key=lambda x: x.date, reverse=True) if slps else []
+                    sorted_recs = sorted(recs, key=lambda x: x.date, reverse=True) if recs else []
+
                     subj_ctx.wearables = {
-                        "latest_activity": acts[-1].model_dump() if acts else None,
-                        "latest_sleep": slps[-1].model_dump() if slps else None,
-                        "latest_recovery": recs[-1].model_dump() if recs else None,
+                        "latest_activity": sorted_acts[0].model_dump() if sorted_acts else None,
+                        "latest_sleep": sorted_slps[0].model_dump() if sorted_slps else None,
+                        "latest_recovery": sorted_recs[0].model_dump() if sorted_recs else None,
                         "weekly_average_steps": int(sum(a.steps for a in acts) / len(acts)) if acts else 0
                     }
+
                 except Exception as e:
                     logger.warning(f"AIContextBuilder: Failed to fetch wearables for {subject.id}: {e}")
                     subj_ctx.wearables = None

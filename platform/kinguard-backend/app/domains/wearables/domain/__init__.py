@@ -112,6 +112,13 @@ from app.domains.wearables.domain.consent_scopes import (
     WEARABLE_CONSENT_SCOPE_REGISTRY,
     ConsentScopeAuthorizer
 )
+from app.domains.wearables.domain.care_coordination import (
+    CareTaskCreationMode,
+    WearableCareActionPolicy,
+    WearableCareTaskSuggestion,
+    CreatedCareTask,
+    WearableCareCoordinatorService
+)
 
 __all__ = [
     "WearableIdentity",
@@ -192,8 +199,14 @@ __all__ = [
     "ScopeSensitivityLevel",
     "ConsentScopeDefinition",
     "WEARABLE_CONSENT_SCOPE_REGISTRY",
-    "ConsentScopeAuthorizer"
+    "ConsentScopeAuthorizer",
+    "CareTaskCreationMode",
+    "WearableCareActionPolicy",
+    "WearableCareTaskSuggestion",
+    "CreatedCareTask",
+    "WearableCareCoordinatorService"
 ]
+
 
 
 

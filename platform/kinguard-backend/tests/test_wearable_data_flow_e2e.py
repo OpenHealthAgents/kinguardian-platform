@@ -113,20 +113,18 @@ async def test_wearable_data_flow_complete_lifecycle(test_db_session: AsyncSessi
     assert invitation.provider == "garmin"
     assert "connect_url" in invitation.model_dump()
 
-    # 2. Persist Connection in KinGuard Database
-    wearable_conn = WearableConnection(
-        id=uuid.uuid4(),
-        family_id=family.id,
-        subject_id=subject.id,
-        profile_id=anjali_id,
-        provider="garmin",
-        open_wearables_user_id=f"kinguard_subject_{subject.id}",
-        provider_user_id="garmin_ramesh_881",
-        connection_status="connected",
-        permissions={"activity": True, "sleep": True, "recovery": True},
-        metadata_json={"device_model": "Garmin Venu 3"}
+    # 2. Retrieve Connection created in KinGuard Database and set connected state
+    res_conn = await session.execute(
+        select(WearableConnection).where(
+            WearableConnection.subject_id == subject.id,
+            WearableConnection.provider == "garmin"
+        )
     )
-    session.add(wearable_conn)
+    wearable_conn = res_conn.scalar_one()
+    wearable_conn.connection_status = "connected"
+    wearable_conn.provider_user_id = "garmin_ramesh_881"
+    wearable_conn.permissions = {"activity": True, "sleep": True, "recovery": True}
+    wearable_conn.metadata_json = {"device_model": "Garmin Venu 3"}
 
     # 3. Store hardware data source
     data_source = WearableDataSource(
@@ -140,6 +138,7 @@ async def test_wearable_data_flow_complete_lifecycle(test_db_session: AsyncSessi
     )
     session.add(data_source)
     await session.commit()
+
 
     # -------------------------------------------------------------------------
     # STAGE 3, 4, 5, 6: Open Wearables synchronization & Mock Gateway Seeding

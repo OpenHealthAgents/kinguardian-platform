@@ -96,11 +96,53 @@ class WearableService:
     async def create_connection_invitation(
         self,
         subject_id: uuid.UUID,
-        provider: str
+        provider: str,
+        redirect_url: Optional[str] = None
     ) -> DeviceConnectUrlResponse:
-        """Generate a connection link or SDK token for a specific provider."""
+        """
+        Initiates the zero-credential connection flow via Open Wearables:
+        1. Validates care subject existence.
+        2. Records/updates a pending WearableConnection in the KinGuard database.
+        3. Requests a secure hosted OAuth connection URL or mobile SDK token from Open Wearables.
+        4. Returns ONLY the connection URL / token to the mobile client (zero provider secrets/credentials).
+        """
+        res_subj = await self.session.execute(
+            select(CareSubject).where(CareSubject.id == subject_id)
+        )
+        subject = res_subj.scalar_one_or_none()
+        if not subject:
+            raise ValueError(f"Care subject {subject_id} not found")
+
         wearable_user_id = self.get_wearable_user_id(subject_id)
+
+        # 1. Maintain WearableConnection in PostgreSQL (Pending state)
+        res_conn = await self.session.execute(
+            select(WearableConnection).where(
+                WearableConnection.subject_id == subject.id,
+                WearableConnection.provider == provider.lower()
+            )
+        )
+        existing_conn = res_conn.scalar_one_or_none()
+        if not existing_conn:
+            new_conn = WearableConnection(
+                id=uuid.uuid4(),
+                family_id=subject.family_id,
+                subject_id=subject.id,
+                profile_id=subject.profile_id,
+                provider=provider.lower(),
+                open_wearables_user_id=wearable_user_id,
+                connection_status="pending",
+                metadata_json={"redirect_url": redirect_url} if redirect_url else {}
+            )
+            self.session.add(new_conn)
+            await self.session.flush()
+        else:
+            existing_conn.connection_status = "pending"
+            await self.session.flush()
+
+        # 2. Open Wearables connection flow
         return await self.gateway.create_connection_invitation(wearable_user_id, provider)
+
 
     async def get_activity_history(
         self,
@@ -256,7 +298,72 @@ class WearableService:
             }
         )
 
-        # 2. Check for anomaly triggers in webhook payload
+        # 2. Connection Lifecycle Handling
+        normalized_event = payload.event_type.replace(":", ".")
+        if normalized_event in ("connection.completed", "connection.created"):
+            res_conn = await self.session.execute(
+                select(WearableConnection).where(
+                    WearableConnection.subject_id == subject.id,
+                    WearableConnection.provider == payload.provider.lower()
+                )
+            )
+            conn = res_conn.scalar_one_or_none()
+            if not conn:
+                conn = WearableConnection(
+                    id=uuid.uuid4(),
+                    family_id=subject.family_id,
+                    subject_id=subject.id,
+                    profile_id=subject.profile_id,
+                    provider=payload.provider.lower(),
+                    open_wearables_user_id=payload.user_id,
+                    provider_user_id=payload.data.get("provider_user_id"),
+                    connection_status="connected",
+                    connected_at=datetime.utcnow()
+                )
+                self.session.add(conn)
+                await self.session.flush()
+            else:
+                conn.connection_status = "connected"
+                conn.connected_at = datetime.utcnow()
+                if "provider_user_id" in payload.data:
+                    conn.provider_user_id = payload.data["provider_user_id"]
+                await self.session.flush()
+
+            # Create or update WearableDataSource
+            device_name = payload.data.get("device_name", f"{payload.provider.title()} Device")
+            device_id = payload.data.get("device_id")
+            source_type = payload.data.get("source_type", "smartwatch")
+            res_src = await self.session.execute(
+                select(WearableDataSource).where(WearableDataSource.connection_id == conn.id)
+            )
+            src = res_src.scalar_one_or_none()
+            if not src:
+                src = WearableDataSource(
+                    id=uuid.uuid4(),
+                    connection_id=conn.id,
+                    provider=payload.provider.lower(),
+                    source_type=source_type,
+                    device_name=device_name,
+                    device_id=device_id,
+                    status="active"
+                )
+                self.session.add(src)
+                await self.session.flush()
+
+        elif normalized_event in ("connection.revoked", "connection.disconnected"):
+            res_conn = await self.session.execute(
+                select(WearableConnection).where(
+                    WearableConnection.subject_id == subject.id,
+                    WearableConnection.provider == payload.provider.lower()
+                )
+            )
+            conn = res_conn.scalar_one_or_none()
+            if conn:
+                conn.connection_status = "disconnected"
+                conn.disconnected_at = datetime.utcnow()
+                await self.session.flush()
+
+        # 3. Check for anomaly triggers in webhook payload
         activity_data = payload.data.get("activity", {})
         steps = activity_data.get("steps", 0)
 
@@ -264,6 +371,7 @@ class WearableService:
             # Significant activity drop -> Synthesize Guardian Moment
             now = datetime.utcnow()
             insight = AIInsight(
+                id=uuid.uuid4(),
                 family_id=subject.family_id,
                 subject_id=subject.id,
                 type="guardian_moment",
@@ -282,6 +390,7 @@ class WearableService:
             )
             self.session.add(insight)
             await self.session.flush()
+
 
         await self.session.commit()
         return {"status": "processed", "outbox_id": str(outbox_event.id)}

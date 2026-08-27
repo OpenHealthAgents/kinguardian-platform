@@ -124,11 +124,13 @@ class WearableSyncStatus(BaseModel):
 
 class OpenWearablesWebhookPayload(BaseModel):
     """Inbound webhook event delivered by Open Wearables upon sync."""
-    event_type: str = Field(..., description="e.g. data.synced, connection.created, anomaly.detected")
+    event_id: Optional[str] = Field(default=None, description="Unique event identifier for idempotency")
+    event_type: str = Field(..., description="e.g. wearable.connected, wearable.disconnected, wearable.sync.completed, wearable.data.received, data.synced, connection.created, anomaly.detected")
     user_id: str
-    provider: Optional[str] = None
+    provider: Optional[str] = "unknown"
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     data: Dict[str, Any] = Field(default_factory=dict)
+
 
 
 class WearablePermissionDetail(BaseModel):

@@ -366,3 +366,57 @@ class GlucoseTrendStrategy(BaseTrendStrategy):
             )
 
         return None
+
+
+# ==========================================
+# 6. Wearable Cardiovascular & Recovery Trend Strategy
+# ==========================================
+
+class WearableCardiovascularTrendStrategy(BaseTrendStrategy):
+    metric_name = "cardiovascular_recovery"
+
+    async def analyze(
+        self,
+        subject_id: uuid.UUID,
+        family_id: uuid.UUID,
+        observations: List[Dict[str, Any]],
+        timeframe_days: int = 7
+    ) -> Optional[TrendAnalysisResult]:
+        """
+        Detects resting heart rate elevation or severe HRV depression from wearable telemetry.
+        """
+        now = datetime.now()
+        start = now - timedelta(days=timeframe_days)
+
+        hr_obs = [
+            o for o in observations
+            if o.get("code") in ("resting_heart_rate", "heart_rate", "rhr", "40443-4", "8867-4")
+            and o.get("value") is not None
+        ]
+        if len(hr_obs) < 3:
+            return None
+
+        hr_values = [float(o["value"]) for o in hr_obs if o.get("value") is not None]
+        avg_rhr = sum(hr_values) / len(hr_values)
+
+        # Baseline resting heart rate is typically 65-70 bpm. If rolling avg > 78 bpm:
+        if avg_rhr >= 78.0:
+            return TrendAnalysisResult(
+                metric_name=self.metric_name,
+                detected=True,
+                title="Elevated Resting Heart Rate Trend",
+                summary=f"Resting heart rate averaged {int(avg_rhr)} bpm over the past {timeframe_days} days (elevated vs 68 bpm baseline).",
+                observation="Autonomic recovery vitals indicate sustained cardiovascular exertion or physiological stress.",
+                recommendation="Monitor hydration, ensure adequate sleep, and consider checking for infection or medication adjustments.",
+                severity="warning",
+                type="guardian_moment",
+                confidence=0.93,
+                baseline_comparison=f"Rolling average of {int(avg_rhr)} bpm exceeds normal baseline (65-70 bpm).",
+                actionability="Recommend assessing vital signs and checking in on daily stress levels.",
+                timeframe_start=start,
+                timeframe_end=now,
+                source_records=[{"source_type": "wearable_recovery", "source_id": str(subject_id), "metadata": {"avg_rhr": avg_rhr}}]
+            )
+
+        return None
+

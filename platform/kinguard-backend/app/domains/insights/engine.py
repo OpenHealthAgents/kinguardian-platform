@@ -13,7 +13,8 @@ from app.domains.insights.strategies import (
     SleepTrendStrategy,
     BloodPressureTrendStrategy,
     WeightTrendStrategy,
-    GlucoseTrendStrategy
+    GlucoseTrendStrategy,
+    WearableCardiovascularTrendStrategy
 )
 
 logger = get_logger(__name__)
@@ -25,19 +26,17 @@ class InsightEngine:
     Orchestrates metric trend detection strategies, generates and persists AI Insights and Guardian Moments.
 
     Decoupled Flow:
-    Health data change
-            ↓
-    Trend analysis (Strategy Pattern: Activity, Sleep, BP, Weight, Glucose)
-            ↓
-    Insight generated
-            ↓
-    Insight persisted (ai_insights & ai_insight_sources tables)
-            ↓
-    Domain Event emitted (e.g. guardian_moment_created)
-            ↓
-    Notification policy evaluates (downstream event subscriber)
-            ↓
-    Notification created
+    Open Wearables
+          ↓
+    Normalized wearable data
+          ↓
+    Trend/Baseline Engine
+          ↓
+    Insight Engine
+          ↓
+    AI explanation
+          ↓
+    Guardian Moment
 
     IMPORTANT: InsightEngine NEVER directly creates or sends notifications.
     """
@@ -47,8 +46,10 @@ class InsightEngine:
         SleepTrendStrategy,
         BloodPressureTrendStrategy,
         WeightTrendStrategy,
-        GlucoseTrendStrategy
+        GlucoseTrendStrategy,
+        WearableCardiovascularTrendStrategy
     ]
+
 
     def __init__(
         self,
@@ -149,3 +150,45 @@ class InsightEngine:
                 )
 
         return created_insights
+
+    async def process_wearable_metrics(
+        self,
+        subject_id: uuid.UUID,
+        family_id: uuid.UUID,
+        metrics: List[Any],
+        timeframe_days: int = 7
+    ) -> List[AIInsightEntity]:
+        """
+        Feeds normalized wearable telemetry directly into the existing InsightEngine.
+        Converts WearableMetric domain models to observations and executes trend/baseline analysis.
+        Follows the core flow:
+        Open Wearables -> Normalized Wearable Data -> Trend/Baseline Engine -> Insight Engine -> AI Explanation -> Guardian Moment.
+        """
+        observations: List[Dict[str, Any]] = []
+        for m in metrics:
+            if hasattr(m, "metric_type"):
+                # WearableMetric domain model
+                observations.append({
+                    "code": m.metric_type.value,
+                    "value": m.value,
+                    "unit": m.unit,
+                    "effective_time": m.measured_at_utc.isoformat() if hasattr(m, "measured_at_utc") else m.measured_at.isoformat(),
+                    "source": m.source_provider.value if hasattr(m.source_provider, "value") else str(m.source_provider)
+                })
+            elif isinstance(m, dict):
+                code = m.get("metric") or m.get("metric_type") or m.get("code")
+                observations.append({
+                    "code": str(code),
+                    "value": m.get("value"),
+                    "unit": m.get("unit"),
+                    "effective_time": str(m.get("measured_at_utc") or m.get("measured_at") or m.get("timestamp")),
+                    "source": str(m.get("source_provider") or m.get("provider") or "wearable")
+                })
+
+        return await self.analyze_and_generate_insights(
+            subject_id=subject_id,
+            family_id=family_id,
+            observations=observations,
+            timeframe_days=timeframe_days
+        )
+

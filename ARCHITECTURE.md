@@ -1,13 +1,51 @@
 # KinGuard Platform Architecture & System Design
 
-## 1. System Overview & Architectural Paradigm
+## 1. Final Architectural Principle & System Topology
 
-**KinGuard** is an enterprise cross-border family healthcare coordination platform designed to bridge care gaps between aging parents (in regions like India) and family coordinators/caregivers (globally). 
+KinGuard is the **Family Health Intelligence and Coordination Layer** that sits at the center of the healthcare ecosystem, backed by specialized infrastructure layers:
 
-The platform is engineered as a **Modular Monolith**:
-- **Cohesive Domain Modularity**: Strict domain boundaries (`family`, `clinical`, `documents`, `events`, `scheduling`, `agent`) with explicit interfaces.
-- **Operational Simplicity**: Single deployable container artifact eliminating premature microservice distributed transaction overhead.
-- **Microservice-Extractable**: Clean repository abstractions and transactional outbox event messaging allowing future standalone extraction without rewrite.
+- **KinGuard**: **Family Intelligence & Coordination Layer** (owns the **Family Care Graph**, contextual baselines, Guardian Moments, and task routing).
+- **Open Wearables**: **Wearable Connectivity & Normalization Layer** (vendor OAuth, device streams, unit/timestamp normalization).
+- **FHIR R4 (`bezs-emr-core`)**: **Clinical Record Layer** (authoritative EMR system of record).
+- **FileNest (`bezs-filenest`)**: **Document Layer** (immutable WORM storage, SHA-256 integrity, lab scans).
+- **bezs-agent**: **AI / Agent Layer** (autonomous LLM runtime, clinical tooling, and empathetic synthesis).
+- **bezs-iam**: **Identity & Authorization Foundation** (OIDC, OAuth2, RS256 JWKS, session tokens).
+
+### The Platform Layer Breakdown
+
+```
+                         KinGuard
+                  Family Health Layer
+                         │
+       ┌─────────────────┼──────────────────┐
+       │                 │                  │
+       ▼                 ▼                  ▼
+   Clinical           Wearable              AI
+   Records             Data              Intelligence
+       │                 │                  │
+       ▼                 ▼                  ▼
+   FHIR R4       Open Wearables         bezs-agent
+       │                 │                  │
+       └─────────────────┼──────────────────┘
+                         │
+                         ▼
+                  Family Care Graph
+                         │
+       ┌─────────────────┼─────────────────┐
+       ▼                 ▼                 ▼
+    Parents          Caregivers         Children
+     India            India             Abroad
+```
+
+### The Family Care Graph Invariant
+
+The **Family Care Graph** is the core KinGuard-owned aggregate tying the entire ecosystem together:
+- **Evidence vs Decision Ownership**: Open Wearables provides the raw/normalized wearable evidence; KinGuard's Family Care Graph decides:
+  1. **Which parent it belongs to** (CareSubject identity mapping and device source tracking).
+  2. **Who is permitted to see it** (Granular consent grants and RBAC scope gates).
+  3. **What changed** (Deterministic rolling baselines and metric comparisons).
+  4. **Whether it matters** (Insight engine, multi-source correlation, and non-alarmist Guardian Moments).
+  5. **What action should follow** (Care tasks, check-in prompts, follow-ups, and notifications).
 
 ---
 
@@ -19,6 +57,7 @@ graph TB
         MobileApp["kinguard-mobile (React Native / Expo)"]
         WebApp["Web Portal (Next.js)"]
     end
+
 
     subgraph Edge_Routing ["Ingress & Security Perimeter"]
         Ingress["Ingress Controller / API Gateway (TLS 1.3, DDoS, Rate Limiting)"]

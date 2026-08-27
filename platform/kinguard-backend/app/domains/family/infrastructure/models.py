@@ -79,8 +79,10 @@ class Family(Base):
     monitoring_preferences = relationship("MonitoringPreference", back_populates="family", cascade="all, delete-orphan")
     ai_insights = relationship("AIInsight", back_populates="family", cascade="all, delete-orphan")
     consents = relationship("Consent", back_populates="family", cascade="all, delete-orphan")
+    wearable_connections = relationship("WearableConnection", back_populates="family", cascade="all, delete-orphan")
 
     __table_args__ = (
+
         Index("ix_families_primary_coordinator", "primary_coordinator_profile_id"),
     )
 
@@ -152,6 +154,8 @@ class CareSubject(Base):
     adherence_events = relationship("MedicationAdherenceEvent", back_populates="subject", cascade="all, delete-orphan")
     checkins = relationship("WellbeingCheckin", back_populates="subject", cascade="all, delete-orphan")
     wearable_identity = relationship("CareSubjectWearableIdentity", back_populates="subject", uselist=False, cascade="all, delete-orphan")
+    wearable_connections = relationship("WearableConnection", back_populates="subject", cascade="all, delete-orphan")
+
 
 
 
@@ -666,6 +670,44 @@ class WearableProviderConnection(Base):
         UniqueConstraint("wearable_identity_id", "provider", name="uq_wearable_identity_provider"),
         Index("ix_wearable_connections_provider_status", "provider", "status"),
     )
+
+
+class WearableConnection(Base):
+    """
+    Persistent connection record representing a third-party wearable provider link.
+    Table: wearable_connections
+    Maintains:
+    KinGuard user (profile_id) -> Care subject (subject_id) -> Open Wearables user (open_wearables_user_id) -> Provider connection
+    """
+    __tablename__ = "wearable_connections"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    family_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("families.id", ondelete="CASCADE"), nullable=False, index=True)
+    subject_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("care_subjects.id", ondelete="CASCADE"), nullable=False, index=True)
+    profile_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("app_profiles.id", ondelete="SET NULL"), nullable=True, index=True)
+    provider: Mapped[str] = mapped_column(String(100), nullable=False)  # garmin, fitbit, oura, apple_health, etc.
+    open_wearables_user_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    provider_user_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    connection_status: Mapped[str] = mapped_column(String(50), default="connected", nullable=False)  # connected, disconnected, pending, error, revoked
+    permissions: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    connected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    last_sync_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    disconnected_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    metadata_json: Mapped[dict] = mapped_column("metadata", JSON, default=dict, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    family = relationship("Family", back_populates="wearable_connections")
+    subject = relationship("CareSubject", back_populates="wearable_connections")
+    profile = relationship("AppProfile")
+
+    __table_args__ = (
+        UniqueConstraint("subject_id", "provider", name="uq_wearable_connections_subject_provider"),
+        Index("ix_wearable_conns_provider_status", "provider", "connection_status"),
+        CheckConstraint("connection_status IN ('connected', 'disconnected', 'pending', 'error', 'revoked')", name="ck_wearable_conn_status"),
+    )
+
 
 
 

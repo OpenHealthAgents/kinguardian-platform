@@ -14,8 +14,11 @@ from app.domains.wearables.domain.value_objects import (
     AnomalySeverity,
     ActivityMetrics,
     SleepArchitecture,
-    RecoveryVitals
+    RecoveryVitals,
+    WearableMetricType,
+    METRIC_UNIT_MAP
 )
+
 
 
 class WearableDeviceConnection:
@@ -149,3 +152,46 @@ class WearableIdentity:
             raise ValueError("Baseline sleep goal must be between 4.0 and 12.0 hours")
         self.baseline_step_goal = step_goal
         self.baseline_sleep_hours_goal = sleep_hours_goal
+
+
+class WearableMetric:
+    """
+    Normalized KinGuard domain representation of a wearable biometric/activity metric.
+    Encapsulates raw vendor measurements into a normalized, strongly-typed domain model.
+    """
+
+    def __init__(
+        self,
+        subject_id: uuid.UUID,
+        metric_type: WearableMetricType,
+        value: Any,
+        unit: Optional[str] = None,
+        measured_at: Optional[datetime] = None,
+        source_provider: DeviceProvider = DeviceProvider.UNKNOWN,
+        source_device: Optional[str] = None,
+        source_reference: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        self.subject_id = subject_id
+        self.metric_type = metric_type if isinstance(metric_type, WearableMetricType) else WearableMetricType.from_str(str(metric_type))
+        self.value = value
+        self.unit = unit or METRIC_UNIT_MAP.get(self.metric_type, "unit")
+        self.measured_at = measured_at or datetime.utcnow()
+        self.source_provider = source_provider if isinstance(source_provider, DeviceProvider) else DeviceProvider.from_str(str(source_provider))
+        self.source_device = source_device
+        self.source_reference = source_reference
+        self.metadata = metadata or {}
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "subject_id": str(self.subject_id),
+            "metric_type": self.metric_type.value,
+            "value": self.value,
+            "unit": self.unit,
+            "measured_at": self.measured_at.isoformat(),
+            "source_provider": self.source_provider.value,
+            "source_device": self.source_device,
+            "source_reference": self.source_reference,
+            "metadata": self.metadata
+        }
+

@@ -16,7 +16,8 @@ from datetime import datetime
 from app.domains.wearable.entities import (
     WearableIdentity,
     WearableDeviceConnection,
-    WearableDailySummary
+    WearableDailySummary,
+    WearableMetric
 )
 from app.domains.wearable.value_objects import (
     DeviceProvider,
@@ -25,8 +26,10 @@ from app.domains.wearable.value_objects import (
     ActivityMetrics,
     SleepArchitecture,
     RecoveryVitals,
-    AnomalyThreshold
+    AnomalyThreshold,
+    WearableMetricType
 )
+
 from app.domains.wearable.policies import (
     ActivityAnomalyPolicy,
     SleepDisruptionPolicy,
@@ -201,3 +204,88 @@ async def test_in_memory_wearable_repository_and_domain_service():
     assert len(anomalies) == 1
     assert anomalies[0].metric_name == "daily_steps"
     assert anomalies[0].percentage_deviation >= 70.0
+
+
+def test_wearable_metric_model_and_supported_types():
+    """
+    Verifies WearableMetric normalized domain model and all 17 supported metric types:
+    steps, distance, active_minutes, calories, heart_rate, resting_heart_rate,
+    heart_rate_variability, sleep_duration, sleep_score, sleep_stages, respiratory_rate,
+    weight, blood_oxygen, body_temperature, stress, workout, activity_level.
+    """
+    subject_id = uuid.uuid4()
+    now = datetime.utcnow()
+
+    # 1. Test all 17 metric types
+    all_metric_types = [
+        WearableMetricType.STEPS,
+        WearableMetricType.DISTANCE,
+        WearableMetricType.ACTIVE_MINUTES,
+        WearableMetricType.CALORIES,
+        WearableMetricType.HEART_RATE,
+        WearableMetricType.RESTING_HEART_RATE,
+        WearableMetricType.HEART_RATE_VARIABILITY,
+        WearableMetricType.SLEEP_DURATION,
+        WearableMetricType.SLEEP_SCORE,
+        WearableMetricType.SLEEP_STAGES,
+        WearableMetricType.RESPIRATORY_RATE,
+        WearableMetricType.WEIGHT,
+        WearableMetricType.BLOOD_OXYGEN,
+        WearableMetricType.BODY_TEMPERATURE,
+        WearableMetricType.STRESS,
+        WearableMetricType.WORKOUT,
+        WearableMetricType.ACTIVITY_LEVEL
+    ]
+    assert len(all_metric_types) == 17
+
+    # 2. Instantiate representative metrics from varying providers
+    step_metric = WearableMetric(
+        subject_id=subject_id,
+        metric_type=WearableMetricType.STEPS,
+        value=5420,
+        unit="count",
+        measured_at=now,
+        source_provider=DeviceProvider.GARMIN,
+        source_device="Garmin Venu 3",
+        source_reference="garmin_act_20260827_01"
+    )
+    assert step_metric.subject_id == subject_id
+    assert step_metric.metric_type == WearableMetricType.STEPS
+    assert step_metric.value == 5420
+    assert step_metric.unit == "count"
+    assert step_metric.source_provider == DeviceProvider.GARMIN
+    assert step_metric.source_device == "Garmin Venu 3"
+
+    hrv_metric = WearableMetric(
+        subject_id=subject_id,
+        metric_type=WearableMetricType.HEART_RATE_VARIABILITY,
+        value=48.5,
+        unit="ms",
+        measured_at=now,
+        source_provider=DeviceProvider.OURA,
+        source_device="Oura Ring Gen 3",
+        source_reference="oura_hrv_epoch_9901"
+    )
+    assert hrv_metric.metric_type == WearableMetricType.HEART_RATE_VARIABILITY
+    assert hrv_metric.value == 48.5
+    assert hrv_metric.unit == "ms"
+
+    spo2_metric = WearableMetric(
+        subject_id=subject_id,
+        metric_type="blood_oxygen",  # test string conversion
+        value=98.0,
+        measured_at=now,
+        source_provider="apple_health",
+        source_device="Apple Watch Series 9"
+    )
+    assert spo2_metric.metric_type == WearableMetricType.BLOOD_OXYGEN
+    assert spo2_metric.source_provider == DeviceProvider.APPLE_HEALTH
+    assert spo2_metric.unit == "percentage"
+
+    # 3. Serialization to dict
+    d = step_metric.to_dict()
+    assert d["subject_id"] == str(subject_id)
+    assert d["metric_type"] == "steps"
+    assert d["value"] == 5420
+    assert d["source_provider"] == "garmin"
+

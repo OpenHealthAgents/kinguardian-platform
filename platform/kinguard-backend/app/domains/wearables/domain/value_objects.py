@@ -123,3 +123,58 @@ class AnomalyThreshold:
     sleep_drop_percentage: float = 30.0     # Alert if sleep drops > 30% below baseline
     resting_hr_elevation_bpm: int = 12       # Alert if resting HR spikes by > 12 bpm
     min_baseline_days: int = 3              # Minimum historical days required to establish baseline
+
+
+class WearableMetricType(str, Enum):
+    """
+    Standardized, normalized KinGuard wearable biometric and activity metric types.
+    Represents normalized measurements across all integrated hardware and aggregator providers.
+    """
+    STEPS = "steps"
+    DISTANCE = "distance"
+    ACTIVE_MINUTES = "active_minutes"
+    CALORIES = "calories"
+    HEART_RATE = "heart_rate"
+    RESTING_HEART_RATE = "resting_heart_rate"
+    HEART_RATE_VARIABILITY = "heart_rate_variability"
+    SLEEP_DURATION = "sleep_duration"
+    SLEEP_SCORE = "sleep_score"
+    SLEEP_STAGES = "sleep_stages"
+    RESPIRATORY_RATE = "respiratory_rate"
+    WEIGHT = "weight"
+    BLOOD_OXYGEN = "blood_oxygen"
+    BODY_TEMPERATURE = "body_temperature"
+    STRESS = "stress"
+    WORKOUT = "workout"
+    ACTIVITY_LEVEL = "activity_level"
+
+    @classmethod
+    def from_str(cls, val: str) -> "WearableMetricType":
+        normalized = val.strip().lower()
+        for member in cls:
+            if member.value == normalized:
+                return member
+        raise ValueError(f"Unknown wearable metric type: {val}")
+
+
+# Metric unit defaults for standard normalization
+METRIC_UNIT_MAP: Dict[WearableMetricType, str] = {
+    WearableMetricType.STEPS: "count",
+    WearableMetricType.DISTANCE: "meters",
+    WearableMetricType.ACTIVE_MINUTES: "minutes",
+    WearableMetricType.CALORIES: "kcal",
+    WearableMetricType.HEART_RATE: "bpm",
+    WearableMetricType.RESTING_HEART_RATE: "bpm",
+    WearableMetricType.HEART_RATE_VARIABILITY: "ms",
+    WearableMetricType.SLEEP_DURATION: "seconds",
+    WearableMetricType.SLEEP_SCORE: "score_0_100",
+    WearableMetricType.SLEEP_STAGES: "json_summary",
+    WearableMetricType.RESPIRATORY_RATE: "brpm",
+    WearableMetricType.WEIGHT: "kg",
+    WearableMetricType.BLOOD_OXYGEN: "percentage",
+    WearableMetricType.BODY_TEMPERATURE: "celsius",
+    WearableMetricType.STRESS: "score_0_100",
+    WearableMetricType.WORKOUT: "event",
+    WearableMetricType.ACTIVITY_LEVEL: "level",
+}
+

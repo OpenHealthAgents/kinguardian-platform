@@ -5,7 +5,9 @@ from app.domains.wearables.domain.value_objects import (
     ActivityMetrics,
     SleepArchitecture,
     RecoveryVitals,
-    AnomalyThreshold
+    AnomalyThreshold,
+    WearableMetricType,
+    METRIC_UNIT_MAP
 )
 
 __all__ = [
@@ -15,5 +17,8 @@ __all__ = [
     "ActivityMetrics",
     "SleepArchitecture",
     "RecoveryVitals",
-    "AnomalyThreshold"
+    "AnomalyThreshold",
+    "WearableMetricType",
+    "METRIC_UNIT_MAP"
 ]
+

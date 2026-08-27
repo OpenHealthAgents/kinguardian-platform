@@ -7,7 +7,8 @@ from app.domains.wearables.domain.entities import (
     WearableIdentity,
     WearableDeviceConnection,
     WearableDailySummary,
-    WearableAnomalyDiagnostic
+    WearableAnomalyDiagnostic,
+    WearableMetric
 )
 from app.domains.wearables.domain.value_objects import (
     DeviceProvider,
@@ -16,7 +17,9 @@ from app.domains.wearables.domain.value_objects import (
     ActivityMetrics,
     SleepArchitecture,
     RecoveryVitals,
-    AnomalyThreshold
+    AnomalyThreshold,
+    WearableMetricType,
+    METRIC_UNIT_MAP
 )
 from app.domains.wearables.domain.repositories import (
     IWearableRepository,
@@ -41,6 +44,7 @@ __all__ = [
     "WearableDeviceConnection",
     "WearableDailySummary",
     "WearableAnomalyDiagnostic",
+    "WearableMetric",
     "DeviceProvider",
     "ConnectionStatus",
     "AnomalySeverity",
@@ -48,6 +52,8 @@ __all__ = [
     "SleepArchitecture",
     "RecoveryVitals",
     "AnomalyThreshold",
+    "WearableMetricType",
+    "METRIC_UNIT_MAP",
     "IWearableRepository",
     "InMemoryWearableRepository",
     "WearableDomainService",
@@ -60,3 +66,4 @@ __all__ = [
     "SleepDisruptionPolicy",
     "AutonomicRecoveryPolicy",
 ]
+

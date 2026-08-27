@@ -449,3 +449,121 @@ class WearableCardiovascularTrendStrategy(BaseTrendStrategy):
 
         return None
 
+
+
+# ==========================================
+# 7. Multi-Source Health Correlation Strategy
+# ==========================================
+
+from app.domains.insights.correlation import (
+    MultiSourceHealthContext,
+    MultiSourceCorrelationEngine,
+    MultiSourceCorrelationResult
+)
+
+
+class MultiSourceCorrelationStrategy(BaseTrendStrategy):
+    metric_name = "multi_source_correlation"
+
+    async def analyze(
+        self,
+        subject_id: uuid.UUID,
+        family_id: uuid.UUID,
+        observations: List[Dict[str, Any]],
+        timeframe_days: int = 7
+    ) -> Optional[TrendAnalysisResult]:
+        """
+        Correlates wearable metrics (activity, sleep, vitals) with medication adherence,
+        care-subject check-ins, appointments, reported symptoms, and caregiver reports.
+        """
+        now = datetime.now()
+        start = now - timedelta(days=timeframe_days)
+
+        # 1. Parse Wearable Activity
+        steps_obs = [o for o in observations if o.get("code") in ("steps", "activity", "step_count") and o.get("value") is not None]
+        avg_steps = sum(float(o["value"]) for o in steps_obs) / len(steps_obs) if steps_obs else None
+        baseline_steps = 6210.0
+
+        # 2. Parse Wearable Sleep
+        sleep_obs = [o for o in observations if o.get("code") in ("sleep_duration", "sleep", "total_sleep_hours") and o.get("value") is not None]
+        # In hours
+        sleep_vals = []
+        for o in sleep_obs:
+            v = float(o["value"])
+            if v > 24.0:  # In minutes
+                sleep_vals.append(v / 60.0)
+            else:
+                sleep_vals.append(v)
+        avg_sleep_hrs = sum(sleep_vals) / len(sleep_vals) if sleep_vals else None
+        baseline_sleep_hrs = 7.0
+
+        # 3. Parse Medication Adherence
+        med_obs = [o for o in observations if o.get("code") in ("medication", "medication_adherence", "adherence")]
+        med_status = "normal"
+        if med_obs:
+            med_status = str(med_obs[-1].get("status") or med_obs[-1].get("value") or "normal")
+
+        # 4. Parse Check-in
+        checkin_obs = [o for o in observations if o.get("code") in ("checkin", "check_in", "parent_checkin", "mood")]
+        latest_checkin = None
+        if checkin_obs:
+            latest_checkin = str(checkin_obs[-1].get("value") or checkin_obs[-1].get("response") or "Okay")
+
+        # 5. Parse Symptoms
+        symptom_obs = [o for o in observations if o.get("code") in ("symptom", "symptoms")]
+        symptoms = [str(s.get("value")) for s in symptom_obs if s.get("value")]
+
+        # Determine activity & sleep trends
+        act_trend = "normal"
+        if avg_steps is not None:
+            if avg_steps < (baseline_steps * 0.8):
+                act_trend = "below"
+            elif avg_steps > (baseline_steps * 1.2):
+                act_trend = "above"
+
+        slp_trend = "normal"
+        if avg_sleep_hrs is not None:
+            if avg_sleep_hrs < (baseline_sleep_hrs * 0.8):
+                slp_trend = "below"
+
+        # Build Holistic Context
+        ctx = MultiSourceHealthContext(
+            subject_id=subject_id,
+            family_id=family_id,
+            subject_name="Dad",
+            activity_steps_today=int(avg_steps) if avg_steps else None,
+            activity_baseline_steps=int(baseline_steps),
+            activity_trend=act_trend,
+            sleep_hours_today=round(avg_sleep_hrs, 1) if avg_sleep_hrs else None,
+            sleep_baseline_hours=baseline_sleep_hrs,
+            sleep_trend=slp_trend,
+            medication_adherence_status=med_status,
+            latest_checkin_status=latest_checkin,
+            reported_symptoms=symptoms
+        )
+
+        corr_res: MultiSourceCorrelationResult = MultiSourceCorrelationEngine.correlate(ctx)
+
+        # If a non-trivial correlation is detected (e.g. severity attention or warning)
+        if corr_res.severity in ("attention", "warning") or (act_trend == "below" and slp_trend == "below"):
+            return TrendAnalysisResult(
+                metric_name=self.metric_name,
+                detected=True,
+                title=corr_res.title,
+                summary=corr_res.narrative_summary,
+                observation=corr_res.observation,
+                recommendation=corr_res.recommendation,
+                actions=corr_res.actions,
+                severity=corr_res.severity,
+                type=corr_res.type,
+                confidence=corr_res.confidence,
+                baseline_comparison=f"Activity ({int(avg_steps or 0):,} vs {int(baseline_steps):,} steps), Sleep ({avg_sleep_hrs or 0:.1f} vs {baseline_sleep_hrs} hrs)",
+                actionability="propose_care_task",
+                timeframe_start=start,
+                timeframe_end=now,
+                source_records=[{"source_type": "multi_source_correlation", "source_id": str(subject_id), "metadata": corr_res.signals}]
+            )
+
+        return None
+
+

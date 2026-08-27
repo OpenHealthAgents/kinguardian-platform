@@ -14,7 +14,8 @@ from app.domains.insights.strategies import (
     BloodPressureTrendStrategy,
     WeightTrendStrategy,
     GlucoseTrendStrategy,
-    WearableCardiovascularTrendStrategy
+    WearableCardiovascularTrendStrategy,
+    MultiSourceCorrelationStrategy
 )
 
 logger = get_logger(__name__)
@@ -47,8 +48,10 @@ class InsightEngine:
         BloodPressureTrendStrategy,
         WeightTrendStrategy,
         GlucoseTrendStrategy,
-        WearableCardiovascularTrendStrategy
+        WearableCardiovascularTrendStrategy,
+        MultiSourceCorrelationStrategy
     ]
+
 
 
     def __init__(

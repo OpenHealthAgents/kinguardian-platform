@@ -133,6 +133,9 @@ from app.domains.wearables.domain.exceptions import (
     WearableServiceUnavailableError,
     WearableErrorHandler
 )
+from app.domains.wearables.domain.auth_boundary import (
+    AuthenticationBoundaryVerifier
+)
 
 __all__ = [
     "WearableIdentity",
@@ -225,8 +228,10 @@ __all__ = [
     "ClinicalCorrelationTrend",
     "WearableClinicalCorrelationEngine",
     "WearableServiceUnavailableError",
-    "WearableErrorHandler"
+    "WearableErrorHandler",
+    "AuthenticationBoundaryVerifier"
 ]
+
 
 
 

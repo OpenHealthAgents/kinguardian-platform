@@ -105,6 +105,13 @@ from app.domains.wearables.domain.privacy import (
     WearableAccessGrant,
     WearablePrivacyAuthorizer
 )
+from app.domains.wearables.domain.consent_scopes import (
+    WearableConsentScope,
+    ScopeSensitivityLevel,
+    ConsentScopeDefinition,
+    WEARABLE_CONSENT_SCOPE_REGISTRY,
+    ConsentScopeAuthorizer
+)
 
 __all__ = [
     "WearableIdentity",
@@ -180,8 +187,14 @@ __all__ = [
     "DataRetentionPolicy",
     "WearableDataScope",
     "WearableAccessGrant",
-    "WearablePrivacyAuthorizer"
+    "WearablePrivacyAuthorizer",
+    "WearableConsentScope",
+    "ScopeSensitivityLevel",
+    "ConsentScopeDefinition",
+    "WEARABLE_CONSENT_SCOPE_REGISTRY",
+    "ConsentScopeAuthorizer"
 ]
+
 
 
 

@@ -38,8 +38,14 @@ from app.domains.wearables.schemas import (
     PaginatedActivityResponse,
     PaginatedSleepResponse,
     PaginatedHeartRateResponse,
-    WearableSubjectOverview
+    WearableSubjectOverview,
+    CreateWearableConnectionRequest,
+    WearableConnectionFlowDescriptor,
+    WearableDisconnectResponse
 )
+
+
+
 
 router = APIRouter(
     prefix="/subjects/{subject_id}/wearables",
@@ -130,11 +136,49 @@ async def get_subject_wearables_overview(
     )
 
 
+@router.post(
+    "/connections",
+    response_model=WearableConnectionFlowDescriptor,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create wearable connection and get connection flow descriptor"
+)
+async def create_subject_wearable_connection(
+    subject_id: uuid.UUID,
+    payload: CreateWearableConnectionRequest,
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Initiates a wearable device connection flow for a care subject.
+    Returns a connection flow descriptor with the hosted authorization URL and zero vendor credentials.
+    """
+    await _verify_subject_access(db, current_user.id, subject_id)
+    try:
+        return await service.create_connection_descriptor(
+            subject_id=subject_id,
+            provider=payload.provider,
+            redirect_url=payload.redirect_url,
+            profile_id=current_user.id
+        )
+    except ValueError as e:
+        if "consent" in str(e).lower():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=str(e)
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
 @router.get(
     "/connections",
     response_model=List[DeviceConnectionResponse],
     summary="Get all connected and available wearable providers"
 )
+
 async def get_subject_wearable_connections(
     subject_id: uuid.UUID,
     current_user: AppProfile = Depends(get_current_user),

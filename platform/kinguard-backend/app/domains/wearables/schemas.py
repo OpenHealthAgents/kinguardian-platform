@@ -273,5 +273,32 @@ class WearableSubjectOverview(BaseModel):
     sync_status: WearableSyncStatus
 
 
+class CreateWearableConnectionRequest(BaseModel):
+    """Payload to initiate a wearable device connection."""
+    provider: str = Field(..., description="Target wearable vendor (e.g. garmin, apple_health, fitbit, oura, whoop)")
+    redirect_url: Optional[str] = Field(None, description="Optional client redirect URL after completing OAuth flow")
+
+
+class WearableConnectionFlowDescriptor(BaseModel):
+    """
+    Connection Flow Descriptor returned to the mobile client.
+    Contains strictly zero provider credentials, providing a secure connection URL.
+    """
+    connection_id: uuid.UUID
+    provider: str
+    status: str = "pending"
+    connection_url: str
+    expires_at: Optional[datetime] = None
+
+
+class WearableDisconnectResponse(BaseModel):
+    """Response returned upon disconnecting a wearable provider."""
+    connection_id: uuid.UUID
+    provider: str
+    status: str = "disconnected"
+    disconnected_at: datetime
+
+
+
 
 

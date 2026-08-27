@@ -38,8 +38,12 @@ from app.domains.wearables.schemas import (
     WearablePermissionDetail,
     WEARABLE_PERMISSION_METADATA,
     WearableConsentStatusResponse,
-    WearableConsentGrantRequest
+    WearableConsentGrantRequest,
+    WearableConnectionFlowDescriptor,
+    WearableDisconnectResponse
 )
+
+
 
 
 from app.domains.events.outbox import OutboxService
@@ -156,6 +160,134 @@ class WearableService:
 
         # 2. Open Wearables connection flow
         return await self.gateway.create_connection_invitation(wearable_user_id, provider)
+
+    async def create_connection_descriptor(
+        self,
+        subject_id: uuid.UUID,
+        provider: str,
+        redirect_url: Optional[str] = None,
+        profile_id: Optional[uuid.UUID] = None
+    ) -> WearableConnectionFlowDescriptor:
+        """
+        Creates/initiates a wearable connection flow and returns a descriptor containing:
+        - connection_id
+        - provider
+        - status: pending
+        - connection_url: Hosted Open Wearables authentication URL (Zero vendor credentials).
+        """
+        res_subj = await self.session.execute(select(CareSubject).where(CareSubject.id == subject_id))
+        subject = res_subj.scalar_one_or_none()
+        if not subject:
+            raise ValueError(f"Care subject {subject_id} not found")
+
+        wearable_user_id = self.get_wearable_user_id(subject_id)
+
+        # Enforce KinGuard Authorization Layer Consent Boundary
+        has_consent = await self.verify_wearable_consent(subject_id=subject.id)
+        if not has_consent:
+            raise ValueError("Active parent/coordinator wearable health data consent is required before connecting a device.")
+
+        # Check or create WearableConnection record
+        res_conn = await self.session.execute(
+            select(WearableConnection).where(
+                WearableConnection.subject_id == subject.id,
+                WearableConnection.provider == provider.lower()
+            )
+        )
+        conn = res_conn.scalar_one_or_none()
+        if not conn:
+            conn = WearableConnection(
+                id=uuid.uuid4(),
+                family_id=subject.family_id,
+                subject_id=subject.id,
+                profile_id=profile_id or subject.profile_id,
+                provider=provider.lower(),
+                open_wearables_user_id=wearable_user_id,
+                connection_status="pending",
+                metadata_json={"redirect_url": redirect_url} if redirect_url else {}
+            )
+            self.session.add(conn)
+        else:
+            conn.connection_status = "pending"
+            if redirect_url:
+                meta = conn.metadata_json or {}
+                meta["redirect_url"] = redirect_url
+                conn.metadata_json = meta
+        await self.session.commit()
+
+        # Open Wearables connection flow
+        link_resp = await self.gateway.create_connection_invitation(wearable_user_id, provider)
+
+        return WearableConnectionFlowDescriptor(
+            connection_id=conn.id,
+            provider=provider.lower(),
+            status="pending",
+            connection_url=link_resp.connect_url,
+            expires_at=link_resp.expires_at
+        )
+
+    async def reconnect_connection_by_id(
+        self,
+        connection_id: uuid.UUID
+    ) -> WearableConnectionFlowDescriptor:
+        """
+        Regenerates an active authentication connection link for an existing wearable connection.
+        """
+        res_conn = await self.session.execute(
+            select(WearableConnection).where(WearableConnection.id == connection_id)
+        )
+        conn = res_conn.scalar_one_or_none()
+        if not conn:
+            raise ValueError(f"Wearable connection {connection_id} not found")
+
+        # Verify active consent
+        has_consent = await self.verify_wearable_consent(subject_id=conn.subject_id)
+        if not has_consent:
+            raise ValueError("Active parent/coordinator wearable health data consent is required before reconnecting.")
+
+        conn.connection_status = "pending"
+        await self.session.commit()
+
+        wearable_user_id = conn.open_wearables_user_id or self.get_wearable_user_id(conn.subject_id)
+        link_resp = await self.gateway.create_connection_invitation(wearable_user_id, conn.provider)
+
+        return WearableConnectionFlowDescriptor(
+            connection_id=conn.id,
+            provider=conn.provider,
+            status="pending",
+            connection_url=link_resp.connect_url,
+            expires_at=link_resp.expires_at
+        )
+
+    async def disconnect_connection_by_id(
+        self,
+        connection_id: uuid.UUID
+    ) -> WearableDisconnectResponse:
+        """
+        Disconnects and revokes an active or pending wearable connection.
+        """
+        res_conn = await self.session.execute(
+            select(WearableConnection).where(WearableConnection.id == connection_id)
+        )
+        conn = res_conn.scalar_one_or_none()
+        if not conn:
+            raise ValueError(f"Wearable connection {connection_id} not found")
+
+        wearable_user_id = conn.open_wearables_user_id or self.get_wearable_user_id(conn.subject_id)
+        await self.gateway.disconnect(wearable_user_id, conn.provider)
+
+        now = datetime.utcnow()
+        conn.connection_status = "disconnected"
+        conn.disconnected_at = now
+        await self.session.commit()
+
+        return WearableDisconnectResponse(
+            connection_id=conn.id,
+            provider=conn.provider,
+            status="disconnected",
+            disconnected_at=now
+        )
+
 
     async def verify_wearable_consent(
         self,

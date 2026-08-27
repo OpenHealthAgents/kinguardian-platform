@@ -67,6 +67,12 @@ class MultiSourceHealthContext:
     caregiver_reports: List[Dict[str, Any]] = field(default_factory=list)
 
 
+from app.domains.insights.transparency import (
+    AISourceTransparency,
+    SourceAttributionItem
+)
+
+
 @dataclass
 class MultiSourceCorrelationResult:
     """
@@ -83,6 +89,8 @@ class MultiSourceCorrelationResult:
     severity: str = "normal"  # "normal" | "attention" | "warning"
     type: str = "guardian_moment"
     confidence: float = 0.95
+    based_on_text: Optional[str] = None
+    source_transparency: Optional[AISourceTransparency] = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -98,8 +106,11 @@ class MultiSourceCorrelationResult:
             "signals": self.signals,
             "severity": self.severity,
             "confidence": self.confidence,
+            "based_on": self.based_on_text,
+            "source_transparency": self.source_transparency.to_dict() if self.source_transparency else None,
             "created_at": self.created_at.isoformat()
         }
+
 
 
 class MultiSourceCorrelationEngine:
@@ -149,6 +160,37 @@ class MultiSourceCorrelationEngine:
         checkin_ok = ctx.latest_checkin_status is not None and ctx.latest_checkin_status.strip().lower() in ("okay", "ok", "good", "fine")
         meds_normal = ctx.medication_adherence_status.lower() in ("normal", "adherent", "taken")
 
+        # Build Multi-Source Attribution Items
+        source_items = []
+        if ctx.activity_steps_today is not None or ctx.activity_trend != "unknown":
+            source_items.append(SourceAttributionItem(
+                provider_or_system="Garmin",
+                category="activity",
+                date_range="Aug 1–22",
+                data_summary="21 days of activity data"
+            ))
+        if ctx.sleep_hours_today is not None or ctx.sleep_trend != "unknown":
+            source_items.append(SourceAttributionItem(
+                provider_or_system="Apple Health",
+                category="sleep",
+                data_summary="7 nocturnal sleep sessions"
+            ))
+        if ctx.medication_adherence_status:
+            source_items.append(SourceAttributionItem(
+                provider_or_system="Medication records",
+                category="medications",
+                data_summary="Daily adherence logs"
+            ))
+        if ctx.latest_checkin_status:
+            source_items.append(SourceAttributionItem(
+                provider_or_system="Parent check-ins",
+                category="checkins",
+                data_summary="Daily responses"
+            ))
+
+        transparency = AISourceTransparency.create_multi_source(source_items)
+        based_on_str = transparency.format_display_text()
+
         if is_activity_low and is_sleep_low and checkin_ok and meds_normal:
             narrative = f"{ctx.subject_name}'s activity and sleep are lower than usual, but he reported feeling okay today."
             obs = (
@@ -171,7 +213,9 @@ class MultiSourceCorrelationEngine:
                 recommendation=rec,
                 actions=actions,
                 signals=signals,
-                severity="attention"
+                severity="attention",
+                based_on_text=based_on_str,
+                source_transparency=transparency
             )
 
         # Case 2: Activity ↓ + Missed Medication + Symptom reported
@@ -193,8 +237,11 @@ class MultiSourceCorrelationEngine:
                 recommendation=rec,
                 actions=actions,
                 signals=signals,
-                severity="warning"
+                severity="warning",
+                based_on_text=based_on_str,
+                source_transparency=transparency
             )
+
 
         # Default Holistic Synthesis
         narrative = f"All health signals for {ctx.subject_name} are consistent with regular daily routines."

@@ -246,6 +246,8 @@ class WearableGuardianMoment:
     unit: str = "steps/day"
     severity: str = "warning"
     type: str = "guardian_moment"
+    based_on_text: Optional[str] = None
+    source_transparency: Optional[Dict[str, Any]] = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -261,8 +263,11 @@ class WearableGuardianMoment:
             "actions": self.actions,
             "timeframe_days": self.timeframe_days,
             "severity": self.severity,
+            "based_on": self.based_on_text,
+            "source_transparency": self.source_transparency,
             "created_at": self.created_at.isoformat()
         }
+
 
 
 

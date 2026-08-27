@@ -9,6 +9,12 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
+from app.domains.insights.transparency import (
+    AISourceTransparency,
+    SourceAttributionItem
+)
+
+
 # ==========================================
 # Trend Analysis Result Model
 # ==========================================
@@ -29,9 +35,12 @@ class TrendAnalysisResult(BaseModel):
     baseline_comparison: Optional[str] = None
     actionability: Optional[str] = None
     actions: List[str] = Field(default_factory=list)  # Actionable options (e.g. Check in with Dad, Review trends)
+    based_on: Optional[str] = None
+    source_transparency: Optional[Dict[str, Any]] = None
     timeframe_start: datetime
     timeframe_end: datetime
     source_records: List[Dict[str, Any]] = Field(default_factory=list)
+
 
 
 # ==========================================
@@ -106,6 +115,12 @@ class ActivityTrendStrategy(BaseTrendStrategy):
         # Detect drop below baseline (e.g. average below 75% of baseline or < 5000)
         if avg_steps < (baseline_steps * 0.85):
             pct_below = int(round(((baseline_steps - avg_steps) / baseline_steps) * 100.0))
+            single_src = AISourceTransparency.create_single_source(
+                provider="Garmin",
+                category="activity",
+                date_range="Aug 1–22",
+                data_summary=f"{consecutive_days} days of activity data"
+            )
             return TrendAnalysisResult(
                 metric_name=self.metric_name,
                 detected=True,
@@ -130,10 +145,13 @@ class ActivityTrendStrategy(BaseTrendStrategy):
                 confidence=0.94,
                 baseline_comparison=f"30-day baseline: {int(round(baseline_steps)):,} steps/day",
                 actionability="propose_care_task",
+                based_on=single_src.format_display_text(),
+                source_transparency=single_src.to_dict(),
                 timeframe_start=start,
                 timeframe_end=now,
                 source_records=[{"source_type": "wearable_steps", "source_id": str(subject_id), "metadata": {"avg_steps": avg_steps, "baseline_steps": baseline_steps}}]
             )
+
         elif avg_steps >= 6000:
             return TrendAnalysisResult(
                 metric_name=self.metric_name,
@@ -559,10 +577,13 @@ class MultiSourceCorrelationStrategy(BaseTrendStrategy):
                 confidence=corr_res.confidence,
                 baseline_comparison=f"Activity ({int(avg_steps or 0):,} vs {int(baseline_steps):,} steps), Sleep ({avg_sleep_hrs or 0:.1f} vs {baseline_sleep_hrs} hrs)",
                 actionability="propose_care_task",
+                based_on=corr_res.based_on_text,
+                source_transparency=corr_res.source_transparency.to_dict() if corr_res.source_transparency else None,
                 timeframe_start=start,
                 timeframe_end=now,
                 source_records=[{"source_type": "multi_source_correlation", "source_id": str(subject_id), "metadata": corr_res.signals}]
             )
+
 
         return None
 

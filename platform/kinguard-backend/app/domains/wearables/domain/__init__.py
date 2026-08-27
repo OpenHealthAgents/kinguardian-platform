@@ -42,6 +42,11 @@ from app.domains.wearables.domain.policies import (
 )
 from app.domains.wearables.domain.normalizer import WearableMetricNormalizer
 from app.domains.wearables.domain.units import HealthUnitConverter, StandardUnit
+from app.domains.wearables.domain.baselines import (
+    BaselineWindow,
+    WearableBaselineComparison,
+    WearableBaselineCalculator
+)
 
 __all__ = [
     "WearableIdentity",
@@ -73,6 +78,10 @@ __all__ = [
     "SleepDisruptionPolicy",
     "AutonomicRecoveryPolicy",
     "WearableToFHIRMappingPolicy",
-    "FHIRMappingRules"
+    "FHIRMappingRules",
+    "BaselineWindow",
+    "WearableBaselineComparison",
+    "WearableBaselineCalculator"
 ]
+
 

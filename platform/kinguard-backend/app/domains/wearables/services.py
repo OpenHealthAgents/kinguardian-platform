@@ -17,7 +17,8 @@ import uuid
 import hmac
 import hashlib
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -1106,6 +1107,12 @@ class WearableService:
         sleeps = await self.gateway.get_sleep(wearable_user_id, start_d, end_d)
         recoveries = await self.gateway.get_heart_rate(wearable_user_id, start_d, end_d)
 
+        # Determine subject local timezone
+        subject_tz = "UTC"
+        subject_record = await self.session.get(CareSubject, subject_id)
+        if subject_record and subject_record.timezone:
+            subject_tz = subject_record.timezone
+
         # Normalize into domain WearableMetric items
         metrics: List[WearableMetricItem] = []
 
@@ -1113,8 +1120,10 @@ class WearableService:
         for act in activities:
             try:
                 measured_at = datetime.fromisoformat(act.date)
+                if measured_at.tzinfo is None:
+                    measured_at = measured_at.replace(tzinfo=timezone.utc)
             except Exception:
-                measured_at = datetime.utcnow()
+                measured_at = datetime.now(timezone.utc)
 
             # Steps
             metrics.append(
@@ -1123,7 +1132,9 @@ class WearableService:
                     metric="steps",
                     value=act.steps,
                     unit="steps",
+                    measured_at_utc=measured_at,
                     measured_at=measured_at,
+                    local_timezone=subject_tz,
                     source_provider=act.source_provider or "garmin",
                     source_device=source or "Garmin Venu",
                     source_reference=f"act_{act.date}",
@@ -1138,7 +1149,9 @@ class WearableService:
                         metric="distance",
                         value=act.distance_meters,
                         unit="meters",
+                        measured_at_utc=measured_at,
                         measured_at=measured_at,
+                        local_timezone=subject_tz,
                         source_provider=act.source_provider or "garmin",
                         source_device=source or "Garmin Venu",
                         source_reference=f"act_{act.date}"
@@ -1152,7 +1165,9 @@ class WearableService:
                         metric="active_minutes",
                         value=act.active_duration_minutes,
                         unit="minutes",
+                        measured_at_utc=measured_at,
                         measured_at=measured_at,
+                        local_timezone=subject_tz,
                         source_provider=act.source_provider or "garmin",
                         source_device=source or "Garmin Venu",
                         source_reference=f"act_{act.date}"
@@ -1166,7 +1181,9 @@ class WearableService:
                         metric="calories",
                         value=act.calories_burned_kcal,
                         unit="kcal",
+                        measured_at_utc=measured_at,
                         measured_at=measured_at,
+                        local_timezone=subject_tz,
                         source_provider=act.source_provider or "garmin",
                         source_device=source or "Garmin Venu",
                         source_reference=f"act_{act.date}"
@@ -1177,8 +1194,10 @@ class WearableService:
         for slp in sleeps:
             try:
                 measured_at = datetime.fromisoformat(slp.date)
+                if measured_at.tzinfo is None:
+                    measured_at = measured_at.replace(tzinfo=timezone.utc)
             except Exception:
-                measured_at = datetime.utcnow()
+                measured_at = datetime.now(timezone.utc)
 
             # Sleep Duration
             metrics.append(
@@ -1187,7 +1206,9 @@ class WearableService:
                     metric="sleep_duration",
                     value=slp.total_sleep_minutes,
                     unit="minutes",
+                    measured_at_utc=measured_at,
                     measured_at=measured_at,
+                    local_timezone=subject_tz,
                     source_provider=slp.source_provider or "garmin",
                     source_device=source or "Garmin Venu",
                     source_reference=f"sleep_{slp.date}",
@@ -1202,7 +1223,9 @@ class WearableService:
                         metric="sleep_score",
                         value=slp.sleep_score,
                         unit="score",
+                        measured_at_utc=measured_at,
                         measured_at=measured_at,
+                        local_timezone=subject_tz,
                         source_provider=slp.source_provider or "garmin",
                         source_device=source or "Garmin Venu",
                         source_reference=f"sleep_{slp.date}"
@@ -1213,8 +1236,10 @@ class WearableService:
         for rec in recoveries:
             try:
                 measured_at = datetime.fromisoformat(rec.date)
+                if measured_at.tzinfo is None:
+                    measured_at = measured_at.replace(tzinfo=timezone.utc)
             except Exception:
-                measured_at = datetime.utcnow()
+                measured_at = datetime.now(timezone.utc)
 
             # Resting Heart Rate
             if rec.resting_heart_rate_bpm is not None:
@@ -1224,7 +1249,9 @@ class WearableService:
                         metric="resting_heart_rate",
                         value=rec.resting_heart_rate_bpm,
                         unit="bpm",
+                        measured_at_utc=measured_at,
                         measured_at=measured_at,
+                        local_timezone=subject_tz,
                         source_provider=rec.source_provider or "garmin",
                         source_device=source or "Garmin Venu",
                         source_reference=f"rec_{rec.date}"
@@ -1238,7 +1265,9 @@ class WearableService:
                         metric="heart_rate_variability",
                         value=rec.hrv_ms,
                         unit="ms",
+                        measured_at_utc=measured_at,
                         measured_at=measured_at,
+                        local_timezone=subject_tz,
                         source_provider=rec.source_provider or "garmin",
                         source_device=source or "Garmin Venu",
                         source_reference=f"rec_{rec.date}"
@@ -1252,12 +1281,15 @@ class WearableService:
                         metric="blood_oxygen",
                         value=rec.spo2_percentage,
                         unit="%",
+                        measured_at_utc=measured_at,
                         measured_at=measured_at,
+                        local_timezone=subject_tz,
                         source_provider=rec.source_provider or "garmin",
                         source_device=source or "Garmin Venu",
                         source_reference=f"rec_{rec.date}"
                     )
                 )
+
 
         # Apply Filters
         filtered = metrics

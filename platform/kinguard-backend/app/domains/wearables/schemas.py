@@ -305,11 +305,14 @@ class WearableMetricItem(BaseModel):
     metric: str = Field(..., description="Metric type identifier (e.g. steps, heart_rate, sleep_duration, hrv)")
     value: Any = Field(..., description="Biometric metric value (scalar, time duration, or stage breakdown)")
     unit: str = Field(..., description="Standardized measurement unit (e.g. steps, bpm, minutes, ms, %)")
-    measured_at: datetime = Field(..., description="Measurement timestamp (UTC)")
+    measured_at_utc: datetime = Field(..., description="Measurement timestamp strictly normalized to UTC")
+    measured_at: Optional[datetime] = Field(None, description="Backwards-compatible alias for measured_at_utc")
+    local_timezone: str = Field("UTC", description="Subject local timezone for mobile UI client conversion (e.g. Asia/Kolkata)")
     source_provider: str = Field(..., description="Origin provider (garmin, apple_health, fitbit, oura, etc.)")
     source_device: Optional[str] = Field(None, description="Hardware model or device identifier if available")
     source_reference: Optional[str] = Field(None, description="External Open Wearables event or reading reference")
     metadata: Dict[str, Any] = Field(default_factory=dict)
+
 
 
 class UnifiedWearableMetricsResponse(BaseModel):

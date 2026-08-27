@@ -182,28 +182,42 @@ class WearableMetricNormalizer:
         raise ValueError(f"Unsupported wearable metric name: '{metric_raw}'")
 
     @classmethod
-    def normalize_timestamp(cls, timestamp_raw: Any) -> datetime:
+    def normalize_timestamp(
+        cls,
+        timestamp_raw: Any,
+        local_timezone: Optional[str] = None
+    ) -> Tuple[datetime, str]:
         """
         Normalizes various timestamp representations (Epoch sec, ms, ISO strings, dates)
-        to a UTC timezone-aware datetime.
+        to a strictly UTC timezone-aware datetime, while retaining local_timezone for client conversion.
+
+        Returns:
+            Tuple[datetime, str]: (measured_at_utc, local_timezone)
         """
+        resolved_tz = local_timezone or "UTC"
+
         if timestamp_raw is None:
-            return datetime.now(timezone.utc)
+            return (datetime.now(timezone.utc), resolved_tz)
 
         if isinstance(timestamp_raw, datetime):
             if timestamp_raw.tzinfo is None:
-                return timestamp_raw.replace(tzinfo=timezone.utc)
-            return timestamp_raw.astimezone(timezone.utc)
+                utc_dt = timestamp_raw.replace(tzinfo=timezone.utc)
+            else:
+                utc_dt = timestamp_raw.astimezone(timezone.utc)
+            return (utc_dt, resolved_tz)
 
         if isinstance(timestamp_raw, date):
-            return datetime(timestamp_raw.year, timestamp_raw.month, timestamp_raw.day, tzinfo=timezone.utc)
+            utc_dt = datetime(timestamp_raw.year, timestamp_raw.month, timestamp_raw.day, tzinfo=timezone.utc)
+            return (utc_dt, resolved_tz)
 
         # Numeric epoch timestamp
         if isinstance(timestamp_raw, (int, float)):
             # Distinguish milliseconds vs seconds (ms > 1e11)
             if timestamp_raw > 1e11:
-                return datetime.fromtimestamp(timestamp_raw / 1000.0, tz=timezone.utc)
-            return datetime.fromtimestamp(timestamp_raw, tz=timezone.utc)
+                utc_dt = datetime.fromtimestamp(timestamp_raw / 1000.0, tz=timezone.utc)
+            else:
+                utc_dt = datetime.fromtimestamp(timestamp_raw, tz=timezone.utc)
+            return (utc_dt, resolved_tz)
 
         # String representation
         ts_str = str(timestamp_raw).strip()
@@ -211,13 +225,15 @@ class WearableMetricNormalizer:
         if ts_str.isdigit():
             val = int(ts_str)
             if val > 1e11:
-                return datetime.fromtimestamp(val / 1000.0, tz=timezone.utc)
-            return datetime.fromtimestamp(val, tz=timezone.utc)
+                utc_dt = datetime.fromtimestamp(val / 1000.0, tz=timezone.utc)
+            else:
+                utc_dt = datetime.fromtimestamp(val, tz=timezone.utc)
+            return (utc_dt, resolved_tz)
 
         # Handle Date only (YYYY-MM-DD)
         if re.match(r"^\d{4}-\d{2}-\d{2}$", ts_str):
             d = datetime.strptime(ts_str, "%Y-%m-%d")
-            return d.replace(tzinfo=timezone.utc)
+            return (d.replace(tzinfo=timezone.utc), resolved_tz)
 
         # Handle ISO-8601 with trailing Z or timezone offsets
         try:
@@ -225,12 +241,14 @@ class WearableMetricNormalizer:
             clean_iso = ts_str.replace("Z", "+00:00")
             dt = datetime.fromisoformat(clean_iso)
             if dt.tzinfo is None:
-                return dt.replace(tzinfo=timezone.utc)
-            return dt.astimezone(timezone.utc)
+                utc_dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                utc_dt = dt.astimezone(timezone.utc)
+            return (utc_dt, resolved_tz)
         except Exception:
             pass
 
-        return datetime.now(timezone.utc)
+        return (datetime.now(timezone.utc), resolved_tz)
 
     @classmethod
     def normalize_unit(cls, metric_type: WearableMetricType, unit_raw: Optional[str] = None) -> str:
@@ -317,7 +335,6 @@ class WearableMetricNormalizer:
         except (ValueError, TypeError):
             return value_raw
 
-
     @classmethod
     def normalize_device_info(
         cls,
@@ -352,10 +369,12 @@ class WearableMetricNormalizer:
     def normalize(
         cls,
         subject_id: uuid.UUID,
-        raw_measurement: Dict[str, Any]
+        raw_measurement: Dict[str, Any],
+        local_timezone: Optional[str] = None
     ) -> WearableMetric:
         """
         Normalizes a single vendor measurement into a standard KinGuard WearableMetric domain model.
+        Guarantees measured_at_utc in UTC and preserves local_timezone.
         """
         # 1. Normalize Provider
         raw_provider = raw_measurement.get("provider") or raw_measurement.get("source_provider") or raw_measurement.get("source")
@@ -376,9 +395,16 @@ class WearableMetricNormalizer:
             raw_val = raw_measurement.get(metric_type.value)
         value = cls.normalize_value(metric_type, raw_val, source_unit=raw_unit)
 
-        # 5. Normalize Timestamp to UTC
-        raw_time = raw_measurement.get("measured_at") or raw_measurement.get("timestamp") or raw_measurement.get("date") or raw_measurement.get("time")
-        measured_at = cls.normalize_timestamp(raw_time)
+        # 5. Normalize Timestamp strictly to UTC while retaining local timezone
+        raw_tz = raw_measurement.get("local_timezone") or raw_measurement.get("timezone") or local_timezone or "UTC"
+        raw_time = (
+            raw_measurement.get("measured_at_utc")
+            or raw_measurement.get("measured_at")
+            or raw_measurement.get("timestamp")
+            or raw_measurement.get("date")
+            or raw_measurement.get("time")
+        )
+        measured_at_utc, resolved_tz = cls.normalize_timestamp(raw_time, local_timezone=raw_tz)
 
         # 6. Normalize Device Information
         raw_device = raw_measurement.get("device") or raw_measurement.get("source_device") or raw_measurement.get("device_name")
@@ -396,7 +422,8 @@ class WearableMetricNormalizer:
             metric_type=metric_type,
             value=value,
             unit=unit,
-            measured_at=measured_at,
+            measured_at_utc=measured_at_utc,
+            local_timezone=resolved_tz,
             source_provider=provider,
             source_device=device_name,
             source_reference=str(source_ref) if source_ref else None,
@@ -407,7 +434,9 @@ class WearableMetricNormalizer:
     def normalize_batch(
         cls,
         subject_id: uuid.UUID,
-        raw_measurements: List[Dict[str, Any]]
+        raw_measurements: List[Dict[str, Any]],
+        local_timezone: Optional[str] = None
     ) -> List[WearableMetric]:
         """Normalizes an entire batch of heterogeneous telemetry records."""
-        return [cls.normalize(subject_id, m) for m in raw_measurements]
+        return [cls.normalize(subject_id, m, local_timezone=local_timezone) for m in raw_measurements]
+

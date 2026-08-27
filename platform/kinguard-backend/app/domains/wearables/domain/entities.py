@@ -6,7 +6,8 @@ Device Connections, Daily Health Summaries, and Anomaly Diagnostics.
 
 import uuid
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
+
 
 from app.domains.wearables.domain.value_objects import (
     DeviceProvider,
@@ -158,6 +159,8 @@ class WearableMetric:
     """
     Normalized KinGuard domain representation of a wearable biometric/activity metric.
     Encapsulates raw vendor measurements into a normalized, strongly-typed domain model.
+    All stored timestamps are guaranteed UTC, while retaining measured_at_utc and local_timezone
+    for mobile client localized rendering.
     """
 
     def __init__(
@@ -166,21 +169,37 @@ class WearableMetric:
         metric_type: WearableMetricType,
         value: Any,
         unit: Optional[str] = None,
-        measured_at: Optional[datetime] = None,
+        measured_at_utc: Optional[datetime] = None,
+        local_timezone: Optional[str] = None,
         source_provider: DeviceProvider = DeviceProvider.UNKNOWN,
         source_device: Optional[str] = None,
         source_reference: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        # Backwards compatible alias
+        measured_at: Optional[datetime] = None
     ):
         self.subject_id = subject_id
         self.metric_type = metric_type if isinstance(metric_type, WearableMetricType) else WearableMetricType.from_str(str(metric_type))
         self.value = value
         self.unit = unit or METRIC_UNIT_MAP.get(self.metric_type, "unit")
-        self.measured_at = measured_at or datetime.utcnow()
+
+        # Standardize strictly to UTC
+        raw_time = measured_at_utc or measured_at or datetime.now(timezone.utc)
+        if raw_time.tzinfo is None:
+            self.measured_at_utc = raw_time.replace(tzinfo=timezone.utc)
+        else:
+            self.measured_at_utc = raw_time.astimezone(timezone.utc)
+
+        self.local_timezone = local_timezone or "UTC"
         self.source_provider = source_provider if isinstance(source_provider, DeviceProvider) else DeviceProvider.from_str(str(source_provider))
         self.source_device = source_device
         self.source_reference = source_reference
         self.metadata = metadata or {}
+
+    @property
+    def measured_at(self) -> datetime:
+        """Backwards-compatible alias for measured_at_utc."""
+        return self.measured_at_utc
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -188,10 +207,13 @@ class WearableMetric:
             "metric_type": self.metric_type.value,
             "value": self.value,
             "unit": self.unit,
-            "measured_at": self.measured_at.isoformat(),
+            "measured_at_utc": self.measured_at_utc.isoformat(),
+            "measured_at": self.measured_at_utc.isoformat(),
+            "local_timezone": self.local_timezone,
             "source_provider": self.source_provider.value,
             "source_device": self.source_device,
             "source_reference": self.source_reference,
             "metadata": self.metadata
         }
+
 

@@ -147,27 +147,29 @@ def test_unit_and_value_conversions():
 def test_timestamp_normalization():
     """Verifies epoch ms, epoch sec, ISO-8601 strings, and date strings convert to UTC datetime."""
     # 1. Epoch Milliseconds
-    dt_ms = WearableMetricNormalizer.normalize_timestamp(1700000000000)
+    dt_ms, tz_ms = WearableMetricNormalizer.normalize_timestamp(1700000000000)
     assert dt_ms.tzinfo == timezone.utc
     assert dt_ms.year == 2023
+    assert tz_ms == "UTC"
 
     # 2. Epoch Seconds
-    dt_sec = WearableMetricNormalizer.normalize_timestamp(1700000000)
+    dt_sec, tz_sec = WearableMetricNormalizer.normalize_timestamp(1700000000)
     assert dt_sec.tzinfo == timezone.utc
     assert dt_sec.year == 2023
 
     # 3. ISO String with Z
-    dt_iso = WearableMetricNormalizer.normalize_timestamp("2026-08-27T10:30:00Z")
+    dt_iso, tz_iso = WearableMetricNormalizer.normalize_timestamp("2026-08-27T10:30:00Z")
     assert dt_iso.tzinfo == timezone.utc
     assert dt_iso.year == 2026
     assert dt_iso.hour == 10
     assert dt_iso.minute == 30
 
     # 4. Date String YYYY-MM-DD
-    dt_date = WearableMetricNormalizer.normalize_timestamp("2026-08-27")
+    dt_date, tz_date = WearableMetricNormalizer.normalize_timestamp("2026-08-27")
     assert dt_date.tzinfo == timezone.utc
     assert dt_date.day == 27
     assert dt_date.month == 8
+
 
 
 def test_missing_values_and_sanitization():

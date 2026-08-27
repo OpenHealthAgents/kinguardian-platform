@@ -20,11 +20,15 @@ logger = get_logger(__name__)
 class AgentToolContext(BaseModel):
     """
     Caller context passed to every domain tool execution.
-    Contains Actor, Family, and target Subject identifiers for least-privilege authorization.
+    Contains Actor, Family, target Subject, and requested scope for least-privilege authorization.
+
+    INVARIANT: The LLM does NOT decide whether a user is allowed to see wearable data;
+    the tool runtime independently verifies authorization against deterministic consent grants.
     """
     actor_id: uuid.UUID
     family_id: uuid.UUID
     subject_id: Optional[uuid.UUID] = None
+    requested_scope: Optional[str] = None
     session_id: Optional[str] = None
     permissions_override: Optional[Dict[str, bool]] = None
 
@@ -63,6 +67,7 @@ class KinGuardDomainTool(abc.ABC):
     name: str
     description: str
     required_permission: str  # e.g. "profile", "medications", "adherence", "vitals", "labs", "appointments", "family", "care_tasks", "messages", "insights", "wearables"
+    required_scope: Optional[str] = None  # Granular consent scope (e.g. view_wearable_sleep, view_wearable_summary)
     parameters_schema: Dict[str, Any]
 
     def __init__(
@@ -85,10 +90,10 @@ class KinGuardDomainTool(abc.ABC):
     async def check_authorization(self, context: AgentToolContext, target_subject_id: Optional[uuid.UUID] = None) -> bool:
         """
         Independent Authorization Verification:
-        1. Verifies actor is an active member of context.family_id.
-        2. If target_subject_id is present and actor != subject.profile_id, verifies active consent grant for required_permission.
+        Receives: actor, family, subject, and requested scope.
+        The tool independently verifies authorization without relying on LLM discretion.
         """
-        # 1. Family membership check
+        # 1. Family membership check (Actor + Family)
         membership = await self.family_repo.get_member(context.family_id, context.actor_id)
         if not membership or membership.status != "active":
             return False
@@ -97,7 +102,7 @@ class KinGuardDomainTool(abc.ABC):
         if self.required_permission in ("family", "messages"):
             return True
 
-        # Subject-specific tools
+        # Subject-specific tools (Subject)
         subj_id = target_subject_id or context.subject_id
         if not subj_id:
             return False
@@ -125,7 +130,7 @@ class KinGuardDomainTool(abc.ABC):
                 return scope.get(self.required_permission, True) is not False
             return True
 
-        # Sensitive clinical permissions (vitals, medications, adherence, labs, appointments) require explicit consent
+        # Sensitive clinical and wearable permissions require explicit consent
         if not subject.profile_id:
             return False
 
@@ -141,8 +146,17 @@ class KinGuardDomainTool(abc.ABC):
             return False
 
         scope = consent.scope or {}
-        # Check specific consent key or fallback (e.g. adherence -> medications, labs -> documents)
-        if scope.get(self.required_permission) is True:
+        # Effective scope evaluated: requested scope from context or tool required scope/permission
+        effective_scope = context.requested_scope or self.required_scope or self.required_permission
+
+        # Check granular scope grant
+        if scope.get(effective_scope) is True:
+            return True
+        # Check parent wearable scope if applicable
+        if self.required_permission == "wearables" and scope.get("wearables") is True:
+            # If the user specifically had this granular scope explicitly denied (False), block it
+            if scope.get(effective_scope) is False:
+                return False
             return True
         if self.required_permission == "adherence" and scope.get("medications") is True:
             return True
@@ -150,6 +164,7 @@ class KinGuardDomainTool(abc.ABC):
             return True
 
         return False
+
 
     @abc.abstractmethod
     async def run(self, params: Dict[str, Any], context: AgentToolContext) -> Any:

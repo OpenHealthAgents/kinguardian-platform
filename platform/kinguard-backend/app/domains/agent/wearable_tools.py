@@ -32,6 +32,7 @@ class GetWearableConnectionsTool(KinGuardDomainTool):
     name = "get_wearable_connections"
     description = "Retrieves active and configured wearable device connections (Garmin, Apple Health, Oura, Fitbit) for a care subject."
     required_permission = "wearables"
+    required_scope = WearableConsentScope.MANAGE_WEARABLE_CONNECTIONS.value
     parameters_schema = {
         "type": "object",
         "properties": {
@@ -73,6 +74,7 @@ class GetWearableSummaryTool(KinGuardDomainTool):
     name = "get_wearable_summary"
     description = "Queries the daily aggregated wearable health summary (steps, sleep hours, resting HR, wellness rating) for a care subject."
     required_permission = "wearables"
+    required_scope = WearableConsentScope.VIEW_WEARABLE_SUMMARY.value
     parameters_schema = {
         "type": "object",
         "properties": {
@@ -126,6 +128,7 @@ class GetActivityTrendTool(KinGuardDomainTool):
     name = "get_activity_trend"
     description = "Calculates physical activity trend and historical baseline deviation (e.g. 5,430 steps vs 6,210 usual, percentage change, and direction)."
     required_permission = "wearables"
+    required_scope = WearableConsentScope.VIEW_WEARABLE_ACTIVITY.value
     parameters_schema = {
         "type": "object",
         "properties": {
@@ -170,6 +173,7 @@ class GetSleepTrendTool(KinGuardDomainTool):
     name = "get_sleep_trend"
     description = "Calculates nocturnal sleep trends, sleep architecture, and duration baseline deviations (e.g. 6h 42m vs usual baseline)."
     required_permission = "wearables"
+    required_scope = WearableConsentScope.VIEW_WEARABLE_SLEEP.value
     parameters_schema = {
         "type": "object",
         "properties": {
@@ -212,6 +216,7 @@ class GetHeartRateTrendTool(KinGuardDomainTool):
     name = "get_heart_rate_trend"
     description = "Calculates cardiovascular recovery vitals, resting heart rate averages, and autonomic HRV stability."
     required_permission = "wearables"
+    required_scope = WearableConsentScope.VIEW_WEARABLE_HEART_RATE.value
     parameters_schema = {
         "type": "object",
         "properties": {
@@ -252,6 +257,7 @@ class GetMetricHistoryTool(KinGuardDomainTool):
     name = "get_metric_history"
     description = "Queries historical metric snapshots with source provenance for a specific metric type (steps, sleep_duration, heart_rate, blood_oxygen, weight)."
     required_permission = "wearables"
+    required_scope = WearableConsentScope.VIEW_WEARABLE_RAW_METRICS.value
     parameters_schema = {
         "type": "object",
         "properties": {
@@ -290,6 +296,7 @@ class GetWearableSyncStatusTool(KinGuardDomainTool):
     name = "get_wearable_sync_status"
     description = "Retrieves operational synchronization status for connected wearable devices with non-diagnostic safety guarantees."
     required_permission = "wearables"
+    required_scope = WearableConsentScope.VIEW_WEARABLE_SUMMARY.value
     parameters_schema = {
         "type": "object",
         "properties": {
@@ -297,6 +304,7 @@ class GetWearableSyncStatusTool(KinGuardDomainTool):
         },
         "required": ["subject_id"]
     }
+
 
     async def run(self, params: Dict[str, Any], context: AgentToolContext) -> Any:
         subj_id = uuid.UUID(str(params["subject_id"]))

@@ -217,3 +217,52 @@ class WearableMetric:
         }
 
 
+from dataclasses import dataclass, field
+
+
+@dataclass(frozen=True)
+class WearableGuardianMoment:
+    """
+    Structured Guardian Moment for wearable patterns and baseline deviations.
+
+    GUARDIAN PRINCIPLES:
+    1. Clarity: Clear headline stating who, what metric, and how many days.
+    2. Transparency: Explicit current window average vs historical baseline comparison.
+    3. Actionable Care: Actionable next steps (e.g. Check in with Dad, Review trends, Contact caregiver).
+    4. Non-Diagnostic Invariant: Decreased activity is NEVER automatically interpreted as illness.
+    """
+    id: uuid.UUID
+    subject_id: uuid.UUID
+    family_id: uuid.UUID
+    title: str                  # "Dad's activity has been below his usual level for 5 days."
+    summary: str                # Summary text with average and baseline
+    current_average: float      # 4520.0
+    current_average_label: str  # "4,520 steps/day"
+    baseline_value: float       # 6210.0
+    baseline_label: str         # "30-day baseline: 6,210 steps/day"
+    actions: List[str]          # ["Check in with Dad", "Review trends", "Contact caregiver"]
+    timeframe_days: int         # 5
+    metric_name: str = "steps"
+    unit: str = "steps/day"
+    severity: str = "warning"
+    type: str = "guardian_moment"
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": str(self.id),
+            "subject_id": str(self.subject_id),
+            "family_id": str(self.family_id),
+            "type": self.type,
+            "title": self.title,
+            "summary": self.summary,
+            "average": self.current_average_label,
+            "baseline": self.baseline_label,
+            "actions": self.actions,
+            "timeframe_days": self.timeframe_days,
+            "severity": self.severity,
+            "created_at": self.created_at.isoformat()
+        }
+
+
+

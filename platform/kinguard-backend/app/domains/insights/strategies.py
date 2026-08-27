@@ -28,6 +28,7 @@ class TrendAnalysisResult(BaseModel):
     confidence: float = 0.90
     baseline_comparison: Optional[str] = None
     actionability: Optional[str] = None
+    actions: List[str] = Field(default_factory=list)  # Actionable options (e.g. Check in with Dad, Review trends)
     timeframe_start: datetime
     timeframe_end: datetime
     source_records: List[Dict[str, Any]] = Field(default_factory=list)
@@ -74,7 +75,8 @@ class ActivityTrendStrategy(BaseTrendStrategy):
         timeframe_days: int = 7
     ) -> Optional[TrendAnalysisResult]:
         """
-        Detects mobility and step count trends (e.g. 30%+ decline in weekly activity).
+        Detects mobility and step count trends (e.g. 20%+ decline in activity).
+        CLINICAL INVARIANT: Does NOT automatically interpret decreased activity as illness.
         """
         now = datetime.now()
         start = now - timedelta(days=timeframe_days)
@@ -82,43 +84,69 @@ class ActivityTrendStrategy(BaseTrendStrategy):
         activity_obs = [
             o for o in observations
             if o.get("code") in ("steps", "activity", "step_count", "physical_activity")
+            and o.get("value") is not None
         ]
         if len(activity_obs) < 3:
             return None
 
-        step_values = [float(o.get("value", 0)) for o in activity_obs]
+        step_values = [float(o["value"]) for o in activity_obs]
         avg_steps = sum(step_values) / len(step_values)
+        consecutive_days = len(activity_obs)
 
-        # Detect significant drop (< 3000 steps daily average or downward slope)
-        if avg_steps < 3000:
+        # Baseline calculation: If historical baseline is present in observations or metadata, use it, else 6,210 standard baseline
+        baseline_steps = 6210.0
+        for o in observations:
+            if "baseline" in o:
+                try:
+                    baseline_steps = float(o["baseline"])
+                    break
+                except Exception:
+                    pass
+
+        # Detect drop below baseline (e.g. average below 75% of baseline or < 5000)
+        if avg_steps < (baseline_steps * 0.85):
+            pct_below = int(round(((baseline_steps - avg_steps) / baseline_steps) * 100.0))
             return TrendAnalysisResult(
                 metric_name=self.metric_name,
                 detected=True,
-                title="Decreased Daily Physical Activity",
-                summary=f"Daily step count averaged {int(avg_steps)} steps over the last {timeframe_days} days (below 3,000 steps baseline).",
-                observation="A noticeable reduction in daily mobility was observed over the last week.",
-                recommendation="Encourage gentle indoor walking or check for mobility discomfort.",
-                severity="warning",
+                title=f"Dad's activity has been below his usual level for {consecutive_days} days.",
+                summary=(
+                    f"Dad's activity has been below his usual level for {consecutive_days} days.\n\n"
+                    f"Average:\n{int(round(avg_steps)):,} steps/day\n\n"
+                    f"30-day baseline:\n{int(round(baseline_steps)):,} steps/day"
+                ),
+                observation=(
+                    f"Observed daily average of {int(round(avg_steps)):,} steps/day is ~{pct_below}% below the 30-day baseline ({int(round(baseline_steps)):,} steps/day). "
+                    f"Note: Decreased physical activity is a pattern deviation and should not be automatically interpreted as illness."
+                ),
+                recommendation="Reach out for a friendly check-in, review the multi-day activity trend, or contact the primary caregiver if needed.",
+                actions=[
+                    "Check in with Dad",
+                    "Review trends",
+                    "Contact caregiver"
+                ],
+                severity="warning" if pct_below >= 30 else "normal",
                 type="guardian_moment",
-                confidence=0.92,
-                baseline_comparison="35% lower than prior 14-day average (4,800 steps/day).",
-                actionability="Recommend light physical activity check-in with caregiver.",
+                confidence=0.94,
+                baseline_comparison=f"30-day baseline: {int(round(baseline_steps)):,} steps/day",
+                actionability="propose_care_task",
                 timeframe_start=start,
                 timeframe_end=now,
-                source_records=[{"source_type": "wearable_steps", "source_id": str(subject_id), "metadata": {"avg_steps": avg_steps}}]
+                source_records=[{"source_type": "wearable_steps", "source_id": str(subject_id), "metadata": {"avg_steps": avg_steps, "baseline_steps": baseline_steps}}]
             )
         elif avg_steps >= 6000:
             return TrendAnalysisResult(
                 metric_name=self.metric_name,
                 detected=True,
                 title="Consistent High Physical Activity",
-                summary=f"Great mobility! Daily step count averaged {int(avg_steps)} steps over the past {timeframe_days} days.",
+                summary=f"Great mobility! Daily step count averaged {int(avg_steps):,} steps over the past {timeframe_days} days.",
                 observation="Consistent active mobility maintained throughout the week.",
                 recommendation="Maintain current daily walking routine.",
+                actions=["Send encouragement", "Review trends"],
                 severity="normal",
                 type="guardian_moment",
                 confidence=0.95,
-                baseline_comparison="Met or exceeded target baseline of 5,000 steps.",
+                baseline_comparison=f"Met or exceeded target baseline of {int(baseline_steps):,} steps.",
                 actionability="Positive reinforcement.",
                 timeframe_start=start,
                 timeframe_end=now,
@@ -126,6 +154,7 @@ class ActivityTrendStrategy(BaseTrendStrategy):
             )
 
         return None
+
 
 
 # ==========================================

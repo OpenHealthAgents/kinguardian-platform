@@ -116,7 +116,8 @@ async def test_wearable_data_feeds_insight_engine_to_guardian_moment():
     guardian_moment = insights[0]
     assert guardian_moment.type == "guardian_moment"
     assert guardian_moment.severity == "warning"
-    assert "Decreased Daily Physical Activity" in guardian_moment.title
+    assert "activity has been below" in guardian_moment.title.lower()
+
 
     # AI Explanation attributes
     assert guardian_moment.observation is not None

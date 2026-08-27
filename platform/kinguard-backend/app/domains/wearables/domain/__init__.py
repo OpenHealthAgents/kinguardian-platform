@@ -8,8 +8,10 @@ from app.domains.wearables.domain.entities import (
     WearableDeviceConnection,
     WearableDailySummary,
     WearableAnomalyDiagnostic,
-    WearableMetric
+    WearableMetric,
+    WearableGuardianMoment
 )
+
 from app.domains.wearables.domain.value_objects import (
     DeviceProvider,
     ConnectionStatus,
@@ -81,7 +83,9 @@ __all__ = [
     "FHIRMappingRules",
     "BaselineWindow",
     "WearableBaselineComparison",
-    "WearableBaselineCalculator"
+    "WearableBaselineCalculator",
+    "WearableGuardianMoment"
 ]
+
 
 

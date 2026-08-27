@@ -69,7 +69,11 @@ from app.domains.wearables.domain.quality import (
     QualityAuditReport,
     WearableDataQualityService
 )
-
+from app.domains.wearables.domain.multidevice import (
+    MetricSourcePriorityConfig,
+    ResolvedWearableMetric,
+    MultiDeviceDataSynthesizer
+)
 
 __all__ = [
     "WearableIdentity",
@@ -121,8 +125,12 @@ __all__ = [
     "QualityViolationType",
     "QualityViolation",
     "QualityAuditReport",
-    "WearableDataQualityService"
+    "WearableDataQualityService",
+    "MetricSourcePriorityConfig",
+    "ResolvedWearableMetric",
+    "MultiDeviceDataSynthesizer"
 ]
+
 
 
 

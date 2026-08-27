@@ -7,6 +7,10 @@ from app.domains.wearables.scenarios import (
     WearableScenarioExecutionResult,
     WearableDemoScenarioEngine
 )
+from app.domains.wearables.observability import (
+    WearableObservabilityTracker,
+    instrument_wearable_sync
+)
 from app.domains.wearables.gateway import (
     WearableDataGateway,
     OpenWearablesGateway,
@@ -18,8 +22,11 @@ __all__ = [
     "WearableDemoScenarioType",
     "WearableScenarioExecutionResult",
     "WearableDemoScenarioEngine",
+    "WearableObservabilityTracker",
+    "instrument_wearable_sync",
     "WearableDataGateway",
     "OpenWearablesGateway",
     "MockWearableDataGateway",
     "WearableService"
 ]
+

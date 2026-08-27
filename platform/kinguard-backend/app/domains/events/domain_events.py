@@ -56,6 +56,16 @@ class DomainEventType(str, Enum):
     AI_ACTION_REQUESTED = "ai.action.requested"
     AI_ACTION_APPROVED = "ai.action.approved"
 
+    # Wearable Connectivity & Synchronization Events
+    WEARABLE_CONNECTED = "wearable.connected"
+    WEARABLE_DISCONNECTED = "wearable.disconnected"
+    WEARABLE_SYNC_STARTED = "wearable.sync.started"
+    WEARABLE_SYNC_COMPLETED = "wearable.sync.completed"
+    WEARABLE_SYNC_FAILED = "wearable.sync.failed"
+    WEARABLE_DATA_RECEIVED = "wearable.data.received"
+    WEARABLE_DATA_UPDATED = "wearable.data.updated"
+
+
 
 @dataclass(kw_only=True)
 class DomainEvent:
@@ -279,6 +289,57 @@ class AIActionRequested(DomainEvent):
 class AIActionApproved(DomainEvent):
     event_type: str = DomainEventType.AI_ACTION_APPROVED.value
     aggregate_type: str = "ai_action"
+
+
+# 11. Wearable Sync & Telemetry Events
+@dataclass(kw_only=True)
+class WearableConnected(DomainEvent):
+    event_type: str = DomainEventType.WEARABLE_CONNECTED.value
+    aggregate_type: str = "wearable_connection"
+
+
+@dataclass(kw_only=True)
+class WearableDisconnected(DomainEvent):
+    event_type: str = DomainEventType.WEARABLE_DISCONNECTED.value
+    aggregate_type: str = "wearable_connection"
+
+
+@dataclass(kw_only=True)
+class WearableSyncStarted(DomainEvent):
+    event_type: str = DomainEventType.WEARABLE_SYNC_STARTED.value
+    aggregate_type: str = "wearable_sync"
+
+
+@dataclass(kw_only=True)
+class WearableSyncCompleted(DomainEvent):
+    event_type: str = DomainEventType.WEARABLE_SYNC_COMPLETED.value
+    aggregate_type: str = "wearable_sync"
+
+
+@dataclass(kw_only=True)
+class WearableSyncFailed(DomainEvent):
+    event_type: str = DomainEventType.WEARABLE_SYNC_FAILED.value
+    aggregate_type: str = "wearable_sync"
+
+
+@dataclass(kw_only=True)
+class WearableDataReceived(DomainEvent):
+    """
+    Batched telemetry envelope fired when fresh metrics/summaries are received.
+    Batches records to prevent flooding the event bus with 1 event per raw sensor measurement.
+    """
+    event_type: str = DomainEventType.WEARABLE_DATA_RECEIVED.value
+    aggregate_type: str = "wearable_data"
+
+
+@dataclass(kw_only=True)
+class WearableDataUpdated(DomainEvent):
+    """
+    Fired when previously synced wearable metrics are updated or consolidated.
+    """
+    event_type: str = DomainEventType.WEARABLE_DATA_UPDATED.value
+    aggregate_type: str = "wearable_data"
+
 
 
 # ==========================================

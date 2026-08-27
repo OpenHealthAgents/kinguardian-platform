@@ -30,6 +30,14 @@ from app.domains.wearables.domain.repositories import (
 from app.domains.wearables.domain.services import WearableDomainService
 from app.domains.wearables.domain.events import (
     WearableDomainEvent,
+    WearableConnectedEvent,
+    WearableDisconnectedEvent,
+    WearableSyncStartedEvent,
+    WearableSyncCompletedEvent,
+    WearableSyncFailedEvent,
+    WearableDataReceivedEvent,
+    WearableDataUpdatedEvent,
+    create_batched_data_received_event,
     WearableDeviceConnectedEvent,
     WearableDeviceDisconnectedEvent,
     WearableDataSyncedEvent,
@@ -72,6 +80,14 @@ __all__ = [
     "InMemoryWearableRepository",
     "WearableDomainService",
     "WearableDomainEvent",
+    "WearableConnectedEvent",
+    "WearableDisconnectedEvent",
+    "WearableSyncStartedEvent",
+    "WearableSyncCompletedEvent",
+    "WearableSyncFailedEvent",
+    "WearableDataReceivedEvent",
+    "WearableDataUpdatedEvent",
+    "create_batched_data_received_event",
     "WearableDeviceConnectedEvent",
     "WearableDeviceDisconnectedEvent",
     "WearableDataSyncedEvent",
@@ -86,6 +102,7 @@ __all__ = [
     "WearableBaselineCalculator",
     "WearableGuardianMoment"
 ]
+
 
 
 

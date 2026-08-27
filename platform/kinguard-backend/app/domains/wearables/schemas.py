@@ -141,10 +141,14 @@ class DeviceSyncStatusItem(BaseModel):
     device_title: str                     # e.g. "Dad's Garmin" (Coordinator) or "My watch" (Parent)
     status: SyncStatusState
     status_label: str                     # e.g. "✓ Up to date", "✓ Connected", "⟳ Syncing", "⚠ Delayed", "✕ Error", "✕ Disconnected"
+    sync_message: Optional[str] = None    # e.g. "Dad's Garmin hasn't synced for 12 hours." (Coordinator) or "Your health device needs to reconnect." (Parent)
+    action_label: Optional[str] = None    # e.g. "Reconnect"
+    action_type: Optional[str] = None     # e.g. "reconnect"
     last_sync_at: Optional[datetime] = None
     last_sync_relative: Optional[str] = None  # e.g. "Last sync: 8 minutes ago"
     is_syncing: bool = False
     error_message: Optional[str] = None
+    is_health_event: bool = Field(default=False, description="Explicit safety invariant: Missing wearable telemetry is an operational state and NOT a health event")
 
 
 class CareSubjectSyncStatusResponse(BaseModel):
@@ -153,9 +157,14 @@ class CareSubjectSyncStatusResponse(BaseModel):
     view_mode: str                        # "coordinator" | "parent"
     overall_status: SyncStatusState
     overall_status_label: str
+    sync_message: Optional[str] = None
+    action_label: Optional[str] = None
+    action_type: Optional[str] = None
     devices: List[DeviceSyncStatusItem] = Field(default_factory=list)
     last_sync_at: Optional[datetime] = None
     last_sync_relative: Optional[str] = None
+    is_health_event: bool = Field(default=False, description="Explicit safety invariant: Missing wearable telemetry is an operational state and NOT a health event")
+
 
 
 class WearableSyncStatus(BaseModel):

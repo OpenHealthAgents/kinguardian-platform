@@ -580,28 +580,43 @@ class WearableService:
             else:
                 dev_title = f"{subject_title}'s {conn.provider.title()}"
 
-            # Determine sync status
+            # Determine sync status and failure messaging
+            sync_msg: Optional[str] = None
+            act_label: Optional[str] = None
+            act_type: Optional[str] = None
+
             if conn.connection_status in ("disconnected", "revoked"):
                 status_state = SyncStatusState.DISCONNECTED
                 status_label = "Disconnected" if view_mode == "parent" else "✕ Disconnected"
+                sync_msg = "Your health device needs to reconnect." if view_mode == "parent" else f"{subject_title}'s {conn.provider.title()} needs to reconnect."
+                act_label = "Reconnect"
+                act_type = "reconnect"
             elif gateway_sync.is_syncing:
                 status_state = SyncStatusState.SYNCING
                 status_label = "Syncing" if view_mode == "parent" else "⟳ Syncing"
             elif conn.connection_status in ("error", "failed") or (gateway_sync.errors and conn.provider in gateway_sync.errors):
                 status_state = SyncStatusState.ERROR
                 status_label = "Error" if view_mode == "parent" else "✕ Error"
+                sync_msg = "Your health device needs to reconnect." if view_mode == "parent" else f"{subject_title}'s {conn.provider.title()} needs to reconnect."
+                act_label = "Reconnect"
+                act_type = "reconnect"
             elif last_sync:
                 sync_dt = last_sync if last_sync.tzinfo is not None else last_sync.replace(tzinfo=timezone.utc)
                 diff_secs = (now_dt - sync_dt).total_seconds()
                 if diff_secs <= 1800:  # within 30 mins
                     status_state = SyncStatusState.UP_TO_DATE
                     status_label = "✓ Connected" if view_mode == "parent" else "✓ Up to date"
-                elif diff_secs <= 86400:  # within 24 hours
+                elif diff_secs <= 43200:  # within 12 hours
                     status_state = SyncStatusState.CONNECTED
                     status_label = "✓ Connected"
                 else:
+                    # Sync delayed or stale (> 12 hours)
                     status_state = SyncStatusState.DELAYED
                     status_label = "Delayed" if view_mode == "parent" else "⚠ Delayed"
+                    hours = max(1, int(diff_secs // 3600))
+                    sync_msg = "Your health device needs to reconnect." if view_mode == "parent" else f"{subject_title}'s {conn.provider.title()} hasn't synced for {hours} hour{'s' if hours != 1 else ''}."
+                    act_label = "Reconnect"
+                    act_type = "reconnect"
             else:
                 status_state = SyncStatusState.CONNECTED
                 status_label = "✓ Connected"
@@ -616,9 +631,13 @@ class WearableService:
                     device_title=dev_title,
                     status=status_state,
                     status_label=status_label,
+                    sync_message=sync_msg,
+                    action_label=act_label,
+                    action_type=act_type,
                     last_sync_at=last_sync,
                     last_sync_relative=rel_time,
-                    is_syncing=gateway_sync.is_syncing
+                    is_syncing=gateway_sync.is_syncing,
+                    is_health_event=False
                 )
             )
 
@@ -626,31 +645,48 @@ class WearableService:
         if not device_items:
             overall_state = SyncStatusState.DISCONNECTED
             overall_label = "Disconnected"
+            overall_msg = "Your health device needs to reconnect." if view_mode == "parent" else f"{subject_title}'s device needs to reconnect."
+            overall_act = "Reconnect"
         elif any(d.status == SyncStatusState.ERROR for d in device_items):
             overall_state = SyncStatusState.ERROR
             overall_label = "✕ Error"
+            overall_msg = "Your health device needs to reconnect." if view_mode == "parent" else next((d.sync_message for d in device_items if d.sync_message), f"{subject_title}'s device needs to reconnect.")
+            overall_act = "Reconnect"
         elif any(d.status == SyncStatusState.SYNCING for d in device_items):
             overall_state = SyncStatusState.SYNCING
             overall_label = "⟳ Syncing"
+            overall_msg = None
+            overall_act = None
         elif all(d.status == SyncStatusState.UP_TO_DATE for d in device_items):
             overall_state = SyncStatusState.UP_TO_DATE
             overall_label = "✓ Connected" if view_mode == "parent" else "✓ Up to date"
+            overall_msg = None
+            overall_act = None
         elif any(d.status == SyncStatusState.DELAYED for d in device_items):
             overall_state = SyncStatusState.DELAYED
             overall_label = "⚠ Delayed"
+            overall_msg = "Your health device needs to reconnect." if view_mode == "parent" else next((d.sync_message for d in device_items if d.sync_message), f"{subject_title}'s device needs to reconnect.")
+            overall_act = "Reconnect"
         else:
             overall_state = SyncStatusState.CONNECTED
             overall_label = "✓ Connected"
+            overall_msg = None
+            overall_act = None
 
         return CareSubjectSyncStatusResponse(
             subject_id=subject_id,
             view_mode=view_mode,
             overall_status=overall_state,
             overall_status_label=overall_label,
+            sync_message=overall_msg,
+            action_label=overall_act,
+            action_type="reconnect" if overall_act else None,
             devices=device_items,
             last_sync_at=most_recent_sync,
-            last_sync_relative=self.format_relative_sync_time(most_recent_sync, now_dt)
+            last_sync_relative=self.format_relative_sync_time(most_recent_sync, now_dt),
+            is_health_event=False
         )
+
 
 
     async def get_connection_permissions(

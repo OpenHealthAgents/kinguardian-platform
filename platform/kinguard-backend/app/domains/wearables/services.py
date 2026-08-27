@@ -30,9 +30,12 @@ from app.domains.wearables.schemas import (
     WearableActivitySummary,
     WearableSleepSummary,
     WearableRecoverySummary,
+    WearableWorkoutSummary,
+    WearableSyncStatus,
     WearableDashboardResponse,
     OpenWearablesWebhookPayload
 )
+
 from app.domains.events.outbox import OutboxService
 from app.domains.family.infrastructure.models import (
     CareSubject,
@@ -115,6 +118,28 @@ class WearableService:
         end_date = datetime.utcnow().strftime("%Y-%m-%d")
         start_date = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%d")
         return await self.gateway.get_recovery_summaries(wearable_user_id, start_date, end_date)
+
+    async def get_workouts_history(
+        self,
+        subject_id: uuid.UUID,
+        days: int = 7
+    ) -> List[WearableWorkoutSummary]:
+        """Fetch historical recorded workouts and exercise sessions."""
+        wearable_user_id = self.get_wearable_user_id(subject_id)
+        end_date = datetime.utcnow().strftime("%Y-%m-%d")
+        start_date = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%d")
+        return await self.gateway.get_workouts(wearable_user_id, start_date, end_date)
+
+    async def get_sync_status(self, subject_id: uuid.UUID) -> WearableSyncStatus:
+        """Fetch synchronization status and connected provider diagnostics."""
+        wearable_user_id = self.get_wearable_user_id(subject_id)
+        return await self.gateway.get_sync_status(wearable_user_id)
+
+    async def disconnect_provider(self, subject_id: uuid.UUID, provider: str) -> bool:
+        """Revoke a provider connection."""
+        wearable_user_id = self.get_wearable_user_id(subject_id)
+        return await self.gateway.disconnect(wearable_user_id, provider)
+
 
     async def get_wearable_dashboard(self, subject_id: uuid.UUID) -> WearableDashboardResponse:
         """

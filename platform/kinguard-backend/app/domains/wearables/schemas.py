@@ -99,6 +99,29 @@ class WearableDashboardResponse(BaseModel):
     anomaly_description: Optional[str] = None
 
 
+class WearableWorkoutSummary(BaseModel):
+    """Normalized workout or physical exercise session."""
+    id: str
+    date: str
+    activity_type: str  # e.g. "walking", "running", "yoga", "swimming"
+    duration_minutes: int
+    calories_burned_kcal: Optional[float] = None
+    average_heart_rate_bpm: Optional[int] = None
+    max_heart_rate_bpm: Optional[int] = None
+    distance_meters: Optional[float] = None
+    source_provider: Optional[str] = None
+
+
+class WearableSyncStatus(BaseModel):
+    """Sync status and health diagnostics across all connected providers."""
+    user_id: str
+    is_syncing: bool = False
+    last_successful_sync_at: Optional[datetime] = None
+    connected_provider_count: int = 0
+    active_providers: List[str] = Field(default_factory=list)
+    errors: List[str] = Field(default_factory=list)
+
+
 class OpenWearablesWebhookPayload(BaseModel):
     """Inbound webhook event delivered by Open Wearables upon sync."""
     event_type: str = Field(..., description="e.g. data.synced, connection.created, anomaly.detected")
@@ -106,3 +129,4 @@ class OpenWearablesWebhookPayload(BaseModel):
     provider: Optional[str] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     data: Dict[str, Any] = Field(default_factory=dict)
+

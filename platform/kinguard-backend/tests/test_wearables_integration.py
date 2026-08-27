@@ -65,36 +65,90 @@ async def test_db_session():
     await engine.dispose()
 
 
+from app.domains.wearables.gateway import (
+    WearableDataGateway,
+    OpenWearablesGateway,
+    MockWearableDataGateway,
+    OPEN_WEARABLES_PINNED_COMMIT,
+    OPEN_WEARABLES_PINNED_VERSION
+)
+
+
 @pytest.mark.asyncio
-async def test_open_wearables_gateway_mock_and_resilience():
-    """Verifies that the MockOpenWearablesGateway returns seeded biometric and device states."""
-    gateway = MockOpenWearablesGateway()
+async def test_wearable_data_gateway_protocol_and_pinned_commit():
+    """
+    Verifies that WearableDataGateway Protocol, OpenWearablesGateway, and MockWearableDataGateway
+    strictly adhere to the early-stage compatibility rules and pinned commit.
+    """
+    assert OPEN_WEARABLES_PINNED_VERSION == "0.1.0-alpha"
+    assert OPEN_WEARABLES_PINNED_COMMIT == "a3c9df8091ee591db4a7b3e1580e150c4c8d0e9b"
+
+    mock_gw = MockWearableDataGateway()
+    assert isinstance(mock_gw, WearableDataGateway)
+
+    prod_gw = OpenWearablesGateway()
+    assert isinstance(prod_gw, WearableDataGateway)
+
     user_id = "kinguard_subject_123"
 
-    connections = await gateway.get_user_connections(user_id)
+    # 1. create_user
+    user_res = await mock_gw.create_user(user_id, email="dad@chennai.in", display_name="Ramesh")
+    assert user_res["user_id"] == user_id
+
+    # 2. create_connection_link
+    invitation = await mock_gw.create_connection_link(user_id, "oura")
+    assert invitation.provider == "oura"
+    assert "oura" in invitation.connect_url
+    assert invitation.invitation_code is not None
+
+    # 3. get_connections
+    connections = await mock_gw.get_connections(user_id)
     assert len(connections) == 2
     providers = [c.provider for c in connections]
     assert "garmin" in providers
     assert "apple_health" in providers
 
-    invitation = await gateway.create_connection_invitation(user_id, "oura")
-    assert invitation.provider == "oura"
-    assert "oura" in invitation.connect_url
-    assert invitation.invitation_code is not None
-
-    acts = await gateway.get_activity_summaries(user_id, "2026-08-20", "2026-08-27")
+    # 4. get_daily_activity
+    acts = await mock_gw.get_daily_activity(user_id, "2026-08-20", "2026-08-27")
     assert len(acts) >= 1
     assert acts[0].steps == 5840
 
-    slps = await gateway.get_sleep_summaries(user_id, "2026-08-20", "2026-08-27")
+    # 5. get_sleep
+    slps = await mock_gw.get_sleep(user_id, "2026-08-20", "2026-08-27")
     assert len(slps) >= 1
     assert slps[0].total_sleep_minutes == 440
     assert slps[0].sleep_score == 84
 
-    recs = await gateway.get_recovery_summaries(user_id, "2026-08-20", "2026-08-27")
+    # 6. get_heart_rate
+    recs = await mock_gw.get_heart_rate(user_id, "2026-08-20", "2026-08-27")
     assert len(recs) >= 1
     assert recs[0].resting_heart_rate_bpm == 64
     assert recs[0].hrv_ms == 48.5
+
+    # 7. get_workouts
+    workouts = await mock_gw.get_workouts(user_id, "2026-08-20", "2026-08-27")
+    assert len(workouts) >= 1
+    assert workouts[0].activity_type == "walking"
+    assert workouts[0].duration_minutes == 35
+
+    # 8. get_sync_status
+    sync_status = await mock_gw.get_sync_status(user_id)
+    assert sync_status.user_id == user_id
+    assert sync_status.connected_provider_count >= 2
+    assert "garmin" in sync_status.active_providers
+
+    # 9. get_metrics
+    metrics = await mock_gw.get_metrics(user_id, "2026-08-20", "2026-08-27")
+    assert "activity" in metrics
+    assert "sleep" in metrics
+    assert "recovery" in metrics
+
+    # 10. disconnect
+    dc_res = await mock_gw.disconnect(user_id, "garmin")
+    assert dc_res is True
+    conns_after = await mock_gw.get_connections(user_id)
+    assert "garmin" not in [c.provider for c in conns_after]
+
 
 
 @pytest.mark.asyncio

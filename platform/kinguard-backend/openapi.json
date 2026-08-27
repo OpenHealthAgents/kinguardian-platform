@@ -16756,6 +16756,950 @@
         }
       }
     },
+    "/api/v1/families/{family_id}/subjects/{subject_id}/wearables/connections": {
+      "get": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "List connected wearable devices",
+        "description": "Returns all active and historical wearable device connections (Garmin, Oura, Apple Health, Fitbit)\nassociated with the care subject.",
+        "operationId": "list_subject_wearable_connections_api_v1_families__family_id__subjects__subject_id__wearables_connections_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceConnectionResponse"
+                  },
+                  "title": "Response List Subject Wearable Connections Api V1 Families  Family Id  Subjects  Subject Id  Wearables Connections Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/families/{family_id}/subjects/{subject_id}/wearables/connect/{provider}": {
+      "post": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "Generate wearable device connection link or mobile SDK token",
+        "description": "Generates an OAuth authorization link or mobile SDK sync token (Apple Health / Health Connect)\nvia Open Wearables.",
+        "operationId": "generate_wearable_connect_link_api_v1_families__family_id__subjects__subject_id__wearables_connect__provider__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceConnectUrlResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/families/{family_id}/subjects/{subject_id}/wearables/activity": {
+      "get": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "Get wearable daily activity history",
+        "description": "Returns daily aggregated activity metrics (steps, active minutes, calories burned)\nsynced from connected wearable devices.",
+        "operationId": "get_subject_activity_history_api_v1_families__family_id__subjects__subject_id__wearables_activity_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "description": "Number of past days to retrieve",
+              "default": 7,
+              "title": "Days"
+            },
+            "description": "Number of past days to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WearableActivitySummary"
+                  },
+                  "title": "Response Get Subject Activity History Api V1 Families  Family Id  Subjects  Subject Id  Wearables Activity Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/families/{family_id}/subjects/{subject_id}/wearables/sleep": {
+      "get": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "Get wearable daily sleep architecture history",
+        "description": "Returns daily sleep duration, sleep scores, efficiency percentages, and sleep stages (deep, REM, light).",
+        "operationId": "get_subject_sleep_history_api_v1_families__family_id__subjects__subject_id__wearables_sleep_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "description": "Number of past days to retrieve",
+              "default": 7,
+              "title": "Days"
+            },
+            "description": "Number of past days to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WearableSleepSummary"
+                  },
+                  "title": "Response Get Subject Sleep History Api V1 Families  Family Id  Subjects  Subject Id  Wearables Sleep Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/families/{family_id}/subjects/{subject_id}/wearables/recovery": {
+      "get": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "Get wearable daily recovery & physiological metrics",
+        "description": "Returns resting heart rate, Heart Rate Variability (HRV), blood oxygen saturation (SpO2),\nand recovery scores.",
+        "operationId": "get_subject_recovery_history_api_v1_families__family_id__subjects__subject_id__wearables_recovery_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "description": "Number of past days to retrieve",
+              "default": 7,
+              "title": "Days"
+            },
+            "description": "Number of past days to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WearableRecoverySummary"
+                  },
+                  "title": "Response Get Subject Recovery History Api V1 Families  Family Id  Subjects  Subject Id  Wearables Recovery Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/families/{family_id}/subjects/{subject_id}/wearables/dashboard": {
+      "get": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "Get single-roundtrip wearable health dashboard overview",
+        "description": "Optimized single-roundtrip endpoint returning connected providers, latest activity/sleep/recovery vitals,\nweekly averages, and baseline trend anomaly diagnostics.",
+        "operationId": "get_subject_wearable_dashboard_api_v1_families__family_id__subjects__subject_id__wearables_dashboard_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WearableDashboardResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/families/{family_id}/subjects/{subject_id}/wearables/connections": {
+      "get": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "List connected wearable devices",
+        "description": "Returns all active and historical wearable device connections (Garmin, Oura, Apple Health, Fitbit)\nassociated with the care subject.",
+        "operationId": "list_subject_wearable_connections_families__family_id__subjects__subject_id__wearables_connections_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceConnectionResponse"
+                  },
+                  "title": "Response List Subject Wearable Connections Families  Family Id  Subjects  Subject Id  Wearables Connections Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/families/{family_id}/subjects/{subject_id}/wearables/connect/{provider}": {
+      "post": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "Generate wearable device connection link or mobile SDK token",
+        "description": "Generates an OAuth authorization link or mobile SDK sync token (Apple Health / Health Connect)\nvia Open Wearables.",
+        "operationId": "generate_wearable_connect_link_families__family_id__subjects__subject_id__wearables_connect__provider__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceConnectUrlResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/families/{family_id}/subjects/{subject_id}/wearables/activity": {
+      "get": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "Get wearable daily activity history",
+        "description": "Returns daily aggregated activity metrics (steps, active minutes, calories burned)\nsynced from connected wearable devices.",
+        "operationId": "get_subject_activity_history_families__family_id__subjects__subject_id__wearables_activity_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "description": "Number of past days to retrieve",
+              "default": 7,
+              "title": "Days"
+            },
+            "description": "Number of past days to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WearableActivitySummary"
+                  },
+                  "title": "Response Get Subject Activity History Families  Family Id  Subjects  Subject Id  Wearables Activity Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/families/{family_id}/subjects/{subject_id}/wearables/sleep": {
+      "get": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "Get wearable daily sleep architecture history",
+        "description": "Returns daily sleep duration, sleep scores, efficiency percentages, and sleep stages (deep, REM, light).",
+        "operationId": "get_subject_sleep_history_families__family_id__subjects__subject_id__wearables_sleep_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "description": "Number of past days to retrieve",
+              "default": 7,
+              "title": "Days"
+            },
+            "description": "Number of past days to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WearableSleepSummary"
+                  },
+                  "title": "Response Get Subject Sleep History Families  Family Id  Subjects  Subject Id  Wearables Sleep Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/families/{family_id}/subjects/{subject_id}/wearables/recovery": {
+      "get": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "Get wearable daily recovery & physiological metrics",
+        "description": "Returns resting heart rate, Heart Rate Variability (HRV), blood oxygen saturation (SpO2),\nand recovery scores.",
+        "operationId": "get_subject_recovery_history_families__family_id__subjects__subject_id__wearables_recovery_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "description": "Number of past days to retrieve",
+              "default": 7,
+              "title": "Days"
+            },
+            "description": "Number of past days to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WearableRecoverySummary"
+                  },
+                  "title": "Response Get Subject Recovery History Families  Family Id  Subjects  Subject Id  Wearables Recovery Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/families/{family_id}/subjects/{subject_id}/wearables/dashboard": {
+      "get": {
+        "tags": [
+          "Wearables & Devices"
+        ],
+        "summary": "Get single-roundtrip wearable health dashboard overview",
+        "description": "Optimized single-roundtrip endpoint returning connected providers, latest activity/sleep/recovery vitals,\nweekly averages, and baseline trend anomaly diagnostics.",
+        "operationId": "get_subject_wearable_dashboard_families__family_id__subjects__subject_id__wearables_dashboard_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          },
+          {
+            "name": "subject_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subject Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WearableDashboardResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks/open-wearables": {
+      "post": {
+        "tags": [
+          "Webhooks & Ingress"
+        ],
+        "summary": "Inbound webhook callback receiver from Open Wearables platform",
+        "description": "Validates inbound Open Wearables webhook payload, stages domain events into the transactional outbox,\nand checks for biometric baseline anomalies to trigger proactive Guardian Moments.",
+        "operationId": "receive_open_wearables_webhook_api_v1_webhooks_open_wearables_post",
+        "parameters": [
+          {
+            "name": "X-Open-Wearables-Signature",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "X-Open-Wearables-Signature"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenWearablesWebhookPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/open-wearables": {
+      "post": {
+        "tags": [
+          "Webhooks & Ingress"
+        ],
+        "summary": "Inbound webhook callback receiver from Open Wearables platform",
+        "description": "Validates inbound Open Wearables webhook payload, stages domain events into the transactional outbox,\nand checks for biometric baseline anomalies to trigger proactive Guardian Moments.",
+        "operationId": "receive_open_wearables_webhook_webhooks_open_wearables_post",
+        "parameters": [
+          {
+            "name": "X-Open-Wearables-Signature",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "X-Open-Wearables-Signature"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenWearablesWebhookPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/versions": {
       "get": {
         "tags": [
@@ -19574,6 +20518,135 @@
         ],
         "title": "CursorPaginatedResponse[MobileFamilyMessageDTO]"
       },
+      "DeviceConnectUrlResponse": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "connect_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connect Url"
+          },
+          "invitation_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invitation Code"
+          },
+          "sdk_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sdk Token"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider"
+        ],
+        "title": "DeviceConnectUrlResponse",
+        "description": "OAuth connection URL or mobile SDK token for connecting a wearable device."
+      },
+      "DeviceConnectionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive",
+              "pending",
+              "error"
+            ],
+            "title": "Status",
+            "default": "active"
+          },
+          "provider_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider User Id"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "capabilities": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Capabilities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "provider"
+        ],
+        "title": "DeviceConnectionResponse",
+        "description": "Connected wearable device state for a care subject."
+      },
       "DocumentExtractionCreate": {
         "properties": {
           "extraction_type": {
@@ -22310,6 +23383,47 @@
         ],
         "title": "OffsetPaginatedResponse[MobileCareTaskDTO]"
       },
+      "OpenWearablesWebhookPayload": {
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "title": "Event Type",
+            "description": "e.g. data.synced, connection.created, anomaly.detected"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_type",
+          "user_id"
+        ],
+        "title": "OpenWearablesWebhookPayload",
+        "description": "Inbound webhook event delivered by Open Wearables upon sync."
+      },
       "ParentCheckinStatus": {
         "properties": {
           "submitted": {
@@ -23853,6 +24967,349 @@
           "patient_id"
         ],
         "title": "VitalsSummaryResponse"
+      },
+      "WearableActivitySummary": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "steps": {
+            "type": "integer",
+            "title": "Steps",
+            "default": 0
+          },
+          "active_duration_minutes": {
+            "type": "integer",
+            "title": "Active Duration Minutes",
+            "default": 0
+          },
+          "calories_burned_kcal": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calories Burned Kcal"
+          },
+          "distance_meters": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance Meters"
+          },
+          "floors_climbed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Floors Climbed"
+          },
+          "source_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Provider"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date"
+        ],
+        "title": "WearableActivitySummary",
+        "description": "Daily aggregated activity metrics (steps, energy, active duration)."
+      },
+      "WearableDashboardResponse": {
+        "properties": {
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Subject Id"
+          },
+          "wearable_user_id": {
+            "type": "string",
+            "title": "Wearable User Id"
+          },
+          "connected_providers": {
+            "items": {
+              "$ref": "#/components/schemas/DeviceConnectionResponse"
+            },
+            "type": "array",
+            "title": "Connected Providers"
+          },
+          "latest_activity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WearableActivitySummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_sleep": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WearableSleepSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_recovery": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WearableRecoverySummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "weekly_average_steps": {
+            "type": "integer",
+            "title": "Weekly Average Steps",
+            "default": 0
+          },
+          "weekly_average_sleep_hours": {
+            "type": "number",
+            "title": "Weekly Average Sleep Hours",
+            "default": 0.0
+          },
+          "baseline_step_goal": {
+            "type": "integer",
+            "title": "Baseline Step Goal",
+            "default": 5000
+          },
+          "has_activity_anomaly": {
+            "type": "boolean",
+            "title": "Has Activity Anomaly",
+            "default": false
+          },
+          "anomaly_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anomaly Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_id",
+          "wearable_user_id"
+        ],
+        "title": "WearableDashboardResponse",
+        "description": "Single-roundtrip aggregated wearable health overview for a care subject."
+      },
+      "WearableRecoverySummary": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "resting_heart_rate_bpm": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resting Heart Rate Bpm"
+          },
+          "hrv_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hrv Ms"
+          },
+          "spo2_percentage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spo2 Percentage"
+          },
+          "skin_temperature_celsius": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skin Temperature Celsius"
+          },
+          "recovery_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recovery Score"
+          },
+          "respiratory_rate_bpm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Respiratory Rate Bpm"
+          },
+          "source_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Provider"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date"
+        ],
+        "title": "WearableRecoverySummary",
+        "description": "Daily aggregated autonomic recovery and physiological metrics."
+      },
+      "WearableSleepSummary": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "total_sleep_minutes": {
+            "type": "integer",
+            "title": "Total Sleep Minutes",
+            "default": 0
+          },
+          "deep_sleep_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deep Sleep Minutes"
+          },
+          "light_sleep_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Light Sleep Minutes"
+          },
+          "rem_sleep_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rem Sleep Minutes"
+          },
+          "awake_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Awake Minutes"
+          },
+          "sleep_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sleep Score"
+          },
+          "efficiency_percentage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Efficiency Percentage"
+          },
+          "source_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Provider"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date"
+        ],
+        "title": "WearableSleepSummary",
+        "description": "Daily aggregated sleep architecture and quality metrics."
       },
       "WellbeingCheckinCreate": {
         "properties": {

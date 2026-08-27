@@ -12,6 +12,8 @@ from app.domains.family.infrastructure.repositories import (
 )
 from app.domains.family.domain.exceptions import FamilyAccessError
 from app.domains.clinical.gateway import ClinicalRecordGateway, FHIRClinicalRecordGateway
+from app.domains.wearables.gateway import IOpenWearablesGateway, HttpOpenWearablesGateway
+
 
 logger = get_logger(__name__)
 
@@ -26,7 +28,8 @@ ALL_POSSIBLE_DIMENSIONS: Set[str] = {
     "documents",
     "check_ins",
     "previous_ai_insights",
-    "care_tasks"
+    "care_tasks",
+    "wearables"
 }
 
 # Mapping of clinical dimensions to required consent scope keys
@@ -40,9 +43,11 @@ DIMENSION_CONSENT_MAP = {
     "check_ins": "check_ins",
     "previous_ai_insights": "insights",
     "care_tasks": "care_tasks",
+    "wearables": "wearables",
     "parent_summary": "profile",
     "family_profile": "family"
 }
+
 
 
 # ==========================================
@@ -79,7 +84,7 @@ class SubjectContext(BaseModel):
     authorized_dimensions: List[str] = Field(default_factory=list)
     suppressed_dimensions: List[str] = Field(default_factory=list)
 
-    # Scoped Clinical and Family data dimensions
+    # Scoped Clinical, Wearables and Family data dimensions
     parent_summary: Optional[Dict[str, Any]] = None
     recent_observations: Optional[List[Dict[str, Any]]] = None
     medications: Optional[List[Dict[str, Any]]] = None
@@ -90,6 +95,8 @@ class SubjectContext(BaseModel):
     check_ins: Optional[List[Dict[str, Any]]] = None
     previous_ai_insights: Optional[List[Dict[str, Any]]] = None
     care_tasks: Optional[List[Dict[str, Any]]] = None
+    wearables: Optional[Dict[str, Any]] = None
+
 
 
 class ConversationContext(BaseModel):
@@ -231,6 +238,16 @@ class AIScopedContextPayload(BaseModel):
                         sections.append(f"- **[{task.get('priority').upper()}] {task.get('title')}** (Due: {task.get('due_date')})")
                 sections.append("")
 
+            if s.wearables is not None:
+                sections.append("#### Wearable Telemetry (Open Wearables)")
+                act = s.wearables.get("latest_activity") or {}
+                slp = s.wearables.get("latest_sleep") or {}
+                rec = s.wearables.get("latest_recovery") or {}
+                sections.append(f"- **Steps**: {act.get('steps', 0)} ({act.get('active_duration_minutes', 0)} mins active)")
+                sections.append(f"- **Sleep**: {round(slp.get('total_sleep_minutes', 0) / 60, 1)} hrs (Score: {slp.get('sleep_score', 'N/A')}/100)")
+                sections.append(f"- **Recovery/Resting HR**: {rec.get('resting_heart_rate_bpm', 'N/A')} bpm, HRV {rec.get('hrv_ms', 'N/A')} ms, SpO2 {rec.get('spo2_percentage', 'N/A')}%")
+                sections.append("")
+
         return "\n".join(sections)
 
 
@@ -257,6 +274,8 @@ class AIContextPayload(BaseModel):
     check_ins: Optional[List[Dict[str, Any]]] = None
     previous_ai_insights: Optional[List[Dict[str, Any]]] = None
     care_tasks: Optional[List[Dict[str, Any]]] = None
+    wearables: Optional[Dict[str, Any]] = None
+
 
     def to_prompt_context(self) -> str:
         sections = [
@@ -366,7 +385,21 @@ class AIContextPayload(BaseModel):
                     sections.append(f"- **[{task.get('status', 'pending').upper()}] {task.get('title')}**: Priority {task.get('priority', 'medium')}, Due: {task.get('due_date', 'N/A')}")
             sections.append("")
 
+        if self.wearables is not None:
+            sections.append("## Connected Wearable Telemetry (Open Wearables)")
+            if not self.wearables:
+                sections.append("- *No recent wearable device sync recorded.*")
+            else:
+                act = self.wearables.get("latest_activity") or {}
+                slp = self.wearables.get("latest_sleep") or {}
+                rec = self.wearables.get("latest_recovery") or {}
+                sections.append(f"- **Daily Activity**: {act.get('steps', 0)} steps, {act.get('active_duration_minutes', 0)} active minutes")
+                sections.append(f"- **Sleep Quality**: {round(slp.get('total_sleep_minutes', 0) / 60, 1)} hrs sleep (Score: {slp.get('sleep_score', 'N/A')}/100)")
+                sections.append(f"- **Autonomic Recovery**: Resting HR {rec.get('resting_heart_rate_bpm', 'N/A')} bpm, HRV {rec.get('hrv_ms', 'N/A')} ms, SpO2 {rec.get('spo2_percentage', 'N/A')}%")
+            sections.append("")
+
         return "\n".join(sections)
+
 
 
 def infer_dimensions_from_query(query: str) -> Set[str]:
@@ -439,9 +472,18 @@ def infer_dimensions_from_query(query: str) -> Set[str]:
     if any(kw in q for kw in insight_keywords):
         dimensions.add("previous_ai_insights")
 
+    # 8. Wearables & Physical Activity / Recovery
+    wearable_keywords = [
+        "wearable", "watch", "garmin", "oura", "whoop", "fitbit", "apple health",
+        "step", "steps", "activity", "sleep", "recovery", "hrv", "resting heart rate"
+    ]
+    if any(kw in q for kw in wearable_keywords):
+        dimensions.add("wearables")
+
     # If no specific dimension keywords match, default to safe core summary or all dimensions
     if dimensions == {"parent_summary"}:
         return set(ALL_POSSIBLE_DIMENSIONS)
+
 
     return dimensions
 
@@ -466,13 +508,16 @@ class AIContextBuilder:
     def __init__(
         self,
         session: AsyncSession,
-        gateway: Optional[ClinicalRecordGateway] = None
+        gateway: Optional[ClinicalRecordGateway] = None,
+        wearable_gateway: Optional[IOpenWearablesGateway] = None
     ):
         self.session = session
         self.profile_repo = SQLAlchemyAppProfileRepository(session)
         self.family_repo = SQLAlchemyFamilyRepository(session)
         self.consent_repo = SQLAlchemyConsentRepository(session)
         self.gateway = gateway or FHIRClinicalRecordGateway()
+        self.wearable_gateway = wearable_gateway or HttpOpenWearablesGateway()
+
 
     async def build_scoped_context(
         self,
@@ -748,7 +793,26 @@ class AIContextBuilder:
                     for t in tasks if t.status != "completed"
                 ]
 
+            if "wearables" in authorized_dims:
+                try:
+                    wearable_uid = f"kinguard_subject_{subject.id}"
+                    end_d = datetime.now().strftime("%Y-%m-%d")
+                    start_d = (datetime.now() - timedelta(days=timeframe_days)).strftime("%Y-%m-%d")
+                    acts = await self.wearable_gateway.get_activity_summaries(wearable_uid, start_d, end_d)
+                    slps = await self.wearable_gateway.get_sleep_summaries(wearable_uid, start_d, end_d)
+                    recs = await self.wearable_gateway.get_recovery_summaries(wearable_uid, start_d, end_d)
+                    subj_ctx.wearables = {
+                        "latest_activity": acts[-1].model_dump() if acts else None,
+                        "latest_sleep": slps[-1].model_dump() if slps else None,
+                        "latest_recovery": recs[-1].model_dump() if recs else None,
+                        "weekly_average_steps": int(sum(a.steps for a in acts) / len(acts)) if acts else 0
+                    }
+                except Exception as e:
+                    logger.warning(f"AIContextBuilder: Failed to fetch wearables for {subject.id}: {e}")
+                    subj_ctx.wearables = None
+
             scoped_subjects.append(subj_ctx)
+
 
         # 4. Resolve Conversation Context
         recent_messages: List[Dict[str, Any]] = []
@@ -818,6 +882,8 @@ class AIContextBuilder:
             documents=s.documents,
             check_ins=s.check_ins,
             previous_ai_insights=s.previous_ai_insights,
-            care_tasks=s.care_tasks
+            care_tasks=s.care_tasks,
+            wearables=s.wearables
         )
         return payload
+

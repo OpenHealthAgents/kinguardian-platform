@@ -1,0 +1,172 @@
+"""
+Wearable Presentation Router.
+Provides mobile client endpoints for managing connected wearable devices,
+inspecting daily activity & sleep metrics, and retrieving aggregated dashboard telemetry.
+"""
+
+import uuid
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.core.security import get_current_user
+from app.domains.family.infrastructure.models import AppProfile, FamilyMembership
+from app.domains.wearables.services import WearableService
+from app.domains.wearables.schemas import (
+    DeviceConnectionResponse,
+    DeviceConnectUrlResponse,
+    WearableActivitySummary,
+    WearableSleepSummary,
+    WearableRecoverySummary,
+    WearableDashboardResponse
+)
+from sqlalchemy import select
+
+router = APIRouter(
+    prefix="/families/{family_id}/subjects/{subject_id}/wearables",
+    tags=["Wearables & Devices"]
+)
+
+
+def get_wearable_service(session: AsyncSession = Depends(get_db)) -> WearableService:
+    return WearableService(session=session)
+
+
+async def _verify_family_access(db: AsyncSession, profile_id: uuid.UUID, family_id: uuid.UUID) -> None:
+    res = await db.execute(
+        select(FamilyMembership).where(
+            FamilyMembership.family_id == family_id,
+            FamilyMembership.profile_id == profile_id,
+            FamilyMembership.status == "active"
+        )
+    )
+    if not res.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access to family care circle denied."
+        )
+
+
+@router.get(
+    "/connections",
+    response_model=List[DeviceConnectionResponse],
+    summary="List connected wearable devices"
+)
+async def list_subject_wearable_connections(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns all active and historical wearable device connections (Garmin, Oura, Apple Health, Fitbit)
+    associated with the care subject.
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+    return await service.get_subject_connections(subject_id)
+
+
+
+@router.post(
+    "/connect/{provider}",
+    response_model=DeviceConnectUrlResponse,
+    summary="Generate wearable device connection link or mobile SDK token"
+)
+async def generate_wearable_connect_link(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    provider: str,
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Generates an OAuth authorization link or mobile SDK sync token (Apple Health / Health Connect)
+    via Open Wearables.
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+    return await service.create_connection_invitation(subject_id, provider)
+
+
+@router.get(
+    "/activity",
+    response_model=List[WearableActivitySummary],
+    summary="Get wearable daily activity history"
+)
+async def get_subject_activity_history(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    days: int = Query(default=7, ge=1, le=90, description="Number of past days to retrieve"),
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns daily aggregated activity metrics (steps, active minutes, calories burned)
+    synced from connected wearable devices.
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+    return await service.get_activity_history(subject_id, days=days)
+
+
+@router.get(
+    "/sleep",
+    response_model=List[WearableSleepSummary],
+    summary="Get wearable daily sleep architecture history"
+)
+async def get_subject_sleep_history(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    days: int = Query(default=7, ge=1, le=90, description="Number of past days to retrieve"),
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns daily sleep duration, sleep scores, efficiency percentages, and sleep stages (deep, REM, light).
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+    return await service.get_sleep_history(subject_id, days=days)
+
+
+@router.get(
+    "/recovery",
+    response_model=List[WearableRecoverySummary],
+    summary="Get wearable daily recovery & physiological metrics"
+)
+async def get_subject_recovery_history(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    days: int = Query(default=7, ge=1, le=90, description="Number of past days to retrieve"),
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns resting heart rate, Heart Rate Variability (HRV), blood oxygen saturation (SpO2),
+    and recovery scores.
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+    return await service.get_recovery_history(subject_id, days=days)
+
+
+@router.get(
+    "/dashboard",
+    response_model=WearableDashboardResponse,
+    summary="Get single-roundtrip wearable health dashboard overview"
+)
+async def get_subject_wearable_dashboard(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Optimized single-roundtrip endpoint returning connected providers, latest activity/sleep/recovery vitals,
+    weekly averages, and baseline trend anomaly diagnostics.
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+    return await service.get_wearable_dashboard(subject_id)

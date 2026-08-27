@@ -8,6 +8,7 @@ from app.core.logging import get_logger
 from app.domains.family.domain.exceptions import FamilyAccessError
 from app.domains.family.domain.interfaces import IFamilyRepository, IConsentRepository, IAppProfileRepository, IEventLogger
 from app.domains.clinical.gateway import ClinicalRecordGateway, FHIRClinicalRecordGateway
+from app.domains.wearables.gateway import IOpenWearablesGateway, HttpOpenWearablesGateway
 
 logger = get_logger(__name__)
 
@@ -61,7 +62,7 @@ class KinGuardDomainTool(abc.ABC):
     """
     name: str
     description: str
-    required_permission: str  # e.g. "profile", "medications", "adherence", "vitals", "labs", "appointments", "family", "care_tasks", "messages", "insights"
+    required_permission: str  # e.g. "profile", "medications", "adherence", "vitals", "labs", "appointments", "family", "care_tasks", "messages", "insights", "wearables"
     parameters_schema: Dict[str, Any]
 
     def __init__(
@@ -70,13 +71,16 @@ class KinGuardDomainTool(abc.ABC):
         consent_repo: IConsentRepository,
         profile_repo: IAppProfileRepository,
         event_logger: IEventLogger,
-        gateway: Optional[ClinicalRecordGateway] = None
+        gateway: Optional[ClinicalRecordGateway] = None,
+        wearable_gateway: Optional[IOpenWearablesGateway] = None
     ):
         self.family_repo = family_repo
         self.consent_repo = consent_repo
         self.profile_repo = profile_repo
         self.event_logger = event_logger
         self.gateway = gateway or FHIRClinicalRecordGateway()
+        self.wearable_gateway = wearable_gateway or HttpOpenWearablesGateway()
+
 
     async def check_authorization(self, context: AgentToolContext, target_subject_id: Optional[uuid.UUID] = None) -> bool:
         """
@@ -633,6 +637,47 @@ class CreateInsightTool(KinGuardDomainTool):
         }
 
 
+class GetWearableMetricsTool(KinGuardDomainTool):
+    name = "get_wearable_metrics"
+    description = "Queries physical activity, sleep architecture, and autonomic recovery vitals synced from connected wearable devices (Garmin, Oura, Apple Health, Fitbit)."
+    required_permission = "wearables"
+    parameters_schema = {
+        "type": "object",
+        "properties": {
+            "subject_id": {"type": "string", "description": "UUID of the care subject"},
+            "days": {"type": "integer", "description": "Number of days of telemetry to query (default: 7)", "default": 7}
+        },
+        "required": ["subject_id"]
+    }
+
+    async def run(self, params: Dict[str, Any], context: AgentToolContext) -> Any:
+        subj_id = uuid.UUID(str(params["subject_id"]))
+        days = int(params.get("days", 7))
+        gateway = self.wearable_gateway
+        wearable_uid = f"kinguard_subject_{subj_id}"
+        end_d = datetime.now().strftime("%Y-%m-%d")
+        start_d = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+
+        try:
+            acts = await gateway.get_activity_summaries(wearable_uid, start_d, end_d)
+            slps = await gateway.get_sleep_summaries(wearable_uid, start_d, end_d)
+            recs = await gateway.get_recovery_summaries(wearable_uid, start_d, end_d)
+            return {
+                "subject_id": str(subj_id),
+                "days_queried": days,
+                "latest_activity": acts[-1].model_dump() if acts else None,
+                "latest_sleep": slps[-1].model_dump() if slps else None,
+                "latest_recovery": recs[-1].model_dump() if recs else None,
+                "weekly_average_steps": int(sum(a.steps for a in acts) / len(acts)) if acts else 0
+            }
+        except Exception as e:
+            return {
+                "subject_id": str(subj_id),
+                "error": str(e),
+                "latest_activity": None
+            }
+
+
 # ==========================================
 # Controlled Tool Registry
 # ==========================================
@@ -655,8 +700,10 @@ class ControlledToolRegistry:
         CreateCareTaskTool,
         SendFamilyMessageTool,
         PrepareAppointmentTool,
-        CreateInsightTool
+        CreateInsightTool,
+        GetWearableMetricsTool
     ]
+
 
     def __init__(
         self,
@@ -664,13 +711,15 @@ class ControlledToolRegistry:
         consent_repo: IConsentRepository,
         profile_repo: IAppProfileRepository,
         event_logger: IEventLogger,
-        gateway: Optional[ClinicalRecordGateway] = None
+        gateway: Optional[ClinicalRecordGateway] = None,
+        wearable_gateway: Optional[IOpenWearablesGateway] = None
     ):
         self.family_repo = family_repo
         self.consent_repo = consent_repo
         self.profile_repo = profile_repo
         self.event_logger = event_logger
         self.gateway = gateway or FHIRClinicalRecordGateway()
+        self.wearable_gateway = wearable_gateway or HttpOpenWearablesGateway()
 
         self._tools: Dict[str, KinGuardDomainTool] = {}
         for cls in self.TOOL_CLASSES:
@@ -679,9 +728,11 @@ class ControlledToolRegistry:
                 consent_repo=self.consent_repo,
                 profile_repo=self.profile_repo,
                 event_logger=self.event_logger,
-                gateway=self.gateway
+                gateway=self.gateway,
+                wearable_gateway=self.wearable_gateway
             )
             self._tools[tool_instance.name] = tool_instance
+
 
     def get_tool(self, name: str) -> Optional[KinGuardDomainTool]:
         return self._tools.get(name)

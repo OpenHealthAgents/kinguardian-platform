@@ -29,6 +29,9 @@ from app.domains.family.presentation.mobile_router import router as mobile_route
 from app.domains.family.presentation.conversations_router import router as conversations_router
 from app.domains.family.presentation.realtime_router import router as realtime_router
 from app.domains.events.router import router as events_router
+from app.domains.wearables.router import router as wearables_router
+from app.domains.wearables.webhook_router import router as wearables_webhook_router
+
 
 
 
@@ -206,8 +209,11 @@ api_routers = [
     notifications_router,
     scheduling_router,
     i18n_router,
-    events_router
+    events_router,
+    wearables_router,
+    wearables_webhook_router
 ]
+
 
 for r in api_routers:
     app.include_router(r, prefix="/api/v1")

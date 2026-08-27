@@ -129,9 +129,22 @@ class Settings(BaseSettings):
         description="Event bus implementation engine"
     )
 
-    # ── External Healthcare Pipelines & Wearables ────────────────────────────
+    # ── External Healthcare Pipelines & Open Wearables ────────────────────────
     WEARABLES_API_URL: str = Field(default="http://localhost:8000/api", description="Open Wearables API endpoint")
+    OPEN_WEARABLES_URL: str = Field(
+        default="http://localhost:8000",
+        description="Open Wearables unified API gateway endpoint"
+    )
+    OPEN_WEARABLES_API_KEY: SecretStr = Field(
+        default=SecretStr("dev_open_wearables_secret_key"),
+        description="Open Wearables developer API key (masked in logs)"
+    )
+    OPEN_WEARABLES_WEBHOOK_SECRET: SecretStr = Field(
+        default=SecretStr("dev_open_wearables_webhook_secret"),
+        description="Secret key for verifying inbound Open Wearables webhooks"
+    )
     PIPELINE_SERVICE_URL: str = Field(default="http://localhost:8000", description="Data pipeline service endpoint")
+
 
     # ── Security & Rate Limiting ─────────────────────────────────────────────
     RATE_LIMIT_ENABLED: bool = Field(default=True, description="Enable global Redis sliding window rate limiter")

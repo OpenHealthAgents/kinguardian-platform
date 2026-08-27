@@ -104,9 +104,9 @@ async def test_controlled_tool_registry_and_independent_authorization(db_session
         event_logger=event_logger
     )
 
-    # Verify all 12 tools are registered
+    # Verify all 13 tools are registered
     all_tools = registry.list_all_tools()
-    assert len(all_tools) == 12
+    assert len(all_tools) == 13
     tool_names = [t.name for t in all_tools]
     expected_tools = [
         "get_parent_summary",
@@ -120,10 +120,12 @@ async def test_controlled_tool_registry_and_independent_authorization(db_session
         "create_care_task",
         "send_family_message",
         "prepare_appointment",
-        "create_insight"
+        "create_insight",
+        "get_wearable_metrics"
     ]
     for expected in expected_tools:
         assert expected in tool_names
+
 
     # --- Scenario A: Non-member Stranger tries to execute tools -> DENIED ---
     stranger_ctx = AgentToolContext(

@@ -151,6 +151,8 @@ class CareSubject(Base):
     consents = relationship("Consent", back_populates="subject", cascade="all, delete-orphan")
     adherence_events = relationship("MedicationAdherenceEvent", back_populates="subject", cascade="all, delete-orphan")
     checkins = relationship("WellbeingCheckin", back_populates="subject", cascade="all, delete-orphan")
+    wearable_identity = relationship("CareSubjectWearableIdentity", back_populates="subject", uselist=False, cascade="all, delete-orphan")
+
 
 
 class CareRelationship(Base):
@@ -598,5 +600,72 @@ class IdempotencyRecord(Base):
     __table_args__ = (
         Index("ix_idempotency_key_lookup", "idempotency_key", "user_id"),
     )
+
+
+# ==============================================================================
+# Wearable Identity & Provider Connection Models
+# ==============================================================================
+# APPLICATION DATABASE RULE:
+# The KinGuard application database maintains the relationship between:
+# KinGuard user (AppProfile) -> KinGuard care subject (CareSubject) -> Wearable identity -> Open Wearables user -> Provider connection.
+#
+# NOTE: Do NOT store the entire wearable time-series dataset in the KinGuard transactional database.
+# High-frequency biometrics (continuous epoch data) reside strictly in the Open Wearables layer.
+# ==============================================================================
+
+class CareSubjectWearableIdentity(Base):
+    """
+    Persistent identity mapping entity in KinGuard application database.
+    Represents: KinGuard User -> KinGuard Care Subject -> Wearable Identity -> Open Wearables User.
+    """
+    __tablename__ = "care_subject_wearable_identities"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    family_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("families.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("care_subjects.id", ondelete="CASCADE"), unique=True, index=True, nullable=False)
+    open_wearables_user_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    baseline_step_goal: Mapped[int] = mapped_column(Integer, default=5000, nullable=False)
+    baseline_sleep_hours_goal: Mapped[float] = mapped_column(Numeric(4, 2), default=7.00, nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="active", nullable=False)
+    last_synced_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    family = relationship("Family")
+    subject = relationship("CareSubject", back_populates="wearable_identity")
+    provider_connections = relationship("WearableProviderConnection", back_populates="wearable_identity", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        CheckConstraint("baseline_step_goal >= 1000", name="ck_wearable_identity_step_goal"),
+        CheckConstraint("length(open_wearables_user_id) > 0", name="ck_wearable_identity_ext_id"),
+    )
+
+
+class WearableProviderConnection(Base):
+    """
+    Persistent state of a third-party wearable provider link (Garmin, Oura, Apple Health, Fitbit).
+    Represents: Wearable Identity -> Provider Connection.
+    """
+    __tablename__ = "wearable_provider_connections"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    wearable_identity_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("care_subject_wearable_identities.id", ondelete="CASCADE"), index=True, nullable=False)
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)  # garmin, oura, apple_health, fitbit, etc.
+    provider_user_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    status: Mapped[str] = mapped_column(String(50), default="active", nullable=False)  # active, inactive, pending, revoked, error
+    capabilities: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    last_synced_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    wearable_identity = relationship("CareSubjectWearableIdentity", back_populates="provider_connections")
+
+    __table_args__ = (
+        UniqueConstraint("wearable_identity_id", "provider", name="uq_wearable_identity_provider"),
+        Index("ix_wearable_connections_provider_status", "provider", "status"),
+    )
+
 
 

@@ -39,11 +39,27 @@ from app.domains.wearables.schemas import (
 from app.domains.events.outbox import OutboxService
 from app.domains.family.infrastructure.models import (
     CareSubject,
+    Family,
     AIInsight,
-    Notification
+    Notification,
+    WearableConnection,
+    WearableDataSource,
+    MonitoringPreference
 )
+from app.domains.wearables.domain.entities import WearableMetric, WearableDailySummary
+from app.domains.wearables.domain.value_objects import (
+    DeviceProvider,
+    WearableMetricType,
+    ActivityMetrics,
+    SleepArchitecture,
+    RecoveryVitals,
+    AnomalySeverity
+)
+from app.domains.wearables.domain.services import WearableDomainService
+from app.domains.wearables.domain.policies import ActivityAnomalyPolicy, SleepDisruptionPolicy, AutonomicRecoveryPolicy
 
 logger = get_logger(__name__)
+
 
 
 class WearableService:
@@ -269,3 +285,223 @@ class WearableService:
 
         await self.session.commit()
         return {"status": "processed", "outbox_id": str(outbox_event.id)}
+
+    async def sync_and_process_wearable_data_flow(
+        self,
+        subject_id: uuid.UUID,
+        days: int = 7
+    ) -> Dict[str, Any]:
+        """
+        Executes the complete End-to-End KinGuard Wearable Data Flow:
+        1. Open Wearables normalized API -> KinGuard fetches raw provider data.
+        2. Normalize into KinGuard WearableMetric domain models.
+        3. Insight Engine -> Calculate baselines & detect anomalies (Activity, Sleep, Recovery).
+        4. Guardian Moment / health trend -> Persist AIInsight.
+        5. Coordinator notification -> Generate Notification entity & stage Outbox event for coordinator.
+        """
+        # Fetch Subject and Family
+        res_subj = await self.session.execute(
+            select(CareSubject).where(CareSubject.id == subject_id)
+        )
+        subject = res_subj.scalar_one_or_none()
+        if not subject:
+            raise ValueError(f"Care subject {subject_id} not found")
+
+        res_family = await self.session.execute(
+            select(Family).where(Family.id == subject.family_id)
+        )
+        family = res_family.scalar_one()
+
+        wearable_user_id = self.get_wearable_user_id(subject_id)
+
+        # 1. Fetch raw summaries from Open Wearables Gateway
+        activities = await self.get_activity_history(subject_id, days=days)
+        sleeps = await self.get_sleep_history(subject_id, days=days)
+        recoveries = await self.get_recovery_history(subject_id, days=days)
+        workouts = await self.get_workouts_history(subject_id, days=days)
+
+        # 2. Normalize into KinGuard WearableMetric domain representations
+        normalized_metrics: List[WearableMetric] = []
+        for act in activities:
+            d_time = datetime.strptime(act.date, "%Y-%m-%d") if act.date else datetime.utcnow()
+            normalized_metrics.extend([
+                WearableMetric(
+                    subject_id=subject.id,
+                    metric_type=WearableMetricType.STEPS,
+                    value=act.steps,
+                    unit="count",
+                    measured_at=d_time,
+                    source_provider=DeviceProvider.from_str(act.source_provider or "unknown"),
+                    source_device="Connected Wearable"
+                ),
+                WearableMetric(
+                    subject_id=subject.id,
+                    metric_type=WearableMetricType.ACTIVE_MINUTES,
+                    value=act.active_duration_minutes,
+                    unit="minutes",
+                    measured_at=d_time,
+                    source_provider=DeviceProvider.from_str(act.source_provider or "unknown")
+                ),
+                WearableMetric(
+                    subject_id=subject.id,
+                    metric_type=WearableMetricType.DISTANCE,
+                    value=act.distance_meters or 0.0,
+                    unit="meters",
+                    measured_at=d_time,
+                    source_provider=DeviceProvider.from_str(act.source_provider or "unknown")
+                ),
+                WearableMetric(
+                    subject_id=subject.id,
+                    metric_type=WearableMetricType.CALORIES,
+                    value=act.calories_burned_kcal or 0.0,
+                    unit="kcal",
+                    measured_at=d_time,
+                    source_provider=DeviceProvider.from_str(act.source_provider or "unknown")
+                ),
+            ])
+
+        for slp in sleeps:
+            d_time = datetime.strptime(slp.date, "%Y-%m-%d") if slp.date else datetime.utcnow()
+            normalized_metrics.extend([
+                WearableMetric(
+                    subject_id=subject.id,
+                    metric_type=WearableMetricType.SLEEP_DURATION,
+                    value=slp.total_sleep_minutes * 60,
+                    unit="seconds",
+                    measured_at=d_time,
+                    source_provider=DeviceProvider.from_str(slp.source_provider or "unknown")
+                ),
+                WearableMetric(
+                    subject_id=subject.id,
+                    metric_type=WearableMetricType.SLEEP_SCORE,
+                    value=slp.sleep_score,
+                    unit="score_0_100",
+                    measured_at=d_time,
+                    source_provider=DeviceProvider.from_str(slp.source_provider or "unknown")
+                )
+            ])
+
+        for rec in recoveries:
+            d_time = datetime.strptime(rec.date, "%Y-%m-%d") if rec.date else datetime.utcnow()
+            if rec.resting_heart_rate_bpm:
+                normalized_metrics.append(
+                    WearableMetric(
+                        subject_id=subject.id,
+                        metric_type=WearableMetricType.RESTING_HEART_RATE,
+                        value=rec.resting_heart_rate_bpm,
+                        unit="bpm",
+                        measured_at=d_time,
+                        source_provider=DeviceProvider.from_str(rec.source_provider or "unknown")
+                    )
+                )
+            if rec.hrv_ms:
+                normalized_metrics.append(
+                    WearableMetric(
+                        subject_id=subject.id,
+                        metric_type=WearableMetricType.HEART_RATE_VARIABILITY,
+                        value=rec.hrv_ms,
+                        unit="ms",
+                        measured_at=d_time,
+                        source_provider=DeviceProvider.from_str(rec.source_provider or "unknown")
+                    )
+                )
+
+        # 3. Insight Engine: Trend derivation & Anomaly Evaluation
+        daily_domain_summaries: List[WearableDailySummary] = []
+        for i in range(len(activities)):
+            act = activities[i]
+            slp = sleeps[i] if i < len(sleeps) else None
+            rec = recoveries[i] if i < len(recoveries) else None
+            daily_domain_summaries.append(
+                WearableDailySummary(
+                    date=act.date,
+                    activity=ActivityMetrics(steps=act.steps, active_minutes=act.active_duration_minutes),
+                    sleep=SleepArchitecture(total_sleep_minutes=slp.total_sleep_minutes, sleep_score=slp.sleep_score) if slp else None,
+                    recovery=RecoveryVitals(resting_heart_rate_bpm=rec.resting_heart_rate_bpm, hrv_rmssd_ms=rec.hrv_ms, spo2_percentage=rec.spo2_percentage) if rec else None
+                )
+            )
+
+
+        latest_day = daily_domain_summaries[-1] if daily_domain_summaries else None
+        historical_days = daily_domain_summaries[:-1] if len(daily_domain_summaries) > 1 else daily_domain_summaries
+
+        anomalies = []
+        if latest_day:
+            anomalies = WearableDomainService.evaluate_all_anomalies(
+                subject_id=subject.id,
+                today_summary=latest_day,
+                historical_summaries=historical_days
+            )
+
+        # 4. Guardian Moment / Health Trend: Persist AIInsight & Emit Notification
+        generated_insights: List[AIInsight] = []
+        generated_notifications: List[Notification] = []
+
+        now = datetime.utcnow()
+        for anomaly in anomalies:
+            insight_id = uuid.uuid4()
+            insight = AIInsight(
+                id=insight_id,
+                family_id=family.id,
+                subject_id=subject.id,
+                type="guardian_moment",
+                severity="attention" if anomaly.severity == AnomalySeverity.ATTENTION else "warning",
+                title=f"Guardian Moment: {anomaly.metric_name.replace('_', ' ').title()} Deviation",
+                summary=anomaly.description,
+                observation=f"Observed value: {anomaly.observed_value:.1f}, Baseline: {anomaly.baseline_value:.1f} ({anomaly.percentage_deviation:.0f}% deviation).",
+                recommendation=f"Check in with {subject.relationship_to_coordinator or 'care subject'} regarding fatigue or health concerns.",
+                timeframe_start=now - timedelta(days=1),
+                timeframe_end=now,
+                confidence=0.94,
+                status="active",
+                actionability="propose_care_task",
+                baseline_comparison=f"Baseline: {anomaly.baseline_value:.1f}"
+            )
+            self.session.add(insight)
+            generated_insights.append(insight)
+
+            # 5. Coordinator Notification (e.g. to Anjali in London)
+            if family.primary_coordinator_profile_id:
+                notif_id = uuid.uuid4()
+                notif = Notification(
+                    id=notif_id,
+                    recipient_profile_id=family.primary_coordinator_profile_id,
+                    family_id=family.id,
+                    subject_id=subject.id,
+                    type="guardian_anomaly_alert",
+                    priority="high" if anomaly.severity == AnomalySeverity.WARNING else "normal",
+                    title=f"Guardian Alert: Activity drop for {subject.relationship_to_coordinator or 'Dad'}",
+                    body=anomaly.description,
+                    action_type="view_guardian_moment"
+                )
+                self.session.add(notif)
+                generated_notifications.append(notif)
+
+                # Stage Outbox Notification Event
+                await self.outbox_svc.stage_event(
+                    event_type="notification.guardian_alert",
+                    aggregate_type="notification",
+                    aggregate_id=notif_id,
+                    family_id=family.id,
+                    payload={
+                        "notification_id": str(notif_id),
+                        "recipient_profile_id": str(family.primary_coordinator_profile_id),
+                        "subject_id": str(subject.id),
+                        "title": notif.title,
+                        "body": notif.body
+                    }
+                )
+
+
+        await self.session.commit()
+
+        return {
+            "subject_id": str(subject.id),
+            "normalized_metrics_count": len(normalized_metrics),
+            "metrics": [m.to_dict() for m in normalized_metrics[:10]],  # sample preview
+            "anomalies_detected": len(anomalies),
+            "insights_generated": len(generated_insights),
+            "notifications_dispatched": len(generated_notifications),
+            "guardian_moment": generated_insights[0].title if generated_insights else None
+        }
+

@@ -119,6 +119,10 @@ from app.domains.wearables.domain.care_coordination import (
     CreatedCareTask,
     WearableCareCoordinatorService
 )
+from app.domains.wearables.domain.multimodal_checkin_correlation import (
+    MultimodalCorrelationAssessment,
+    MultimodalWearableCheckinCorrelator
+)
 
 __all__ = [
     "WearableIdentity",
@@ -204,8 +208,11 @@ __all__ = [
     "WearableCareActionPolicy",
     "WearableCareTaskSuggestion",
     "CreatedCareTask",
-    "WearableCareCoordinatorService"
+    "WearableCareCoordinatorService",
+    "MultimodalCorrelationAssessment",
+    "MultimodalWearableCheckinCorrelator"
 ]
+
 
 
 

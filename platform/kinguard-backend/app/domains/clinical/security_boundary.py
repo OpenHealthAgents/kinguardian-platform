@@ -5,11 +5,11 @@ Enforces that mobile clients never call the FHIR R4 server directly.
 Architectural Flow:
 Mobile Client
     ↓
-KinGuard API (/api/v1/clinical/*)
+KinGuardian API (/api/v1/clinical/*)
     ↓
 Authentication (Bearer JWT)
     ↓
-KinGuard Authorization (Family Membership + Consent Scope Verification)
+KinGuardian Authorization (Family Membership + Consent Scope Verification)
     ↓
 FHIR Adapter (Internal M2M Credential Injection)
     ↓
@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 
 class FHIRSecurityBoundary:
     """
-    Enforces that all clinical FHIR data access passes through the KinGuard
+    Enforces that all clinical FHIR data access passes through the KinGuardian
     Authorization & Consent Evaluation Pipeline.
     """
 

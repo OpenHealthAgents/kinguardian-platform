@@ -2,7 +2,7 @@
 Dedicated Health Unit Standardization & Conversion Module.
 
 Provides HealthUnitConverter as the single centralized source of truth for all
-biometric and wearable unit conversions across KinGuard:
+biometric and wearable unit conversions across KinGuardian:
 - Heart rate -> bpm
 - Weight -> kg
 - Distance -> meters / km
@@ -20,7 +20,7 @@ from typing import Optional, Union, Tuple, Dict, Any
 
 
 class StandardUnit(str, Enum):
-    """Canonical KinGuard measurement units."""
+    """Canonical KinGuardian measurement units."""
     # Count / Discrete
     COUNT = "count"
     STEPS = "count"

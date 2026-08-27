@@ -4,7 +4,7 @@ Verifies:
 1. FHIR Unavailability: Coordinator Home degrades gracefully (family data available, clinical data marked temporarily unavailable) without failing the page.
 2. Notification Provider Failure: Safely persists notification intent and schedules async background retry.
 3. AI Generation Failure: Returns safe fallback message:
-   'KinGuard couldn't generate the insight right now. You can review the underlying health information.'
+   'KinGuardian couldn't generate the insight right now. You can review the underlying health information.'
 """
 
 import pytest
@@ -118,7 +118,7 @@ def test_notification_provider_failure_persists_intent_for_retry():
 def test_ai_failure_returns_safe_fallback_message():
     """
     Verifies that when AI generation fails, the system returns the exact safe fallback:
-    'KinGuard couldn't generate the insight right now. You can review the underlying health information.'
+    'KinGuardian couldn't generate the insight right now. You can review the underlying health information.'
     and confirms underlying health data remains accessible.
     """
     subject_id = uuid.uuid4()
@@ -133,7 +133,7 @@ def test_ai_failure_returns_safe_fallback_message():
     )
 
     assert fallback["summary"] == SAFE_AI_FALLBACK_MESSAGE
-    assert "KinGuard couldn't generate the insight right now" in fallback["summary"]
+    assert "KinGuardian couldn't generate the insight right now" in fallback["summary"]
     assert "You can review the underlying health information" in fallback["summary"]
     assert fallback["is_fallback"] is True
     assert fallback["underlying_health_data_accessible"] is True

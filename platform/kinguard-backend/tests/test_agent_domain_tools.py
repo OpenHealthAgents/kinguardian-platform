@@ -46,19 +46,19 @@ async def test_controlled_tool_registry_and_independent_authorization(db_session
     # 1. Setup Profiles
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_agent",
-        email="coord_agent@kinguard.com",
+        email="coord_agent@kinguardian.com",
         display_name="Maya Coordinator",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_agent",
-        email="parent_agent@kinguard.com",
+        email="parent_agent@kinguardian.com",
         display_name="Arthur Pendelton",
         timezone="Asia/Kolkata"
     )
     stranger = await family_svc.get_or_create_profile(
         iam_subject_id="iam_stranger_agent",
-        email="stranger_agent@kinguard.com",
+        email="stranger_agent@kinguardian.com",
         display_name="Intruder",
         timezone="UTC"
     )
@@ -214,13 +214,13 @@ async def test_agent_tools_rest_endpoints(db_session):
 
     coord = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_rest_agent",
-        email="coord_rest_agent@kinguard.com",
+        email="coord_rest_agent@kinguardian.com",
         display_name="Maya REST",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_rest_agent",
-        email="parent_rest_agent@kinguard.com",
+        email="parent_rest_agent@kinguardian.com",
         display_name="Arthur REST",
         timezone="Asia/Kolkata"
     )

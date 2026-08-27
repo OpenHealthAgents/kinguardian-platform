@@ -42,12 +42,12 @@ async def test_document_upload_initialization_and_metadata(family_service, db_se
     """
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord_doc_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_doc_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Anjali Coordinator"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"parent_doc_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_doc_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Ramesh Parent"
     )
 
@@ -93,12 +93,12 @@ async def test_filenest_webhook_processing_extraction_and_review(family_service,
     """
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord_proc_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_proc_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"parent_proc_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_proc_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Parent"
     )
 

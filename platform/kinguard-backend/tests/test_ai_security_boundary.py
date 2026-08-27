@@ -2,7 +2,7 @@
 AI Security Boundary Test Suite:
 Verifies that:
 1. Mobile clients NEVER receive raw model-provider credentials.
-2. All queries pass through KinGuard API -> Authorization + Context Builder -> Agent Service -> Authorized Tools.
+2. All queries pass through KinGuardian API -> Authorization + Context Builder -> Agent Service -> Authorized Tools.
 3. Untrusted prompts are wrapped and neutralized.
 4. Tool authorizations are evaluated deterministically outside the LLM.
 """

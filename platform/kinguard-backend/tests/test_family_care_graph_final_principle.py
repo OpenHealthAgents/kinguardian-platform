@@ -1,10 +1,10 @@
 """
 Family Care Graph Final Principle Test Suite.
 
-Verifies that KinGuard is the Family Intelligence & Coordination Layer,
+Verifies that KinGuardian is the Family Intelligence & Coordination Layer,
 owning the Family Care Graph while Open Wearables provides normalized evidence.
 
-The 5 Core KinGuard Decisions:
+The 5 Core KinGuardian Decisions:
 1. Which parent it belongs to (Identity mapping).
 2. Who is permitted to see it (Consent & authorization).
 3. What changed (Baseline calculation).
@@ -51,7 +51,7 @@ async def care_graph_session():
 @pytest.mark.asyncio
 async def test_family_care_graph_the_five_decisions(care_graph_session: AsyncSession):
     """
-    Executes the 5 KinGuard-owned decisions tying together Parents, Caregivers, and Children.
+    Executes the 5 KinGuardian-owned decisions tying together Parents, Caregivers, and Children.
     """
     session = care_graph_session
     today = datetime.now(timezone.utc)
@@ -108,8 +108,8 @@ async def test_family_care_graph_the_five_decisions(care_graph_session: AsyncSes
     gateway = MockWearableDataGateway()
     wearable_service = WearableService(session=session, gateway=gateway)
     wearable_user_id = wearable_service.get_wearable_user_id(subject_id)
-    assert wearable_user_id == f"kinguard_subject_{subject_id}"
-    extracted_id = uuid.UUID(wearable_user_id.replace("kinguard_subject_", ""))
+    assert wearable_user_id == f"kinguardian_subject_{subject_id}"
+    extracted_id = uuid.UUID(wearable_user_id.replace("kinguardian_subject_", ""))
     assert extracted_id == subject_id
 
 

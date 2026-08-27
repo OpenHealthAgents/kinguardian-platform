@@ -68,7 +68,7 @@ async def test_notification_service_multi_channel_dispatch(db_session):
 
     recipient = await family_svc.get_or_create_profile(
         iam_subject_id="iam_notif_recipient",
-        email="recipient@kinguard.com",
+        email="recipient@kinguardian.com",
         display_name="Maya Coordinator",
         timezone="UTC"
     )
@@ -121,7 +121,7 @@ async def test_notifications_rest_endpoints(db_session):
 
     user = await family_svc.get_or_create_profile(
         iam_subject_id="iam_notif_rest",
-        email="notif_rest@kinguard.com",
+        email="notif_rest@kinguardian.com",
         display_name="Sarah REST",
         timezone="UTC"
     )

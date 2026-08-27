@@ -117,7 +117,7 @@ async def get_current_user(
             service = build_family_service(db_session)
             mock_profile_entity = await service.get_or_create_profile(
                 iam_subject_id="iam_mock_subject_123",
-                email="coordinator.mock@kinguard.com",
+                email="coordinator.mock@kinguardian.com",
                 display_name="Mock Coordinator",
                 timezone="America/New_York"
             )
@@ -170,7 +170,7 @@ async def get_current_user(
     display_name = payload.get("name", email.split("@")[0].capitalize() if email else "User")
     profile_entity = await service.get_or_create_profile(
         iam_subject_id=sub,
-        email=email or f"{sub}@iam.kinguard.com",
+        email=email or f"{sub}@iam.kinguardian.com",
         display_name=display_name,
         timezone=timezone
     )

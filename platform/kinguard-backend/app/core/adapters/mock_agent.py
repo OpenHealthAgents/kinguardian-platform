@@ -47,7 +47,7 @@ class MockAgentGateway:
             )
         else:
             reply = (
-                "KinGuard Guardian AI is monitoring health trends. All vital signs are within normal baselines."
+                "KinGuardian Guardian AI is monitoring health trends. All vital signs are within normal baselines."
             )
 
         message_record = {

@@ -36,7 +36,7 @@ def test_structured_json_logging_with_observability_context():
 
     try:
         record = logging.LogRecord(
-            name="kinguard.test",
+            name="kinguardian.test",
             level=logging.INFO,
             pathname=__file__,
             lineno=10,

@@ -104,7 +104,7 @@ class WearableAnomalyDiagnostic:
 class WearableIdentity:
     """
     Aggregate Root: Care Subject Wearable Identity.
-    Maintains the invariant that a KinGuard Care Subject owns external wearable device connections,
+    Maintains the invariant that a KinGuardian Care Subject owns external wearable device connections,
     baseline goals, and daily telemetry streams.
     """
 
@@ -120,7 +120,7 @@ class WearableIdentity:
     ):
         self.subject_id = subject_id
         self.family_id = family_id
-        self.external_wearable_user_id = external_wearable_user_id or f"kinguard_subject_{subject_id}"
+        self.external_wearable_user_id = external_wearable_user_id or f"kinguardian_subject_{subject_id}"
         self.baseline_step_goal = baseline_step_goal
         self.baseline_sleep_hours_goal = baseline_sleep_hours_goal
         self._connections: Dict[str, WearableDeviceConnection] = {}
@@ -157,7 +157,7 @@ class WearableIdentity:
 
 class WearableMetric:
     """
-    Normalized KinGuard domain representation of a wearable biometric/activity metric.
+    Normalized KinGuardian domain representation of a wearable biometric/activity metric.
     Encapsulates raw vendor measurements into a normalized, strongly-typed domain model.
     All stored timestamps are guaranteed UTC, while retaining measured_at_utc and local_timezone
     for mobile client localized rendering.

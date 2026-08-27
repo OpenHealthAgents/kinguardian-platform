@@ -24,13 +24,13 @@ async def test_consent_authorization_flow(db_session):
     # 1. Setup Parent & Coordinator
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_1",
-        email="parent@kinguard.com",
+        email="parent@kinguardian.com",
         display_name="Parent User",
         timezone="Asia/Kolkata"
     )
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_1",
-        email="coordinator@kinguard.com",
+        email="coordinator@kinguardian.com",
         display_name="Child Coordinator",
         timezone="America/New_York"
     )
@@ -102,13 +102,13 @@ async def test_capability_enforcement_flow(db_session):
     # 1. Setup Parent & Basic Family Member
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_2",
-        email="parent2@kinguard.com",
+        email="parent2@kinguardian.com",
         display_name="Parent User 2",
         timezone="Asia/Kolkata"
     )
     member = await family_svc.get_or_create_profile(
         iam_subject_id="iam_member_2",
-        email="member2@kinguard.com",
+        email="member2@kinguardian.com",
         display_name="Basic Member",
         timezone="America/New_York"
     )
@@ -265,13 +265,13 @@ async def test_clinical_service_with_injected_gateway(db_session):
     
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_gw",
-        email="parent_gw@kinguard.com",
+        email="parent_gw@kinguardian.com",
         display_name="Parent User Gateway",
         timezone="Asia/Kolkata"
     )
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_gw",
-        email="coord_gw@kinguard.com",
+        email="coord_gw@kinguardian.com",
         display_name="Coordinator User Gateway",
         timezone="America/New_York"
     )

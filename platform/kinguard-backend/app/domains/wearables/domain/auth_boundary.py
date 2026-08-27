@@ -2,13 +2,13 @@
 Authentication Boundary Enforcement for Wearables.
 
 Security Architecture:
-1. KinGuard IAM handles user authentication (OIDC / JWT Bearer Tokens).
-2. Mobile application authenticates ONLY with KinGuard API.
-3. KinGuard API acts as the secure, authenticated reverse-proxy to Open Wearables using service credentials.
-4. Open Wearables' internal authentication model is NEVER exposed to KinGuard users or mobile clients.
+1. KinGuardian IAM handles user authentication (OIDC / JWT Bearer Tokens).
+2. Mobile application authenticates ONLY with KinGuardian API.
+3. KinGuardian API acts as the secure, authenticated reverse-proxy to Open Wearables using service credentials.
+4. Open Wearables' internal authentication model is NEVER exposed to KinGuardian users or mobile clients.
 
 Flow:
-Mobile App -> (KinGuard IAM JWT) -> KinGuard API -> (Service Credentials / API Key) -> Open Wearables API
+Mobile App -> (KinGuardian IAM JWT) -> KinGuardian API -> (Service Credentials / API Key) -> Open Wearables API
 """
 
 from typing import Dict, Any, Optional
@@ -17,13 +17,13 @@ import uuid
 
 class AuthenticationBoundaryVerifier:
     """
-    Enforces the zero-trust authentication boundary between KinGuard users and Open Wearables.
+    Enforces the zero-trust authentication boundary between KinGuardian users and Open Wearables.
     """
 
     @classmethod
     def verify_client_token(cls, authorization_header: Optional[str]) -> bool:
         """
-        Ensures the client provides a KinGuard IAM Bearer token and does NOT pass
+        Ensures the client provides a KinGuardian IAM Bearer token and does NOT pass
         raw Open Wearables internal API keys.
         """
         if not authorization_header or not authorization_header.startswith("Bearer "):
@@ -48,6 +48,6 @@ class AuthenticationBoundaryVerifier:
             "Content-Type": "application/json",
             "Authorization": f"Bearer {service_api_key}",
             "X-API-Key": service_api_key,
-            "X-Client-Platform": "KinGuard",
-            "X-Subject-Pseudonym": f"kinguard_subject_{subject_id}"
+            "X-Client-Platform": "KinGuardian",
+            "X-Subject-Pseudonym": f"kinguardian_subject_{subject_id}"
         }

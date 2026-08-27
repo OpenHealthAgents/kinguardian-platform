@@ -5,7 +5,7 @@ Enforces that mobile clients never receive raw/unrestricted object storage crede
 Architectural Flow:
 Mobile Client
     ↓
-KinGuard Permission Check (Auth + Tenancy + Membership + Consent)
+KinGuardian Permission Check (Auth + Tenancy + Membership + Consent)
     ↓
 FileNest Signed Upload / Download (Short-lived HMAC signed URL, max TTL 900s)
     ↓
@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 
 class FileSecurityBoundary:
     """
-    Enforces KinGuard authorization checks and generates scoped, short-lived
+    Enforces KinGuardian authorization checks and generates scoped, short-lived
     FileNest signed URLs without exposing master storage credentials.
     """
 

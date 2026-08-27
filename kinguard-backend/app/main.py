@@ -13,7 +13,7 @@ async def lifespan(_: FastAPI):
     await engine.dispose()
 
 
-app = FastAPI(title="KinGuard Platform API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="KinGuardian Platform API", version="1.0.0", lifespan=lifespan)
 app.state.notification_adapter = MockNotificationAdapter()
 app.state.ai_adapter = MockAIAdapter()
 app.include_router(router)

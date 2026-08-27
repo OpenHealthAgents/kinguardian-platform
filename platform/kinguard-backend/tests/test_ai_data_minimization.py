@@ -82,13 +82,13 @@ async def test_ai_context_builder_query_data_minimization(db_session: AsyncSessi
     # 1. Create Profiles & Care Circle
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_min_01",
-        email="anjali.min@kinguard.com",
+        email="anjali.min@kinguardian.com",
         display_name="Anjali",
         timezone="Europe/London"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_min_01",
-        email="ramesh.min@kinguard.com",
+        email="ramesh.min@kinguardian.com",
         display_name="Ramesh",
         timezone="Asia/Kolkata"
     )

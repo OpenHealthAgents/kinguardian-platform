@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 class AgentProxyService:
     """
     Agent Proxy Service:
-    Bridges KinGuard domain tools with bezs-agent runtime through ControlledToolRegistry.
+    Bridges KinGuardian domain tools with bezs-agent runtime through ControlledToolRegistry.
     Enforces least privilege and independent authorization verification on all tool executions.
     """
     def __init__(self, session: AsyncSession):

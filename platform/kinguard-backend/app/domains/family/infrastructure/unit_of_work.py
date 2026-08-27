@@ -1,5 +1,5 @@
 """
-Unit of Work Pattern Implementation for KinGuard.
+Unit of Work Pattern Implementation for KinGuardian.
 
 Coordinates atomic transactional boundaries across multiple repositories:
 - AppProfileRepository

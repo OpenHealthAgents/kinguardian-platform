@@ -47,12 +47,12 @@ async def test_consent_grant_and_audit_trail(family_service, db_session):
     """
     parent = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"parent_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Ramesh Parent"
     )
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Anjali Coordinator"
     )
     family = await family_service.create_care_circle(
@@ -105,12 +105,12 @@ async def test_consent_revoke_and_version_increment(family_service, db_session):
     """
     parent = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"parent_rev_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_rev_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Lakshmi Parent"
     )
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord_rev_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_rev_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Anjali Coordinator"
     )
     family = await family_service.create_care_circle(
@@ -161,12 +161,12 @@ async def test_consent_scope_and_expiry_authorization_enforcement(family_service
     """
     parent = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"parent_exp_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_exp_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Parent"
     )
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord_exp_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_exp_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     family = await family_service.create_care_circle(

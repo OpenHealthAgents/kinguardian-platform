@@ -54,7 +54,7 @@ async def test_notification_domain_and_delivery_adapters(notification_service, d
 
     recipient = await user_repo.create(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"recipient_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"recipient_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Anjali Recipient",
         timezone="Asia/Kolkata"
     )
@@ -97,7 +97,7 @@ async def test_in_app_notification_inbox_and_lifecycle(notification_service, db_
 
     recipient = await user_repo.create(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"inbox_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"inbox_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Inbox User"
     )
     family = await family_repo.create(name="Inbox Family")

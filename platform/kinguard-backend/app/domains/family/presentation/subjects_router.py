@@ -307,7 +307,7 @@ async def initiate_document_upload(
 ):
     """
     Step 1 of FileNest Integration:
-    Creates KinGuard document metadata and initiates secure FileNest upload target.
+    Creates KinGuardian document metadata and initiates secure FileNest upload target.
     """
     service = get_family_service(db_session)
     try:

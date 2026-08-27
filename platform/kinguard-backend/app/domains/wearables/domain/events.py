@@ -1,7 +1,7 @@
 """
 Wearable Domain & Integration Events Module.
 
-Defines canonical domain events matching the KinGuard event taxonomy:
+Defines canonical domain events matching the KinGuardian event taxonomy:
 - wearable.connected
 - wearable.disconnected
 - wearable.sync.started

@@ -1,5 +1,5 @@
 """
-Security Threat Matrix Test Suite for KinGuard Platform:
+Security Threat Matrix Test Suite for KinGuardian Platform:
 1. Expired JWT
 2. Invalid JWT (signature tamper / malformed)
 3. Wrong Family (Tenancy isolation breach attempt)
@@ -59,7 +59,7 @@ def test_security_expired_jwt():
     expired_payload = {
         "sub": "user_expired_123",
         "iss": settings.IAM_ISSUER,
-        "aud": "kinguard-platform-api",
+        "aud": "kinguardian-platform-api",
         "exp": int((datetime.now(timezone.utc) - timedelta(hours=1)).timestamp()),
         "iat": int((datetime.now(timezone.utc) - timedelta(hours=2)).timestamp())
     }
@@ -78,7 +78,7 @@ def test_security_invalid_jwt_claims():
     invalid_issuer_payload = {
         "sub": "user_malicious",
         "iss": "http://evil-attacker.com",
-        "aud": "kinguard-platform-api",
+        "aud": "kinguardian-platform-api",
         "exp": int((datetime.now(timezone.utc) + timedelta(hours=1)).timestamp()),
         "iat": int(datetime.now(timezone.utc).timestamp())
     }
@@ -90,7 +90,7 @@ def test_security_invalid_jwt_claims():
     # Missing subject claim
     missing_sub_payload = {
         "iss": settings.IAM_ISSUER,
-        "aud": "kinguard-platform-api",
+        "aud": "kinguardian-platform-api",
         "exp": int((datetime.now(timezone.utc) + timedelta(hours=1)).timestamp())
     }
     with pytest.raises(HTTPException) as exc_info2:

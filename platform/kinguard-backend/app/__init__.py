@@ -1,1 +1,1 @@
-# KinGuard Backend Application package
+# KinGuardian Backend Application package

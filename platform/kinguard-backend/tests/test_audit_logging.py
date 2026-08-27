@@ -30,13 +30,13 @@ async def test_all_twelve_application_audit_event_types(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_audit",
-        email="coord_audit@kinguard.com",
+        email="coord_audit@kinguardian.com",
         display_name="Maya Coordinator",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_audit",
-        email="parent_audit@kinguard.com",
+        email="parent_audit@kinguardian.com",
         display_name="George Senior",
         timezone="Asia/Kolkata"
     )
@@ -131,7 +131,7 @@ async def test_all_twelve_application_audit_event_types(db_session):
         family=family.id,
         subject=subject.id,
         appointment_id="appt-777",
-        shared_with_email="caregiver@kinguard.com"
+        shared_with_email="caregiver@kinguardian.com"
     )
     assert e7.event_type == "appointment.summary.shared"
 
@@ -208,7 +208,7 @@ async def test_audit_trail_rest_endpoint(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_audit_rest",
-        email="coord_audit_rest@kinguard.com",
+        email="coord_audit_rest@kinguardian.com",
         display_name="Sarah Audit REST",
         timezone="America/New_York"
     )

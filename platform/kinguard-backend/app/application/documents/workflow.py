@@ -106,7 +106,7 @@ class DocumentProcessingWorkflow:
         )
         file_id = filenest_record["file_id"]
 
-        # Persist document metadata in KinGuard
+        # Persist document metadata in KinGuardian
         doc = await self.family_service.circle_repo.add_health_document(
             family_id=family_id,
             subject_id=subject_id,

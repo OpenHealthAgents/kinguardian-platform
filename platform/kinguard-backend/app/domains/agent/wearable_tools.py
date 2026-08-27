@@ -1,5 +1,5 @@
 """
-Wearable Agent Tools for KinGuard AI Agent.
+Wearable Agent Tools for KinGuardian AI Agent.
 
 Implements the 7 controlled wearable domain tools:
 1. get_wearable_connections
@@ -20,7 +20,7 @@ import uuid
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta, timezone
 
-from app.domains.agent.tools import KinGuardDomainTool, AgentToolContext
+from app.domains.agent.tools import KinGuardianDomainTool, AgentToolContext
 from app.domains.wearables.domain.entities import WearableMetricType
 from app.domains.wearables.schemas import SyncStatusState
 from app.domains.wearables.domain.baselines import WearableBaselineCalculator
@@ -28,7 +28,7 @@ from app.domains.wearables.domain.consent_scopes import WearableConsentScope
 
 
 
-class GetWearableConnectionsTool(KinGuardDomainTool):
+class GetWearableConnectionsTool(KinGuardianDomainTool):
     name = "get_wearable_connections"
     description = "Retrieves active and configured wearable device connections (Garmin, Apple Health, Oura, Fitbit) for a care subject."
     required_permission = "wearables"
@@ -44,7 +44,7 @@ class GetWearableConnectionsTool(KinGuardDomainTool):
     async def run(self, params: Dict[str, Any], context: AgentToolContext) -> Any:
         subj_id = uuid.UUID(str(params["subject_id"]))
         gateway = self.wearable_gateway
-        wearable_uid = f"kinguard_subject_{subj_id}"
+        wearable_uid = f"kinguardian_subject_{subj_id}"
 
         try:
             conns = await gateway.get_user_connections(wearable_uid)
@@ -70,7 +70,7 @@ class GetWearableConnectionsTool(KinGuardDomainTool):
             }
 
 
-class GetWearableSummaryTool(KinGuardDomainTool):
+class GetWearableSummaryTool(KinGuardianDomainTool):
     name = "get_wearable_summary"
     description = "Queries the daily aggregated wearable health summary (steps, sleep hours, resting HR, wellness rating) for a care subject."
     required_permission = "wearables"
@@ -88,7 +88,7 @@ class GetWearableSummaryTool(KinGuardDomainTool):
         subj_id = uuid.UUID(str(params["subject_id"]))
         query_date = params.get("date") or datetime.now().strftime("%Y-%m-%d")
         gateway = self.wearable_gateway
-        wearable_uid = f"kinguard_subject_{subj_id}"
+        wearable_uid = f"kinguardian_subject_{subj_id}"
 
         try:
             acts = await gateway.get_activity_summaries(wearable_uid, query_date, query_date)
@@ -124,7 +124,7 @@ class GetWearableSummaryTool(KinGuardDomainTool):
             return {"subject_id": str(subj_id), "error": str(e)}
 
 
-class GetActivityTrendTool(KinGuardDomainTool):
+class GetActivityTrendTool(KinGuardianDomainTool):
     name = "get_activity_trend"
     description = "Calculates physical activity trend and historical baseline deviation (e.g. 5,430 steps vs 6,210 usual, percentage change, and direction)."
     required_permission = "wearables"
@@ -142,7 +142,7 @@ class GetActivityTrendTool(KinGuardDomainTool):
         subj_id = uuid.UUID(str(params["subject_id"]))
         window_days = int(params.get("window_days", 7))
         gateway = self.wearable_gateway
-        wearable_uid = f"kinguard_subject_{subj_id}"
+        wearable_uid = f"kinguardian_subject_{subj_id}"
         end_d = datetime.now().strftime("%Y-%m-%d")
         start_d = (datetime.now() - timedelta(days=window_days)).strftime("%Y-%m-%d")
 
@@ -169,7 +169,7 @@ class GetActivityTrendTool(KinGuardDomainTool):
             return {"subject_id": str(subj_id), "error": str(e)}
 
 
-class GetSleepTrendTool(KinGuardDomainTool):
+class GetSleepTrendTool(KinGuardianDomainTool):
     name = "get_sleep_trend"
     description = "Calculates nocturnal sleep trends, sleep architecture, and duration baseline deviations (e.g. 6h 42m vs usual baseline)."
     required_permission = "wearables"
@@ -187,7 +187,7 @@ class GetSleepTrendTool(KinGuardDomainTool):
         subj_id = uuid.UUID(str(params["subject_id"]))
         window_days = int(params.get("window_days", 7))
         gateway = self.wearable_gateway
-        wearable_uid = f"kinguard_subject_{subj_id}"
+        wearable_uid = f"kinguardian_subject_{subj_id}"
         end_d = datetime.now().strftime("%Y-%m-%d")
         start_d = (datetime.now() - timedelta(days=window_days)).strftime("%Y-%m-%d")
 
@@ -212,7 +212,7 @@ class GetSleepTrendTool(KinGuardDomainTool):
             return {"subject_id": str(subj_id), "error": str(e)}
 
 
-class GetHeartRateTrendTool(KinGuardDomainTool):
+class GetHeartRateTrendTool(KinGuardianDomainTool):
     name = "get_heart_rate_trend"
     description = "Calculates cardiovascular recovery vitals, resting heart rate averages, and autonomic HRV stability."
     required_permission = "wearables"
@@ -230,7 +230,7 @@ class GetHeartRateTrendTool(KinGuardDomainTool):
         subj_id = uuid.UUID(str(params["subject_id"]))
         window_days = int(params.get("window_days", 7))
         gateway = self.wearable_gateway
-        wearable_uid = f"kinguard_subject_{subj_id}"
+        wearable_uid = f"kinguardian_subject_{subj_id}"
         end_d = datetime.now().strftime("%Y-%m-%d")
         start_d = (datetime.now() - timedelta(days=window_days)).strftime("%Y-%m-%d")
 
@@ -253,7 +253,7 @@ class GetHeartRateTrendTool(KinGuardDomainTool):
             return {"subject_id": str(subj_id), "error": str(e)}
 
 
-class GetMetricHistoryTool(KinGuardDomainTool):
+class GetMetricHistoryTool(KinGuardianDomainTool):
     name = "get_metric_history"
     description = "Queries historical metric snapshots with source provenance for a specific metric type (steps, sleep_duration, heart_rate, blood_oxygen, weight)."
     required_permission = "wearables"
@@ -292,7 +292,7 @@ class GetMetricHistoryTool(KinGuardDomainTool):
         }
 
 
-class GetWearableSyncStatusTool(KinGuardDomainTool):
+class GetWearableSyncStatusTool(KinGuardianDomainTool):
     name = "get_wearable_sync_status"
     description = "Retrieves operational synchronization status for connected wearable devices with non-diagnostic safety guarantees."
     required_permission = "wearables"
@@ -309,7 +309,7 @@ class GetWearableSyncStatusTool(KinGuardDomainTool):
     async def run(self, params: Dict[str, Any], context: AgentToolContext) -> Any:
         subj_id = uuid.UUID(str(params["subject_id"]))
         gateway = self.wearable_gateway
-        wearable_uid = f"kinguard_subject_{subj_id}"
+        wearable_uid = f"kinguardian_subject_{subj_id}"
 
         try:
             conns = await gateway.get_user_connections(wearable_uid)

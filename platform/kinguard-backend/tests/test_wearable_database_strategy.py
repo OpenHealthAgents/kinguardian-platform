@@ -3,7 +3,7 @@ Wearable Data Database Strategy & Analytics Projection Test Suite.
 
 Verifies:
 1. Ingestion Flow:
-   Open Wearables -> Query recent data -> KinGuard analytics projection
+   Open Wearables -> Query recent data -> KinGuardian analytics projection
 2. Materializes projections when:
    - dashboard latency requires it
    - trend detection requires historical data
@@ -59,7 +59,7 @@ def test_routine_telemetry_not_immediately_replicated_to_postgresql():
 def test_materialization_triggered_by_dashboard_latency():
     """
     Scenario:
-    Coordinator opens the KinGuard mobile dashboard.
+    Coordinator opens the KinGuardian mobile dashboard.
     Sub-second latency requires compact daily projection.
     """
     should_mat, reason, tier, rationale = ProjectionMaterializationPolicy.evaluate_materialization_need(
@@ -74,7 +74,7 @@ def test_materialization_triggered_by_dashboard_latency():
 def test_materialization_triggered_by_trend_detection():
     """
     Scenario:
-    KinGuard Baseline Engine runs 30-day activity trend calculation for Dad.
+    KinGuardian Baseline Engine runs 30-day activity trend calculation for Dad.
     """
     should_mat, reason, tier, rationale = ProjectionMaterializationPolicy.evaluate_materialization_need(
         is_trend_detection_needed=True
@@ -88,7 +88,7 @@ def test_materialization_triggered_by_trend_detection():
 def test_materialization_triggered_by_cross_source_correlation():
     """
     Scenario:
-    KinGuard AI evaluates multi-source correlation:
+    KinGuardian AI evaluates multi-source correlation:
     Wearables (Activity & Sleep) + Medication Adherence + Parent Check-in.
     """
     should_mat, reason, tier, rationale = ProjectionMaterializationPolicy.evaluate_materialization_need(

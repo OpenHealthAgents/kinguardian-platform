@@ -1,6 +1,6 @@
 """
 AI Application Use Cases:
-- AskKinGuardUseCase
+- AskKinGuardianUseCase
 - GenerateHealthInsightUseCase
 - GenerateGuardianMomentUseCase
 """
@@ -56,7 +56,7 @@ class AskKinGuardianUseCase:
 
 
 # Backward compatibility alias
-AskKinGuardUseCase = AskKinGuardianUseCase
+AskKinGuardianUseCase = AskKinGuardianUseCase
 
 
 

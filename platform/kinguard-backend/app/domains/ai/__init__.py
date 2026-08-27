@@ -16,7 +16,7 @@ from app.domains.agent.safety import (
     ExternalToolAuthorizationGatekeeper
 )
 from app.domains.agent.tools import (
-    KinGuardDomainTool,
+    KinGuardianDomainTool,
     ControlledToolRegistry,
     AgentToolContext,
     AgentToolResult,
@@ -45,7 +45,7 @@ __all__ = [
     "UntrustedContentWrapper",
     "UntrustedInputType",
     "ExternalToolAuthorizationGatekeeper",
-    "KinGuardDomainTool",
+    "KinGuardianDomainTool",
     "ControlledToolRegistry",
     "AgentToolContext",
     "AgentToolResult",

@@ -1,5 +1,5 @@
 """
-CLI Runner for Seeding DrGodly / KinGuard Demo Scenarios:
+CLI Runner for Seeding DrGodly / KinGuardian Demo Scenarios:
 Usage:
     uv run python scripts/seed_demo_scenarios.py --scenario [all|normal_day|medication_missed|guardian_moment|new_lab_report|upcoming_appointment|parent_feeling_unwell]
 """
@@ -19,7 +19,7 @@ from app.domains.family.application.demo_scenarios import DemoScenarioService
 
 
 async def main():
-    parser = argparse.ArgumentParser(description="Seed DrGodly / KinGuard Demo Scenarios")
+    parser = argparse.ArgumentParser(description="Seed DrGodly / KinGuardian Demo Scenarios")
     parser.add_argument(
         "--scenario",
         type=str,

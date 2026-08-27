@@ -74,7 +74,7 @@ def test_required_jwt_claims_validation():
     valid_payload = {
         "sub": "user_123",
         "iss": "http://localhost:5001",
-        "aud": "kinguard-platform-api",
+        "aud": "kinguardian-platform-api",
         "exp": 1893456000,
         "iat": 1700000000,
         "scope": "read write",
@@ -86,7 +86,7 @@ def test_required_jwt_claims_validation():
     invalid_payload = {
         "sub": "user_123",
         "iss": "http://localhost:5001",
-        "aud": "kinguard-platform-api"
+        "aud": "kinguardian-platform-api"
     }
     with pytest.raises(HTTPException) as exc_info:
         validate_jwt_claims(invalid_payload)
@@ -119,7 +119,7 @@ async def test_zero_trust_family_and_subject_authorization(db_session):
     # 1. Create a coordinator profile and a legitimate family
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_zt",
-        email="coord_zt@kinguard.com",
+        email="coord_zt@kinguardian.com",
         display_name="Coordinator ZT",
         timezone="America/New_York"
     )
@@ -135,7 +135,7 @@ async def test_zero_trust_family_and_subject_authorization(db_session):
     # 2. An unauthorized user attempts to access this family
     stranger = await family_svc.get_or_create_profile(
         iam_subject_id="iam_stranger_zt",
-        email="stranger@kinguard.com",
+        email="stranger@kinguardian.com",
         display_name="Stranger",
         timezone="UTC"
     )

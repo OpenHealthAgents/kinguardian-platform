@@ -4,7 +4,7 @@ Wearable Data Retention Policy & Lifecycle Governance Test Suite.
 Verifies:
 1. Separate retention definitions for:
    - raw Open Wearables data
-   - KinGuard analytics projections
+   - KinGuardian analytics projections
    - derived insights
    - audit data
 2. Strict Invariant: Do not indefinitely duplicate raw wearable data (disallows indefinite raw retention).
@@ -35,7 +35,7 @@ def test_four_separate_retention_categories_defined():
     assert raw_rule.expiry_action == ExpiryAction.HARD_DELETE
     assert raw_rule.is_indefinite is False
 
-    # 2. KinGuard Analytics Projections (730 days / 2 yrs, downsample archive)
+    # 2. KinGuardian Analytics Projections (730 days / 2 yrs, downsample archive)
     proj_rule = policy.get_rule(DataRetentionCategory.ANALYTICS_PROJECTIONS)
     assert proj_rule.retention_period_days == 730
     assert proj_rule.expiry_action == ExpiryAction.DOWNSAMPLE_ARCHIVE

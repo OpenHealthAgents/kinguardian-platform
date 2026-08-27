@@ -9,7 +9,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     CREATE USER iam_user WITH PASSWORD 'iam_password';
     CREATE DATABASE kinguardian_db OWNER iam_user;
     GRANT ALL PRIVILEGES ON DATABASE kinguardian_db TO iam_user;
-    GRANT ALL PRIVILEGES ON DATABASE kinguard_db TO iam_user;
+    GRANT ALL PRIVILEGES ON DATABASE kinguardian_db TO iam_user;
 
     -- 2. Open Wearables Isolated Database & User
     CREATE USER open_wearables_user WITH PASSWORD 'open_wearables_password';

@@ -4,18 +4,18 @@ services:
   # ── PostgreSQL Database ───────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: kinguard-postgres-dev
+    container_name: kinguardian-postgres-dev
     restart: unless-stopped
     environment:
-      POSTGRES_USER: kinguard_user
-      POSTGRES_PASSWORD: kinguard_password
-      POSTGRES_DB: kinguard_db
+      POSTGRES_USER: kinguardian_user
+      POSTGRES_PASSWORD: kinguardian_password
+      POSTGRES_DB: kinguardian_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kinguard_user -d kinguard_db"]
+      test: ["CMD-SHELL", "pg_isready -U kinguardian_user -d kinguardian_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,7 +23,7 @@ services:
   # ── Redis Cache & Distributed Lock ────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: kinguard-redis-dev
+    container_name: kinguardian-redis-dev
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -38,25 +38,25 @@ services:
   # ── NATS Event Streaming Bus ──────────────────────────────────────────────
   nats:
     image: nats:2.10-alpine
-    container_name: kinguard-nats-dev
+    container_name: kinguardian-nats-dev
     restart: unless-stopped
     ports:
       - "4222:4222"   # Client connections
       - "8222:8222"   # HTTP monitoring
     command: ["-js", "-m", "8222"]
 
-  # ── KinGuard Backend API (Hot Reloading) ──────────────────────────────────
+  # ── KinGuardian Backend API (Hot Reloading) ──────────────────────────────────
   api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kinguard-api-dev
+    container_name: kinguardian-api-dev
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
       ENVIRONMENT: development
-      DATABASE_URL: postgresql+asyncpg://kinguard_user:kinguard_password@postgres:5432/kinguard_db
+      DATABASE_URL: postgresql+asyncpg://kinguardian_user:kinguardian_password@postgres:5432/kinguardian_db
       REDIS_URL: redis://redis:6379/0
       NATS_URL: nats://nats:4222
       IAM_JWKS_URL: ${IAM_JWKS_URL:-http://host.docker.internal:5001/api/auth/jwks}
@@ -81,16 +81,16 @@ services:
              python scripts/seed_development_data.py &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
-  # ── KinGuard Outbox & Scheduled Job Worker ────────────────────────────────
+  # ── KinGuardian Outbox & Scheduled Job Worker ────────────────────────────────
   worker:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kinguard-worker-dev
+    container_name: kinguardian-worker-dev
     restart: unless-stopped
     environment:
       ENVIRONMENT: development
-      DATABASE_URL: postgresql+asyncpg://kinguard_user:kinguard_password@postgres:5432/kinguard_db
+      DATABASE_URL: postgresql+asyncpg://kinguardian_user:kinguardian_password@postgres:5432/kinguardian_db
       REDIS_URL: redis://redis:6379/0
       NATS_URL: nats://nats:4222
     volumes:

@@ -85,7 +85,7 @@ async def test_i18n_rest_endpoints_and_user_preference_update(db_session):
 
     user = await family_svc.get_or_create_profile(
         iam_subject_id="iam_user_i18n_test",
-        email="user_i18n@kinguard.com",
+        email="user_i18n@kinguardian.com",
         display_name="Ramesh Coordinator",
         timezone="Asia/Kolkata"
     )

@@ -20,7 +20,7 @@ Tests all domain use cases with transactional databases and repositories:
 - UploadHealthDocumentUseCase
 - ProcessHealthDocumentUseCase
 - ReviewDocumentExtractionUseCase
-- AskKinGuardUseCase
+- AskKinGuardianUseCase
 - GenerateHealthInsightUseCase
 - GenerateGuardianMomentUseCase
 - CreateFamilyMessageUseCase
@@ -62,7 +62,7 @@ from app.application.use_cases import (
     UploadHealthDocumentUseCase,
     ProcessHealthDocumentUseCase,
     ReviewDocumentExtractionUseCase,
-    AskKinGuardUseCase,
+    AskKinGuardianUseCase,
     GenerateHealthInsightUseCase,
     GenerateGuardianMomentUseCase,
     CreateFamilyMessageUseCase,
@@ -90,13 +90,13 @@ async def test_all_explicit_use_cases_lifecycle(db_session: AsyncSession):
     # 1. Setup Profiles
     coord_profile = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_uc_01",
-        email="coord.uc@kinguard.com",
+        email="coord.uc@kinguardian.com",
         display_name="Meera",
         timezone="Europe/London"
     )
     parent_profile = await family_service.get_or_create_profile(
         iam_subject_id="iam_parent_uc_01",
-        email="parent.uc@kinguard.com",
+        email="parent.uc@kinguardian.com",
         display_name="Deepak",
         timezone="Asia/Kolkata"
     )
@@ -113,7 +113,7 @@ async def test_all_explicit_use_cases_lifecycle(db_session: AsyncSession):
     member = await add_member_uc.execute(
         requester_id=coord_profile.id,
         family_id=family.id,
-        email="parent.uc@kinguard.com",
+        email="parent.uc@kinguardian.com",
         role="parent"
     )
     assert member.membership_role == "parent"
@@ -289,8 +289,8 @@ async def test_all_explicit_use_cases_lifecycle(db_session: AsyncSession):
 
 
     # 9. AI & Guardian Moment Use Cases
-    ask_kinguard_uc = AskKinGuardUseCase(context_builder, safety_guard, family_service)
-    ai_resp = await ask_kinguard_uc.execute(
+    ask_kinguardian_uc = AskKinGuardianUseCase(context_builder, safety_guard, family_service)
+    ai_resp = await ask_kinguardian_uc.execute(
         actor_id=coord_profile.id,
         family_id=family.id,
         query="Did Dad take his medication?",

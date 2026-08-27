@@ -1,1 +1,1 @@
-"""KinGuard domain-oriented family-care platform."""
+"""KinGuardian domain-oriented family-care platform."""

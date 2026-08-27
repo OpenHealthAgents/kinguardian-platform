@@ -5,11 +5,11 @@ Verifies the complete flagship Wearable Experience flow:
 1. Parent -> connects Garmin
 2. Garmin -> produces activity data
 3. Open Wearables -> normalizes data
-4. KinGuard -> gets data
+4. KinGuardian -> gets data
 5. Insight Engine -> calculates baseline
 6. Guardian Moment -> generated
 7. Coordinator -> receives notification
-8. Coordinator -> asks KinGuard
+8. Coordinator -> asks KinGuardian
 9. AI -> explains activity trend
 
 Uses `MockWearableDataGateway` for fast, deterministic CI execution.
@@ -143,7 +143,7 @@ async def test_wearable_flagship_end_to_end_scenario(e2e_db_session: AsyncSessio
     connection_link = await wearable_service.create_connection_invitation(
         subject_id=subject_id,
         provider="garmin",
-        redirect_url="kinguard://wearables/callback"
+        redirect_url="kinguardian://wearables/callback"
     )
     assert connection_link.provider == "garmin"
     assert "garmin" in connection_link.connect_url.lower()
@@ -205,11 +205,11 @@ async def test_wearable_flagship_end_to_end_scenario(e2e_db_session: AsyncSessio
     )
 
     # -------------------------------------------------------------------------
-    # 4. KinGuard gets data
+    # 4. KinGuardian gets data
     # -------------------------------------------------------------------------
-    kinguard_activity_history = await wearable_service.get_activity_history(subject_id=subject_id, days=30)
-    assert len(kinguard_activity_history) > 0
-    today_activity = kinguard_activity_history[-1]
+    kinguardian_activity_history = await wearable_service.get_activity_history(subject_id=subject_id, days=30)
+    assert len(kinguardian_activity_history) > 0
+    today_activity = kinguardian_activity_history[-1]
     assert today_activity.steps == 5430
 
     # -------------------------------------------------------------------------
@@ -296,7 +296,7 @@ async def test_wearable_flagship_end_to_end_scenario(e2e_db_session: AsyncSessio
 
 
     # -------------------------------------------------------------------------
-    # 8. Coordinator asks KinGuard
+    # 8. Coordinator asks KinGuardian
     # -------------------------------------------------------------------------
     coordinator_query = "Is Dad getting less active?"
     detected_intent = WearableQAEngine.classify_intent(coordinator_query, user_role="coordinator")

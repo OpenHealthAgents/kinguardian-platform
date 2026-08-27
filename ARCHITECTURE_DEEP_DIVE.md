@@ -1,4 +1,4 @@
-# KinGuard Healthcare Platform — Deep-Dive Architecture & Implementation Guide
+# KinGuardian Healthcare Platform — Deep-Dive Architecture & Implementation Guide
 
 ## Table of Contents
 1. [Platform Vision & Core Purpose](#1-platform-vision--core-purpose)
@@ -17,27 +17,27 @@
 
 ## 1. Platform Vision & Core Purpose
 
-KinGuard is an enterprise two-sided cross-border eldercare coordination platform connecting **Expatriate Coordinators** (e.g. Anjali in London / New York) with **Elderly Parents** (e.g. Ramesh in Chennai / Bengaluru) and local care circles (doctors, family caregivers, drivers, nurses).
+KinGuardian is an enterprise two-sided cross-border eldercare coordination platform connecting **Expatriate Coordinators** (e.g. Anjali in London / New York) with **Elderly Parents** (e.g. Ramesh in Chennai / Bengaluru) and local care circles (doctors, family caregivers, drivers, nurses).
 
-Unlike generic CRUD apps, KinGuard enforces strict medical data ownership, deterministic medication adherence workflows, autonomous AI health pattern synthesis with human-in-the-loop safety approvals, and sub-millisecond mobile dashboard performance.
+Unlike generic CRUD apps, KinGuardian enforces strict medical data ownership, deterministic medication adherence workflows, autonomous AI health pattern synthesis with human-in-the-loop safety approvals, and sub-millisecond mobile dashboard performance.
 
 ```mermaid
 graph LR
     Coordinator["Coordinator (London/NY)<br/>• Oversight<br/>• AI Insights<br/>• Task Delegation"]
-    KinGuard["KinGuard Platform<br/>• Dual-Timezone Sync<br/>• Outbox & Bus<br/>• Zero-Trust RBAC"]
+    KinGuardian["KinGuardian Platform<br/>• Dual-Timezone Sync<br/>• Outbox & Bus<br/>• Zero-Trust RBAC"]
     Parent["Elder Parent (India)<br/>• Easy Check-ins<br/>• Med Confirmations<br/>• Voice Notes"]
     Caregiver["Local Care Circle<br/>• Escort / Driving<br/>• Doctor Visits<br/>• Pharmacy Runs"]
 
-    Coordinator <--> KinGuard
-    Parent <--> KinGuard
-    Caregiver <--> KinGuard
+    Coordinator <--> KinGuardian
+    Parent <--> KinGuardian
+    Caregiver <--> KinGuardian
 ```
 
 ---
 
 ## 2. High-Level Hexagonal Architecture
 
-KinGuard follows Ports & Adapters (Hexagonal Architecture):
+KinGuardian follows Ports & Adapters (Hexagonal Architecture):
 - **Presentation Layer (Inbound Adapters)**: FastAPI routers for mobile REST, WebSocket channels, and SSE event streams.
 - **Application Layer**: Use cases, transactional command handlers, and high-performance read-model projections.
 - **Domain Layer**: Core aggregates, business entities, value objects, domain events, and port interfaces.
@@ -78,11 +78,11 @@ Infrastructure (PostgreSQL, Redis, Adapters)
 
 ## 4. Platform Reuse & Anti-Duplication Rule
 
-KinGuard adheres to the platform reuse matrix:
-1. **Clinical Data**: KinGuard does not maintain duplicate clinical tables (`Observation`, `Condition`, `DiagnosticReport`). All clinical facts are fetched from `bezs-emr-gql` via `ClinicalGateway`.
-2. **Identity**: KinGuard does not store passwords or issue authentication tokens. All auth handoffs use `bezs-iam`.
-3. **File Storage**: KinGuard does not store binaries on disk or S3 directly. File ingestion is mediated through signed pre-signed URLs from `FileNest`.
-4. **AI Reasoning**: KinGuard delegates LLM tool invocation and synthesis to `bezs-agent`.
+KinGuardian adheres to the platform reuse matrix:
+1. **Clinical Data**: KinGuardian does not maintain duplicate clinical tables (`Observation`, `Condition`, `DiagnosticReport`). All clinical facts are fetched from `bezs-emr-gql` via `ClinicalGateway`.
+2. **Identity**: KinGuardian does not store passwords or issue authentication tokens. All auth handoffs use `bezs-iam`.
+3. **File Storage**: KinGuardian does not store binaries on disk or S3 directly. File ingestion is mediated through signed pre-signed URLs from `FileNest`.
+4. **AI Reasoning**: KinGuardian delegates LLM tool invocation and synthesis to `bezs-agent`.
 
 ---
 
@@ -155,7 +155,7 @@ To eliminate distributed 2-phase commit inconsistencies:
 
 ## 10. Mobile Read Model Projections & Single-Roundtrip API
 
-To avoid mobile "chattiness" over high-latency cross-border cellular networks, KinGuard provides optimized read models:
+To avoid mobile "chattiness" over high-latency cross-border cellular networks, KinGuardian provides optimized read models:
 - **`CoordinatorHomeResponse`**: Returns care recipient status, today's medications, upcoming appointments, pending care tasks, active Guardian Moments, and recent timeline updates in **one HTTP GET request**.
 - **`ParentHomeResponse`**: Returns today's checkin status, active medication dose checklist, and next upcoming visit for elder-friendly touch screens.
 - **`ParentHealthSummaryResponse`**: Multi-week vitals trends, adherence percentage, and historical check-in notes.
@@ -166,7 +166,7 @@ To avoid mobile "chattiness" over high-latency cross-border cellular networks, K
 
 ```bash
 # 1. Clone the repository and enter the backend
-cd platform/kinguard-backend
+cd platform/kinguardian-backend
 
 # 2. Synchronize Python virtual environment
 uv sync

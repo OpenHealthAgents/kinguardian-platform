@@ -48,7 +48,7 @@ async def test_family_creation_and_membership(family_service, db_session):
     """
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Anjali Coordinator",
         timezone="Europe/London"
     )
@@ -69,7 +69,7 @@ async def test_family_creation_and_membership(family_service, db_session):
     assert any(m.profile_id == coordinator.id and m.membership_role == "coordinator" for m in members)
 
     # Add sibling member
-    sibling_email = f"sibling_{uuid.uuid4().hex[:6]}@kinguard.com"
+    sibling_email = f"sibling_{uuid.uuid4().hex[:6]}@kinguardian.com"
     sibling_member = await family_service.add_member_to_circle(
         requester_id=coordinator.id,
         care_circle_id=family.id,
@@ -91,12 +91,12 @@ async def test_family_relationships(family_service, db_session):
     """
     p1 = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"p1_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"p1_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Anjali"
     )
     p2 = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"p2_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"p2_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Rahul"
     )
     family = await family_service.create_care_circle(
@@ -125,12 +125,12 @@ async def test_care_relationships_and_profile_linkage(family_service, db_session
     """
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord2_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord2_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     parent_profile = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"parent_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Ramesh Parent",
         timezone="Asia/Kolkata"
     )
@@ -157,7 +157,7 @@ async def test_care_relationships_and_profile_linkage(family_service, db_session
     # Add Caregiver Care Relationship with "standard" access
     caregiver = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"caregiver_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"caregiver_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Priya Nurse"
     )
     care_rel = await family_service.circle_repo.add_care_relationship(
@@ -180,12 +180,12 @@ async def test_permission_and_consent_evaluation(family_service, db_session):
     """
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord3_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord3_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     parent_profile = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"parent3_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent3_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Lakshmi Parent"
     )
     family = await family_service.create_care_circle(

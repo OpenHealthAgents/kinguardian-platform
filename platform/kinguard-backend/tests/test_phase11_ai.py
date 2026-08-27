@@ -2,7 +2,7 @@
 Phase 11 — AI Integration & Agent Capabilities Test Suite (bezs-agent).
 
 Validates:
-1. Conversation facade (AskKinGuardUseCase / AgentService integration)
+1. Conversation facade (AskKinGuardianUseCase / AgentService integration)
 2. Context builder (zero-trust scoped clinical context, consent-filtered)
 3. Safe tools (ControlledToolRegistry enforcing authorization and bounded actions)
 4. Insight generation (longitudinal biometric and adherence insight synthesis)
@@ -31,7 +31,7 @@ from app.domains.agent.tools import (
     AgentToolContext
 )
 from app.application.ai.use_cases import (
-    AskKinGuardUseCase,
+    AskKinGuardianUseCase,
     GenerateHealthInsightUseCase,
     GenerateGuardianMomentUseCase
 )
@@ -81,13 +81,13 @@ async def test_conversation_facade_and_context_builder(ai_environment):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_ai_{uuid.uuid4()}",
-        email=f"coord_ai_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_ai_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Anjali Coordinator",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_ai_{uuid.uuid4()}",
-        email=f"parent_ai_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_ai_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Ramesh Parent",
         timezone="Asia/Kolkata"
     )
@@ -114,8 +114,8 @@ async def test_conversation_facade_and_context_builder(ai_environment):
         scope={"vitals": True, "ai_insights": True}
     )
 
-    # 1. Test AskKinGuardUseCase (Conversation Facade)
-    ask_use_case = AskKinGuardUseCase(
+    # 1. Test AskKinGuardianUseCase (Conversation Facade)
+    ask_use_case = AskKinGuardianUseCase(
         context_builder=env["context_builder"],
         safety_guard=env["safety_guard"],
         family_service=family_svc
@@ -145,12 +145,12 @@ async def test_safe_tools_and_appointment_preparation(ai_environment):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_ai_{uuid.uuid4()}",
-        email=f"coord_tools_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_tools_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_ai_{uuid.uuid4()}",
-        email=f"parent_tools_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_tools_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Parent"
     )
 
@@ -221,12 +221,12 @@ async def test_insight_generation_guardian_moments_and_approval_workflow(ai_envi
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_ai_{uuid.uuid4()}",
-        email=f"coord_flow_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_flow_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_ai_{uuid.uuid4()}",
-        email=f"parent_flow_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_flow_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Parent"
     )
 

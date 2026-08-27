@@ -1,4 +1,4 @@
-"""Initial KinGuard owned data model.
+"""Initial KinGuardian owned data model.
 
 Revision ID: 0001_initial_platform
 """

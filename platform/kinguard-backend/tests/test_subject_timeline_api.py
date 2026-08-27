@@ -40,13 +40,13 @@ async def test_subject_timeline_cursor_pagination_and_filters(db_session: AsyncS
     # 1. Setup Data
     coord = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_timeline_01",
-        email="coord.timeline@kinguard.com",
+        email="coord.timeline@kinguardian.com",
         display_name="Kavita",
         timezone="America/New_York"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id="iam_parent_timeline_01",
-        email="parent.timeline@kinguard.com",
+        email="parent.timeline@kinguardian.com",
         display_name="Ramesh",
         timezone="Asia/Kolkata"
     )
@@ -58,7 +58,7 @@ async def test_subject_timeline_cursor_pagination_and_filters(db_session: AsyncS
     await family_service.add_member_to_circle(
         requester_id=coord.id,
         care_circle_id=family.id,
-        target_email="parent.timeline@kinguard.com",
+        target_email="parent.timeline@kinguardian.com",
         role="parent"
     )
     subject = await family_service.add_care_subject(
@@ -127,7 +127,7 @@ async def test_subject_timeline_cursor_pagination_and_filters(db_session: AsyncS
     )
 
 
-    token = create_access_token({"sub": "iam_coord_timeline_01", "email": "coord.timeline@kinguard.com"})
+    token = create_access_token({"sub": "iam_coord_timeline_01", "email": "coord.timeline@kinguardian.com"})
     headers = {"Authorization": f"Bearer {token}"}
 
     transport = ASGITransport(app=app)
@@ -176,7 +176,7 @@ async def test_subject_timeline_cursor_pagination_and_filters(db_session: AsyncS
         assert range_data["items"][0]["event_type"] == "wellbeing_checkin"
 
         # F. Access control: Unauthorized stranger receives 403
-        stranger_token = create_access_token({"sub": "iam_stranger_tl", "email": "stranger.tl@kinguard.com"})
+        stranger_token = create_access_token({"sub": "iam_stranger_tl", "email": "stranger.tl@kinguardian.com"})
         res_stranger = await client.get(
             f"/api/v1/subjects/{subject.id}/timeline",
             headers={"Authorization": f"Bearer {stranger_token}"}

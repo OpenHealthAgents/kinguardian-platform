@@ -1,7 +1,7 @@
 /* eslint-disable */
 /**
  * DrGodly Typed Mobile API Client.
- * Automatically wraps KinGuard REST API endpoints with typed contracts,
+ * Automatically wraps KinGuardian REST API endpoints with typed contracts,
  * automatic Bearer token injection, correlation tracking, and idempotency support.
  */
 

@@ -1,5 +1,5 @@
 """
-DrGodly / KinGuard Background Worker.
+DrGodly / KinGuardian Background Worker.
 Orchestrates asynchronous cron/periodic jobs including:
 - Transactional outbox publishing
 - Medication, appointment, and checkin reminders

@@ -61,7 +61,7 @@ def test_abdm_and_abha_protocols():
         consent_id="consent_abdm_123",
         patient_abha_address="kishore@abdm",
         hip_id="apollo_delhi_hip",
-        hiu_id="kinguard_hiu",
+        hiu_id="kinguardian_hiu",
         purpose="CAREGIVER_MONITORING",
         date_range_from=datetime(2026, 1, 1, tzinfo=timezone.utc),
         date_range_to=datetime(2026, 8, 24, tzinfo=timezone.utc),
@@ -101,7 +101,7 @@ def test_indian_labs_protocols():
         unit="%",
         reference_range="4.0 - 5.6",
         is_abnormal=True,
-        report_pdf_url="https://filenest.kinguard.internal/files/lab_rep_991.pdf",
+        report_pdf_url="https://filenest.kinguardian.internal/files/lab_rep_991.pdf",
         released_at=datetime.now(timezone.utc)
     )
     assert report.is_abnormal is True

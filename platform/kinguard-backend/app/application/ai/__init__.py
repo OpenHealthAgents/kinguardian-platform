@@ -13,10 +13,10 @@ from app.domains.agent.safety import (
     UntrustedContentWrapper,
     ExternalToolAuthorizationGatekeeper
 )
-from app.domains.agent.tools import ControlledToolRegistry, KinGuardDomainTool
+from app.domains.agent.tools import ControlledToolRegistry, KinGuardianDomainTool
 from app.application.ai.use_cases import (
     AskKinGuardianUseCase,
-    AskKinGuardUseCase,
+    AskKinGuardianUseCase,
     GenerateHealthInsightUseCase,
     GenerateGuardianMomentUseCase
 )
@@ -29,9 +29,9 @@ __all__ = [
     "UntrustedContentWrapper",
     "ExternalToolAuthorizationGatekeeper",
     "ControlledToolRegistry",
-    "KinGuardDomainTool",
+    "KinGuardianDomainTool",
     "AskKinGuardianUseCase",
-    "AskKinGuardUseCase",
+    "AskKinGuardianUseCase",
     "GenerateHealthInsightUseCase",
     "GenerateGuardianMomentUseCase"
 ]

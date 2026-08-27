@@ -32,25 +32,25 @@ async def test_authorization_service_comprehensive_policies(db_session):
     # 1. Setup Profiles
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_auth",
-        email="parent_auth@kinguard.com",
+        email="parent_auth@kinguardian.com",
         display_name="Parent Auth",
         timezone="Asia/Kolkata"
     )
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_auth",
-        email="coord_auth@kinguard.com",
+        email="coord_auth@kinguardian.com",
         display_name="Coordinator Auth",
         timezone="America/New_York"
     )
     caregiver = await family_svc.get_or_create_profile(
         iam_subject_id="iam_cg_auth",
-        email="caregiver_auth@kinguard.com",
+        email="caregiver_auth@kinguardian.com",
         display_name="Caregiver Auth",
         timezone="Asia/Kolkata"
     )
     stranger = await family_svc.get_or_create_profile(
         iam_subject_id="iam_stranger_auth",
-        email="stranger_auth@kinguard.com",
+        email="stranger_auth@kinguardian.com",
         display_name="Stranger Auth",
         timezone="UTC"
     )

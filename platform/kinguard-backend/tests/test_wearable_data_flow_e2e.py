@@ -3,14 +3,14 @@ End-to-End Wearable Data Flow Test Suite.
 
 Verifies the complete 12-stage end-to-end data flow:
 1. Parent (Ramesh in Chennai) connects wearable (Garmin / Apple Health).
-2. KinGuard creates wearable connection in PostgreSQL (WearableConnection, CareSubjectWearableIdentity).
+2. KinGuardian creates wearable connection in PostgreSQL (WearableConnection, CareSubjectWearableIdentity).
 3. Open Wearables connection flow initiated (connect URL / token).
 4. Provider authentication (OAuth / pairing).
 5. Open Wearables stores connection.
 6. Provider data synchronizes.
 7. Open Wearables normalized API exposes activity, sleep, recovery summaries.
-8. KinGuard fetches/receives data via WearableDataGateway.
-9. Normalize into KinGuard WearableMetric domain models.
+8. KinGuardian fetches/receives data via WearableDataGateway.
+9. Normalize into KinGuardian WearableMetric domain models.
 10. Insight Engine calculates rolling baselines & evaluates anomaly policies.
 11. Guardian Moment / health trend (AIInsight) generated.
 12. Coordinator notification (Notification dispatched to Anjali in London).
@@ -119,7 +119,7 @@ async def test_wearable_data_flow_complete_lifecycle(test_db_session: AsyncSessi
 
 
     # -------------------------------------------------------------------------
-    # STAGE 1 & 2: Parent connects wearable -> KinGuard creates wearable connection
+    # STAGE 1 & 2: Parent connects wearable -> KinGuardian creates wearable connection
     # -------------------------------------------------------------------------
     mock_gateway = MockWearableDataGateway()
     wearable_svc = WearableService(session=session, gateway=mock_gateway)
@@ -129,7 +129,7 @@ async def test_wearable_data_flow_complete_lifecycle(test_db_session: AsyncSessi
     assert invitation.provider == "garmin"
     assert "connect_url" in invitation.model_dump()
 
-    # 2. Retrieve Connection created in KinGuard Database and set connected state
+    # 2. Retrieve Connection created in KinGuardian Database and set connected state
     res_conn = await session.execute(
         select(WearableConnection).where(
             WearableConnection.subject_id == subject.id,
@@ -177,7 +177,7 @@ async def test_wearable_data_flow_complete_lifecycle(test_db_session: AsyncSessi
         WearableSleepSummary(date="2026-08-27", total_sleep_minutes=250, deep_sleep_minutes=30, rem_sleep_minutes=40, sleep_score=48, source_provider="garmin")
     )
     mock_gateway.seed_user_data(
-        user_id=f"kinguard_subject_{subject.id}",
+        user_id=f"kinguardian_subject_{subject.id}",
         activity=test_activities,
         sleep=test_sleeps
     )
@@ -187,7 +187,7 @@ async def test_wearable_data_flow_complete_lifecycle(test_db_session: AsyncSessi
     # -------------------------------------------------------------------------
     result = await wearable_svc.sync_and_process_wearable_data_flow(subject_id=subject.id, days=7)
 
-    # Verification 1: Data normalized into KinGuard WearableMetric objects
+    # Verification 1: Data normalized into KinGuardian WearableMetric objects
     assert result["normalized_metrics_count"] >= 28  # 7 days * multiple metrics
     assert result["anomalies_detected"] >= 1
     assert result["insights_generated"] >= 1

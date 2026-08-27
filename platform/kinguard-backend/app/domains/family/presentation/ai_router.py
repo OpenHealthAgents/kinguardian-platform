@@ -45,7 +45,7 @@ async def create_ai_conversation(
     db_session: AsyncSession = Depends(get_db)
 ):
     """
-    KinGuard AI Facade:
+    KinGuardian AI Facade:
     Starts an application-managed AI conversation session for a family/subject context.
     Does not expose raw agent runtime endpoints directly to mobile clients.
     """
@@ -90,7 +90,7 @@ async def send_ai_conversation_message(
 ):
     """
     Sends a message to the AI conversation session.
-    The KinGuard AI Facade evaluates the prompt in clinical context and returns an actionable response.
+    The KinGuardian AI Facade evaluates the prompt in clinical context and returns an actionable response.
     """
     service = get_family_service(db_session)
     try:
@@ -130,7 +130,7 @@ async def generate_ai_insights(
     db_session: AsyncSession = Depends(get_db)
 ):
     """
-    KinGuard AI Facade:
+    KinGuardian AI Facade:
     Triggers automated clinical insights and Guardian Moments generation for a subject.
     """
     service = get_family_service(db_session)
@@ -154,7 +154,7 @@ async def prepare_ai_appointment(
     db_session: AsyncSession = Depends(get_db)
 ):
     """
-    KinGuard AI Facade:
+    KinGuardian AI Facade:
     Generates intelligent preparation agendas and questions for the doctor ahead of a clinical appointment.
     """
     service = get_family_service(db_session)

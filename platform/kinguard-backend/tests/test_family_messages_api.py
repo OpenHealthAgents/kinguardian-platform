@@ -37,13 +37,13 @@ async def test_family_messages_and_conversations_api(db_session: AsyncSession):
     # 1. Setup Profiles and Care Circle
     coord = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_chat_01",
-        email="coord.chat@kinguard.com",
+        email="coord.chat@kinguardian.com",
         display_name="Ananya",
         timezone="America/Chicago"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id="iam_parent_chat_01",
-        email="parent.chat@kinguard.com",
+        email="parent.chat@kinguardian.com",
         display_name="Dev",
         timezone="Asia/Kolkata"
     )
@@ -55,7 +55,7 @@ async def test_family_messages_and_conversations_api(db_session: AsyncSession):
     await family_service.add_member_to_circle(
         requester_id=coord.id,
         care_circle_id=family.id,
-        target_email="parent.chat@kinguard.com",
+        target_email="parent.chat@kinguardian.com",
         role="parent"
     )
 
@@ -64,10 +64,10 @@ async def test_family_messages_and_conversations_api(db_session: AsyncSession):
     conv2 = await family_service.create_family_conversation(requester_id=coord.id, family_id=family.id)
     conv3 = await family_service.create_family_conversation(requester_id=coord.id, family_id=family.id)
 
-    token_coord = create_access_token({"sub": "iam_coord_chat_01", "email": "coord.chat@kinguard.com"})
+    token_coord = create_access_token({"sub": "iam_coord_chat_01", "email": "coord.chat@kinguardian.com"})
     headers_coord = {"Authorization": f"Bearer {token_coord}"}
 
-    token_parent = create_access_token({"sub": "iam_parent_chat_01", "email": "parent.chat@kinguard.com"})
+    token_parent = create_access_token({"sub": "iam_parent_chat_01", "email": "parent.chat@kinguardian.com"})
     headers_parent = {"Authorization": f"Bearer {token_parent}"}
 
     transport = ASGITransport(app=app)
@@ -154,7 +154,7 @@ async def test_family_messages_and_conversations_api(db_session: AsyncSession):
         assert len(msgs_p2["items"]) == 2
 
         # E. Authorization: Stranger is rejected (403)
-        stranger_token = create_access_token({"sub": "iam_stranger_chat", "email": "stranger.chat@kinguard.com"})
+        stranger_token = create_access_token({"sub": "iam_stranger_chat", "email": "stranger.chat@kinguardian.com"})
         headers_stranger = {"Authorization": f"Bearer {stranger_token}"}
 
         res_stranger_get = await client.get(

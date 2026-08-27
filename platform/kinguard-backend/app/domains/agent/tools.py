@@ -59,7 +59,7 @@ class AgentToolResult(BaseModel):
 # Abstract Domain Tool
 # ==========================================
 
-class KinGuardDomainTool(abc.ABC):
+class KinGuardianDomainTool(abc.ABC):
     """
     Base class for all KinGuardian domain tools exposed to bezs-agent.
     Enforces independent authorization and least privilege.
@@ -215,7 +215,7 @@ class KinGuardDomainTool(abc.ABC):
 
 
 # Platform alias
-KinGuardianDomainTool = KinGuardDomainTool
+KinGuardianDomainTool = KinGuardianDomainTool
 
 
 # ==========================================
@@ -223,7 +223,7 @@ KinGuardianDomainTool = KinGuardDomainTool
 # ==========================================
 
 
-class GetParentSummaryTool(KinGuardDomainTool):
+class GetParentSummaryTool(KinGuardianDomainTool):
     name = "get_parent_summary"
     description = "Retrieves the profile summary of a care subject (display name, relationship, timezone, city, country)."
     required_permission = "profile"
@@ -254,7 +254,7 @@ class GetParentSummaryTool(KinGuardDomainTool):
         }
 
 
-class GetMedicationsTool(KinGuardDomainTool):
+class GetMedicationsTool(KinGuardianDomainTool):
     name = "get_medications"
     description = "Retrieves active clinical medication orders and prescriptions for a care subject."
     required_permission = "medications"
@@ -290,7 +290,7 @@ class GetMedicationsTool(KinGuardDomainTool):
             return []
 
 
-class GetMedicationAdherenceTool(KinGuardDomainTool):
+class GetMedicationAdherenceTool(KinGuardianDomainTool):
     name = "get_medication_adherence"
     description = "Retrieves medication adherence event logs, taken vs missed counts, and adherence rate."
     required_permission = "adherence"
@@ -324,7 +324,7 @@ class GetMedicationAdherenceTool(KinGuardDomainTool):
         }
 
 
-class GetRecentVitalsTool(KinGuardDomainTool):
+class GetRecentVitalsTool(KinGuardianDomainTool):
     name = "get_recent_vitals"
     description = "Retrieves recent vital sign observations (Blood Pressure, Heart Rate, SpO2, Glucose)."
     required_permission = "vitals"
@@ -357,7 +357,7 @@ class GetRecentVitalsTool(KinGuardDomainTool):
             return []
 
 
-class GetRecentLabsTool(KinGuardDomainTool):
+class GetRecentLabsTool(KinGuardianDomainTool):
     name = "get_recent_labs"
     description = "Retrieves extracted laboratory test results, values, units, and reference flags."
     required_permission = "labs"
@@ -388,7 +388,7 @@ class GetRecentLabsTool(KinGuardDomainTool):
         return results
 
 
-class GetAppointmentsTool(KinGuardDomainTool):
+class GetAppointmentsTool(KinGuardianDomainTool):
     name = "get_appointments"
     description = "Retrieves upcoming clinical appointments and doctor visit preparation statuses."
     required_permission = "appointments"
@@ -415,7 +415,7 @@ class GetAppointmentsTool(KinGuardDomainTool):
         ]
 
 
-class GetHealthTimelineTool(KinGuardDomainTool):
+class GetHealthTimelineTool(KinGuardianDomainTool):
     name = "get_health_timeline"
     description = "Assembles a unified chronological timeline of check-ins, vitals, adherence logs, and appointments."
     required_permission = "profile"
@@ -459,7 +459,7 @@ class GetHealthTimelineTool(KinGuardDomainTool):
         return timeline
 
 
-class GetFamilyMembersTool(KinGuardDomainTool):
+class GetFamilyMembersTool(KinGuardianDomainTool):
     name = "get_family_members"
     description = "Retrieves the active family member roster, roles, and contacts within the Care Circle."
     required_permission = "family"
@@ -485,7 +485,7 @@ class GetFamilyMembersTool(KinGuardDomainTool):
         return res
 
 
-class CreateCareTaskTool(KinGuardDomainTool):
+class CreateCareTaskTool(KinGuardianDomainTool):
     name = "create_care_task"
     description = "Creates or proposes a care coordination follow-up task."
     required_permission = "care_tasks"
@@ -527,7 +527,7 @@ class CreateCareTaskTool(KinGuardDomainTool):
         }
 
 
-class SendFamilyMessageTool(KinGuardDomainTool):
+class SendFamilyMessageTool(KinGuardianDomainTool):
     name = "send_family_message"
     description = "Sends a message to the Family Care Circle conversation."
     required_permission = "messages"
@@ -569,7 +569,7 @@ class SendFamilyMessageTool(KinGuardDomainTool):
         }
 
 
-class PrepareAppointmentTool(KinGuardDomainTool):
+class PrepareAppointmentTool(KinGuardianDomainTool):
     name = "prepare_appointment"
     description = "Generates clinical consultation agenda and doctor questions ahead of an upcoming visit."
     required_permission = "appointments"
@@ -610,7 +610,7 @@ class PrepareAppointmentTool(KinGuardDomainTool):
         }
 
 
-class CreateInsightTool(KinGuardDomainTool):
+class CreateInsightTool(KinGuardianDomainTool):
     name = "create_insight"
     description = "Creates a clinical insight or Guardian Moment for the Care Subject."
     required_permission = "insights"
@@ -657,7 +657,7 @@ class CreateInsightTool(KinGuardDomainTool):
         }
 
 
-class GetWearableMetricsTool(KinGuardDomainTool):
+class GetWearableMetricsTool(KinGuardianDomainTool):
     name = "get_wearable_metrics"
     description = "Queries physical activity, sleep architecture, and autonomic recovery vitals synced from connected wearable devices (Garmin, Oura, Apple Health, Fitbit)."
     required_permission = "wearables"
@@ -674,7 +674,7 @@ class GetWearableMetricsTool(KinGuardDomainTool):
         subj_id = uuid.UUID(str(params["subject_id"]))
         days = int(params.get("days", 7))
         gateway = self.wearable_gateway
-        wearable_uid = f"kinguard_subject_{subj_id}"
+        wearable_uid = f"kinguardian_subject_{subj_id}"
         end_d = datetime.now().strftime("%Y-%m-%d")
         start_d = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
 
@@ -724,7 +724,7 @@ class ControlledToolRegistry:
     - Never exposes `raw_database_query`
     - Never exposes unrestricted Open Wearables API access
     """
-    TOOL_CLASSES: List[Type[KinGuardDomainTool]] = [
+    TOOL_CLASSES: List[Type[KinGuardianDomainTool]] = [
         GetParentSummaryTool,
         GetMedicationsTool,
         GetMedicationAdherenceTool,
@@ -765,7 +765,7 @@ class ControlledToolRegistry:
         self.gateway = gateway or FHIRClinicalRecordGateway()
         self.wearable_gateway = wearable_gateway or HttpOpenWearablesGateway()
 
-        self._tools: Dict[str, KinGuardDomainTool] = {}
+        self._tools: Dict[str, KinGuardianDomainTool] = {}
         for cls in self.TOOL_CLASSES:
             tool_instance = cls(
                 family_repo=self.family_repo,
@@ -778,10 +778,10 @@ class ControlledToolRegistry:
             self._tools[tool_instance.name] = tool_instance
 
 
-    def get_tool(self, name: str) -> Optional[KinGuardDomainTool]:
+    def get_tool(self, name: str) -> Optional[KinGuardianDomainTool]:
         return self._tools.get(name)
 
-    def list_all_tools(self) -> List[KinGuardDomainTool]:
+    def list_all_tools(self) -> List[KinGuardianDomainTool]:
         return list(self._tools.values())
 
     async def list_available_tools_for_agent(self, context: AgentToolContext) -> List[Dict[str, Any]]:

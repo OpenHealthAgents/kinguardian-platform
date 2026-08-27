@@ -612,17 +612,17 @@ class IdempotencyRecord(Base):
 # Wearable Identity & Provider Connection Models
 # ==============================================================================
 # APPLICATION DATABASE RULE:
-# The KinGuard application database maintains the relationship between:
-# KinGuard user (AppProfile) -> KinGuard care subject (CareSubject) -> Wearable identity -> Open Wearables user -> Provider connection.
+# The KinGuardian application database maintains the relationship between:
+# KinGuardian user (AppProfile) -> KinGuardian care subject (CareSubject) -> Wearable identity -> Open Wearables user -> Provider connection.
 #
-# NOTE: Do NOT store the entire wearable time-series dataset in the KinGuard transactional database.
+# NOTE: Do NOT store the entire wearable time-series dataset in the KinGuardian transactional database.
 # High-frequency biometrics (continuous epoch data) reside strictly in the Open Wearables layer.
 # ==============================================================================
 
 class CareSubjectWearableIdentity(Base):
     """
-    Persistent identity mapping entity in KinGuard application database.
-    Represents: KinGuard User -> KinGuard Care Subject -> Wearable Identity -> Open Wearables User.
+    Persistent identity mapping entity in KinGuardian application database.
+    Represents: KinGuardian User -> KinGuardian Care Subject -> Wearable Identity -> Open Wearables User.
     """
     __tablename__ = "care_subject_wearable_identities"
 
@@ -679,7 +679,7 @@ class WearableConnection(Base):
     Persistent connection record representing a third-party wearable provider link.
     Table: wearable_connections
     Maintains:
-    KinGuard user (profile_id) -> Care subject (subject_id) -> Open Wearables user (open_wearables_user_id) -> Provider connection
+    KinGuardian user (profile_id) -> Care subject (subject_id) -> Open Wearables user (open_wearables_user_id) -> Provider connection
     """
     __tablename__ = "wearable_connections"
 

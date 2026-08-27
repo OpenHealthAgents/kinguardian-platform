@@ -112,11 +112,11 @@ class WearableService:
     @staticmethod
     def get_wearable_user_id(subject_id: uuid.UUID) -> str:
         """
-        Derives the deterministic Open Wearables external identity for a KinGuard care subject.
-        KinGuard owns this identity mapping:
-        KinGuard CareSubject (Parent) <---> Open Wearables External ID ("kinguard_subject_{uuid}").
+        Derives the deterministic Open Wearables external identity for a KinGuardian care subject.
+        KinGuardian owns this identity mapping:
+        KinGuardian CareSubject (Parent) <---> Open Wearables External ID ("kinguardian_subject_{uuid}").
         """
-        return f"kinguard_subject_{subject_id}"
+        return f"kinguardian_subject_{subject_id}"
 
 
     async def verify_subject_access(
@@ -186,7 +186,7 @@ class WearableService:
         """
         Initiates the zero-credential connection flow via Open Wearables:
         1. Validates care subject existence.
-        2. Records/updates a pending WearableConnection in the KinGuard database.
+        2. Records/updates a pending WearableConnection in the KinGuardian database.
         3. Requests a secure hosted OAuth connection URL or mobile SDK token from Open Wearables.
         4. Returns ONLY the connection URL / token to the mobile client (zero provider secrets/credentials).
         """
@@ -199,7 +199,7 @@ class WearableService:
 
         wearable_user_id = self.get_wearable_user_id(subject_id)
 
-        # 0. Enforce KinGuard Authorization Layer Consent Boundary
+        # 0. Enforce KinGuardian Authorization Layer Consent Boundary
         # Wearable data is protected health information (PHI). Active consent is strictly required.
         has_consent = await self.verify_wearable_consent(subject_id=subject.id)
         if not has_consent:
@@ -254,7 +254,7 @@ class WearableService:
 
         wearable_user_id = self.get_wearable_user_id(subject_id)
 
-        # Enforce KinGuard Authorization Layer Consent Boundary
+        # Enforce KinGuardian Authorization Layer Consent Boundary
         has_consent = await self.verify_wearable_consent(subject_id=subject.id)
         if not has_consent:
             raise ValueError("Active parent/coordinator wearable health data consent is required before connecting a device.")
@@ -391,7 +391,7 @@ class WearableService:
     ) -> WearableConsentStatusResponse:
         """
         Retrieves current consent status and the mandatory pre-connection disclosures:
-        - What KinGuard can receive: Activity, Sleep, Heart rate
+        - What KinGuardian can receive: Activity, Sleep, Heart rate
         - Revocation guarantee: You can disconnect this device at any time.
         """
         query = select(Consent).where(
@@ -441,7 +441,7 @@ class WearableService:
         scopes: Optional[Dict[str, bool]] = None
     ) -> WearableConsentStatusResponse:
         """
-        Explicitly records consent granted by parent/coordinator in the KinGuard authorization layer.
+        Explicitly records consent granted by parent/coordinator in the KinGuardian authorization layer.
         """
         if grantor_profile_id == grantee_profile_id:
             res_subj = await self.session.execute(select(CareSubject).where(CareSubject.id == subject_id))
@@ -823,7 +823,7 @@ class WearableService:
     ) -> WearableConnectionPermissionsResponse:
         """
         Updates the granular telemetry scopes granted to a connection.
-        Persists changes to the KinGuard database and emits a permissions updated event.
+        Persists changes to the KinGuardian database and emits a permissions updated event.
         """
         query = select(WearableConnection).where(WearableConnection.subject_id == subject_id)
         try:
@@ -981,8 +981,8 @@ class WearableService:
             f"Processing Open Wearables webhook: event={payload.event_type} user={payload.user_id} provider={payload.provider}"
         )
 
-        # Extract subject_id from user_id (format: "kinguardian_subject_<uuid>" or "kinguard_subject_<uuid>")
-        subject_id_str = payload.user_id.replace("kinguardian_subject_", "").replace("kinguard_subject_", "")
+        # Extract subject_id from user_id (format: "kinguardian_subject_<uuid>" or "kinguardian_subject_<uuid>")
+        subject_id_str = payload.user_id.replace("kinguardian_subject_", "").replace("kinguardian_subject_", "")
         try:
 
             subject_id = uuid.UUID(subject_id_str)
@@ -1117,9 +1117,9 @@ class WearableService:
         days: int = 7
     ) -> Dict[str, Any]:
         """
-        Executes the complete End-to-End KinGuard Wearable Data Flow:
-        1. Open Wearables normalized API -> KinGuard fetches raw provider data.
-        2. Normalize into KinGuard WearableMetric domain models.
+        Executes the complete End-to-End KinGuardian Wearable Data Flow:
+        1. Open Wearables normalized API -> KinGuardian fetches raw provider data.
+        2. Normalize into KinGuardian WearableMetric domain models.
         3. Insight Engine -> Calculate baselines & detect anomalies (Activity, Sleep, Recovery).
         4. Guardian Moment / health trend -> Persist AIInsight.
         5. Coordinator notification -> Generate Notification entity & stage Outbox event for coordinator.
@@ -1145,7 +1145,7 @@ class WearableService:
         recoveries = await self.get_recovery_history(subject_id, days=days)
         workouts = await self.get_workouts_history(subject_id, days=days)
 
-        # 2. Normalize into KinGuard WearableMetric domain representations
+        # 2. Normalize into KinGuardian WearableMetric domain representations
         normalized_metrics: List[WearableMetric] = []
         for act in activities:
             d_time = datetime.strptime(act.date, "%Y-%m-%d") if act.date else datetime.utcnow()

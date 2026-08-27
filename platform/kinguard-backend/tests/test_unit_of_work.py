@@ -1,5 +1,5 @@
 """
-Unit of Work Tests for KinGuard.
+Unit of Work Tests for KinGuardian.
 
 Validates:
 1. Atomic multi-repository mutations within a single transaction.

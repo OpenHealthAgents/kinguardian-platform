@@ -1,9 +1,9 @@
 """
 Application Database Integration Test: Wearable Relational Chain.
-Verifies the exact 5-tier relational hierarchy in the KinGuard application database:
-KinGuard user (AppProfile)
+Verifies the exact 5-tier relational hierarchy in the KinGuardian application database:
+KinGuardian user (AppProfile)
     ↓
-KinGuard care subject (CareSubject)
+KinGuardian care subject (CareSubject)
     ↓
 Wearable identity (CareSubjectWearableIdentity)
     ↓
@@ -109,7 +109,7 @@ async def test_wearable_connections_table_examples(test_db_session: AsyncSession
         subject_id=ramesh.id,
         profile_id=coord_id,
         provider="garmin",
-        open_wearables_user_id=f"kinguard_subject_{ramesh.id}",
+        open_wearables_user_id=f"kinguardian_subject_{ramesh.id}",
         provider_user_id="garmin_user_ramesh_771",
         connection_status="connected",
         permissions={"activity": True, "sleep": True, "recovery": True},
@@ -124,7 +124,7 @@ async def test_wearable_connections_table_examples(test_db_session: AsyncSession
         subject_id=lakshmi.id,
         profile_id=coord_id,
         provider="fitbit",
-        open_wearables_user_id=f"kinguard_subject_{lakshmi.id}",
+        open_wearables_user_id=f"kinguardian_subject_{lakshmi.id}",
         provider_user_id="fitbit_user_lakshmi_402",
         connection_status="connected",
         permissions={"activity": True, "sleep": True, "heart_rate": True},
@@ -144,7 +144,7 @@ async def test_wearable_connections_table_examples(test_db_session: AsyncSession
     assert len(subject_r.wearable_connections) == 1
     assert subject_r.wearable_connections[0].provider == "garmin"
     assert subject_r.wearable_connections[0].connection_status == "connected"
-    assert subject_r.wearable_connections[0].open_wearables_user_id == f"kinguard_subject_{ramesh.id}"
+    assert subject_r.wearable_connections[0].open_wearables_user_id == f"kinguardian_subject_{ramesh.id}"
 
     res_lakshmi = await session.execute(
         select(CareSubject)
@@ -155,7 +155,7 @@ async def test_wearable_connections_table_examples(test_db_session: AsyncSession
     assert len(subject_l.wearable_connections) == 1
     assert subject_l.wearable_connections[0].provider == "fitbit"
     assert subject_l.wearable_connections[0].connection_status == "connected"
-    assert subject_l.wearable_connections[0].open_wearables_user_id == f"kinguard_subject_{lakshmi.id}"
+    assert subject_l.wearable_connections[0].open_wearables_user_id == f"kinguardian_subject_{lakshmi.id}"
 
     # 5. Verify unique constraint: duplicate connection for same subject + provider fails
     dup_conn = WearableConnection(
@@ -163,7 +163,7 @@ async def test_wearable_connections_table_examples(test_db_session: AsyncSession
         family_id=family.id,
         subject_id=ramesh.id,
         provider="garmin",
-        open_wearables_user_id=f"kinguard_subject_{ramesh.id}",
+        open_wearables_user_id=f"kinguardian_subject_{ramesh.id}",
         connection_status="connected"
     )
     session.add(dup_conn)
@@ -191,7 +191,7 @@ async def test_db_session():
 async def test_wearable_relational_hierarchy_and_constraints(test_db_session: AsyncSession):
     session = test_db_session
 
-    # 1. KinGuard User (Anjali in London)
+    # 1. KinGuardian User (Anjali in London)
     user_id = uuid.uuid4()
     coordinator = AppProfile(
         id=user_id,
@@ -214,7 +214,7 @@ async def test_wearable_relational_hierarchy_and_constraints(test_db_session: As
     )
     session.add(membership)
 
-    # 2. KinGuard Care Subject (Dad / Ramesh in Chennai)
+    # 2. KinGuardian Care Subject (Dad / Ramesh in Chennai)
     subject_id = uuid.uuid4()
     subject = CareSubject(
         id=subject_id,
@@ -231,7 +231,7 @@ async def test_wearable_relational_hierarchy_and_constraints(test_db_session: As
 
     # 3. Wearable Identity -> Open Wearables User ID
     wearable_id = uuid.uuid4()
-    open_wearables_uid = f"kinguard_subject_{subject.id}"
+    open_wearables_uid = f"kinguardian_subject_{subject.id}"
     identity = CareSubjectWearableIdentity(
         id=wearable_id,
         family_id=family.id,
@@ -342,19 +342,19 @@ async def test_wearable_data_sources_table_examples(test_db_session: AsyncSessio
     # 2. Setup Connections for Garmin, Apple, Fitbit, Oura
     garmin_conn = WearableConnection(
         id=uuid.uuid4(), family_id=family.id, subject_id=subject.id, profile_id=user_id,
-        provider="garmin", open_wearables_user_id=f"kinguard_{subject.id}", connection_status="connected"
+        provider="garmin", open_wearables_user_id=f"kinguardian_{subject.id}", connection_status="connected"
     )
     apple_conn = WearableConnection(
         id=uuid.uuid4(), family_id=family.id, subject_id=subject.id, profile_id=user_id,
-        provider="apple_health", open_wearables_user_id=f"kinguard_{subject.id}", connection_status="connected"
+        provider="apple_health", open_wearables_user_id=f"kinguardian_{subject.id}", connection_status="connected"
     )
     fitbit_conn = WearableConnection(
         id=uuid.uuid4(), family_id=family.id, subject_id=subject.id, profile_id=user_id,
-        provider="fitbit", open_wearables_user_id=f"kinguard_{subject.id}", connection_status="connected"
+        provider="fitbit", open_wearables_user_id=f"kinguardian_{subject.id}", connection_status="connected"
     )
     oura_conn = WearableConnection(
         id=uuid.uuid4(), family_id=family.id, subject_id=subject.id, profile_id=user_id,
-        provider="oura", open_wearables_user_id=f"kinguard_{subject.id}", connection_status="connected"
+        provider="oura", open_wearables_user_id=f"kinguardian_{subject.id}", connection_status="connected"
     )
     session.add_all([garmin_conn, apple_conn, fitbit_conn, oura_conn])
     await session.commit()

@@ -55,7 +55,7 @@ async def e2e_flow_context(db_session):
     coord_profile = AppProfile(
         id=coord_id,
         iam_subject_id=f"iam_coord_e2e_{uuid.uuid4().hex[:8]}",
-        email="anjali.e2e@kinguard.com",
+        email="anjali.e2e@kinguardian.com",
         display_name="Anjali Sharma (London)",
         first_name="Anjali",
         last_name="Sharma",
@@ -67,7 +67,7 @@ async def e2e_flow_context(db_session):
     parent_profile = AppProfile(
         id=parent_id,
         iam_subject_id=f"iam_parent_e2e_{uuid.uuid4().hex[:8]}",
-        email="ramesh.e2e@kinguard.com",
+        email="ramesh.e2e@kinguardian.com",
         display_name="Ramesh Sharma (Chennai)",
         first_name="Ramesh",
         last_name="Sharma",
@@ -245,7 +245,7 @@ async def test_complete_e2e_care_flow(db_session, e2e_flow_context):
 
 
         # ----------------------------------------------------------------------
-        # Step 6: Coordinator AI Query via KinGuard AI Facade
+        # Step 6: Coordinator AI Query via KinGuardian AI Facade
         # ----------------------------------------------------------------------
         # Start AI conversation
         r_conv = await coord_client.post("/ai/conversations", json={

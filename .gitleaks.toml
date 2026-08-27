@@ -1,4 +1,4 @@
-title = "KinGuard Gitleaks Secret Detection Config"
+title = "KinGuardian Gitleaks Secret Detection Config"
 
 [extend]
 useDefault = true

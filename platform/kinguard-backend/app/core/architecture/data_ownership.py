@@ -11,7 +11,7 @@ from dataclasses import dataclass
 class SystemOfRecord(str, Enum):
     """Authoritative Systems of Record."""
     FHIR_EMR = "FHIR / EMR"
-    KINGUARD = "KinGuard Platform"
+    KINGUARD = "KinGuardian Platform"
     FILENEST = "FileNest WORM Storage"
     BEZS_AGENT = "bezs-agent AI Orchestrator"
     IAM = "IAM Identity Provider"
@@ -22,7 +22,7 @@ class DataFieldOwnership:
     domain_concept: str
     owner_system: SystemOfRecord
     field_or_resource: str
-    kinguard_representation: str
+    kinguardian_representation: str
     anti_duplication_rule: str
 
 
@@ -31,57 +31,57 @@ DATA_OWNERSHIP_CATALOG: List[DataFieldOwnership] = [
         domain_concept="Medication Prescriptions & Dosage",
         owner_system=SystemOfRecord.FHIR_EMR,
         field_or_resource="MedicationRequest.dosageInstruction, MedicationStatement.dosage",
-        kinguard_representation="External reference pointer (fhir_medication_request_id)",
-        anti_duplication_rule="KinGuard must NEVER store or mutate master medication prescriptions locally."
+        kinguardian_representation="External reference pointer (fhir_medication_request_id)",
+        anti_duplication_rule="KinGuardian must NEVER store or mutate master medication prescriptions locally."
     ),
     DataFieldOwnership(
         domain_concept="Medication Adherence Tracking",
         owner_system=SystemOfRecord.KINGUARD,
         field_or_resource="medication_adherence_events (status, confirmed_at, dual-time timestamps)",
-        kinguard_representation="Authoritative Entity (AdherenceEvent)",
-        anti_duplication_rule="KinGuard is the single source of truth for adherence confirmations and reminders."
+        kinguardian_representation="Authoritative Entity (AdherenceEvent)",
+        anti_duplication_rule="KinGuardian is the single source of truth for adherence confirmations and reminders."
     ),
     DataFieldOwnership(
         domain_concept="Parent & Care Circle Relationships",
         owner_system=SystemOfRecord.KINGUARD,
         field_or_resource="care_subjects, family_members, family_invitations, consents",
-        kinguard_representation="Authoritative Aggregate Root (Family, CareSubject, Consent)",
-        anti_duplication_rule="All family membership hierarchies and access delegations are exclusively managed by KinGuard."
+        kinguardian_representation="Authoritative Aggregate Root (Family, CareSubject, Consent)",
+        anti_duplication_rule="All family membership hierarchies and access delegations are exclusively managed by KinGuardian."
     ),
     DataFieldOwnership(
         domain_concept="Patient Demographics & Medical Identity",
         owner_system=SystemOfRecord.FHIR_EMR,
         field_or_resource="Patient (identifier, birthDate, gender, telecom)",
-        kinguard_representation="Linkage pointer (care_subjects.fhir_patient_id) + cached read projection",
-        anti_duplication_rule="Master clinical demographics originate from FHIR; KinGuard only maintains linkage."
+        kinguardian_representation="Linkage pointer (care_subjects.fhir_patient_id) + cached read projection",
+        anti_duplication_rule="Master clinical demographics originate from FHIR; KinGuardian only maintains linkage."
     ),
     DataFieldOwnership(
         domain_concept="User Authentication Identity",
         owner_system=SystemOfRecord.IAM,
         field_or_resource="IAM User (sub, email, password, MFA, session token)",
-        kinguard_representation="Linkage pointer (app_profiles.iam_subject_id)",
-        anti_duplication_rule="Credentials, passwords, and tokens are strictly owned by IAM, never stored in KinGuard DB."
+        kinguardian_representation="Linkage pointer (app_profiles.iam_subject_id)",
+        anti_duplication_rule="Credentials, passwords, and tokens are strictly owned by IAM, never stored in KinGuardian DB."
     ),
     DataFieldOwnership(
         domain_concept="File Binary Storage (PDF, Images, DICOM)",
         owner_system=SystemOfRecord.FILENEST,
         field_or_resource="WORM Object Chunks, Immutable Storage Keys",
-        kinguard_representation="Pointer & Checksum (health_documents.filenest_file_id, sha256_checksum)",
-        anti_duplication_rule="Raw document binaries are NEVER permanently stored in KinGuard SQL database."
+        kinguardian_representation="Pointer & Checksum (health_documents.filenest_file_id, sha256_checksum)",
+        anti_duplication_rule="Raw document binaries are NEVER permanently stored in KinGuardian SQL database."
     ),
     DataFieldOwnership(
         domain_concept="AI Conversational Session & Reasoning Context",
         owner_system=SystemOfRecord.BEZS_AGENT,
         field_or_resource="LLM Context Memory, Scratchpads, Agent Execution Graph",
-        kinguard_representation="Session ID Linkage (ai_conversations.external_session_id)",
+        kinguardian_representation="Session ID Linkage (ai_conversations.external_session_id)",
         anti_duplication_rule="Intermediate LLM working state and agent scratchpads are owned by bezs-agent."
     ),
     DataFieldOwnership(
         domain_concept="AI Insight Application Metadata & Approvals",
         owner_system=SystemOfRecord.KINGUARD,
         field_or_resource="ai_insights, ai_actions, care_tasks (status, severity, user_feedback)",
-        kinguard_representation="Authoritative Entity (AIInsight, AIAction, CareTask)",
-        anti_duplication_rule="User decisions, human-in-the-loop approvals, and task execution states are owned by KinGuard."
+        kinguardian_representation="Authoritative Entity (AIInsight, AIAction, CareTask)",
+        anti_duplication_rule="User decisions, human-in-the-loop approvals, and task execution states are owned by KinGuardian."
     )
 ]
 

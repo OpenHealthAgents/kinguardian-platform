@@ -114,7 +114,7 @@ async def test_wearable_derived_summary_endpoint(test_db_session: AsyncSession):
         subject_id=subject.id,
         profile_id=coordinator_id,
         provider="apple_health",
-        open_wearables_user_id=f"kinguard_subject_{subject.id}",
+        open_wearables_user_id=f"kinguardian_subject_{subject.id}",
         provider_user_id="apple_health_ramesh",
         connection_status="connected"
     )

@@ -128,13 +128,13 @@ async def test_insight_engine_decoupled_flow_and_persistence(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_insight",
-        email="coord_insight@kinguard.com",
+        email="coord_insight@kinguardian.com",
         display_name="Dr. Maya Coordinator",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_insight",
-        email="parent_insight@kinguard.com",
+        email="parent_insight@kinguardian.com",
         display_name="Thomas Senior",
         timezone="Asia/Kolkata"
     )

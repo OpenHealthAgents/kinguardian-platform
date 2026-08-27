@@ -113,7 +113,7 @@ def instrument_request(endpoint: str, method: str = "GET"):
 
 # 2. AI Calls
 @contextmanager
-def instrument_ai_call(model: str = "kinguard-ai-v1", task: str = "qna"):
+def instrument_ai_call(model: str = "kinguardian-ai-v1", task: str = "qna"):
     start = time.perf_counter()
     metrics.increment("ai_calls_total", 1, {"model": model, "task": task})
     try:

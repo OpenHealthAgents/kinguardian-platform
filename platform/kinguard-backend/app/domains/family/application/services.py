@@ -2459,7 +2459,7 @@ class FamilyService:
 
         # AI Facade Reasoning & Context Formation
         ai_response_text = (
-            "KinGuard AI Clinical Assistant: I have evaluated your query regarding care management. "
+            "KinGuardian AI Clinical Assistant: I have evaluated your query regarding care management. "
             "Based on the subject's latest clinical observations and care plan, I recommend reviewing "
             "recent medication adherence and scheduling any pending vitals check-ins."
         )
@@ -2532,7 +2532,7 @@ class FamilyService:
             timeframe_end=datetime.now(),
             confidence=0.92,
             status="active",
-            generated_by="kinguard_ai_facade"
+            generated_by="kinguardian_ai_facade"
         )
 
         requester = await self.user_repo.get_by_id(requester_id)
@@ -2543,7 +2543,7 @@ class FamilyService:
             payload={
                 "insight_id": str(insight.id),
                 "subject_id": str(subject_id),
-                "generated_by": "kinguard_ai_facade",
+                "generated_by": "kinguardian_ai_facade",
                 "insight_type": insight_type
             },
             parent_tz="Asia/Kolkata",

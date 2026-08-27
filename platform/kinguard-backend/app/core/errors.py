@@ -34,7 +34,7 @@ class ErrorResponse(BaseModel):
 
 class AppError(HTTPException):
     """
-    Standardized Application Exception for KinGuard.
+    Standardized Application Exception for KinGuardian.
     Guarantees stable error envelopes without leaking raw exception types or stack traces.
     """
     def __init__(

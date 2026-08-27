@@ -26,7 +26,7 @@ class UPIPaymentRequest:
 @dataclass(frozen=True)
 class UPIPaymentIntent:
     payment_id: str
-    upi_intent_uri: str  # upi://pay?pa=...&pn=KinGuard&am=...
+    upi_intent_uri: str  # upi://pay?pa=...&pn=KinGuardian&am=...
     dynamic_qr_base64: str
     expires_at: datetime
 

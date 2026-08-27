@@ -24,7 +24,7 @@ async def test_family_crud_endpoints(db_session):
     # 1. Setup Coordinator Profile
     coord = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_crud",
-        email="coord_crud@kinguard.com",
+        email="coord_crud@kinguardian.com",
         display_name="Coordinator CRUD",
         timezone="America/New_York"
     )
@@ -77,7 +77,7 @@ async def test_family_crud_endpoints(db_session):
             # 5. Non-member access is rejected (403)
             stranger = await family_svc.get_or_create_profile(
                 iam_subject_id="iam_stranger_crud",
-                email="stranger_crud@kinguard.com",
+                email="stranger_crud@kinguardian.com",
                 display_name="Stranger CRUD",
                 timezone="UTC"
             )
@@ -95,7 +95,7 @@ async def test_family_crud_endpoints(db_session):
             app.dependency_overrides[get_current_user] = lambda: app_profile
 
             # 6. POST /api/v1/families/{id}/members
-            member_add_payload = {"email": "sister@kinguard.com", "role": "caregiver"}
+            member_add_payload = {"email": "sister@kinguardian.com", "role": "caregiver"}
             member_add_resp = await client.post(f"/api/v1/families/{family_id}/members", json=member_add_payload)
             assert member_add_resp.status_code == 201
             member_data = member_add_resp.json()
@@ -421,7 +421,7 @@ async def test_family_crud_endpoints(db_session):
             assert dismissed_data["status"] == "dismissed"
 
             # --- DOCUMENTS & FILENEST INTEGRATION Endpoints Tests ---
-            # 39. POST /api/v1/subjects/{subject_id}/documents (Create KinGuard metadata + FileNest upload target)
+            # 39. POST /api/v1/subjects/{subject_id}/documents (Create KinGuardian metadata + FileNest upload target)
             doc_init_payload = {
                 "document_type": "prescription",
                 "filename": "cardio_prescription_2026.pdf",
@@ -444,7 +444,7 @@ async def test_family_crud_endpoints(db_session):
             assert len(docs_list) >= 1
             assert any(d["id"] == doc_id for d in docs_list)
 
-            # 41. POST /api/v1/documents/webhook (FileNest processing -> KinGuard workflow -> AI extraction)
+            # 41. POST /api/v1/documents/webhook (FileNest processing -> KinGuardian workflow -> AI extraction)
             webhook_payload = {
                 "event": "filenest.processing.completed",
                 "file_id": filenest_file_id,
@@ -529,7 +529,7 @@ async def test_family_crud_endpoints(db_session):
             assert gen_insight_resp.status_code == 201
             gen_insight_data = gen_insight_resp.json()
             assert gen_insight_data["type"] == "medication_adherence_trend"
-            assert gen_insight_data["generated_by"] == "kinguard_ai_facade"
+            assert gen_insight_data["generated_by"] == "kinguardian_ai_facade"
             assert gen_insight_data["confidence"] is not None
 
             # 49. POST /api/v1/ai/appointments/{id}/prepare

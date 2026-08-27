@@ -73,13 +73,13 @@ async def test_coordinator_home_read_model(home_environment):
     # 1. Setup Coordinator, Parent, and Care Circle
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_coord_{uuid.uuid4()}",
-        email=f"coord_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Anjali Coordinator",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_parent_{uuid.uuid4()}",
-        email=f"parent_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Ramesh Parent",
         timezone="Asia/Kolkata"
     )
@@ -153,12 +153,12 @@ async def test_parent_home_read_model(home_environment):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_coord_p_{uuid.uuid4()}",
-        email=f"coord_p_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_p_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_parent_p_{uuid.uuid4()}",
-        email=f"parent_p_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_p_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Ramesh"
     )
 
@@ -211,12 +211,12 @@ async def test_parent_health_summary_and_timeline(home_environment):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_coord_s_{uuid.uuid4()}",
-        email=f"coord_s_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_s_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_parent_s_{uuid.uuid4()}",
-        email=f"parent_s_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_s_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Ramesh"
     )
 
@@ -270,7 +270,7 @@ async def test_family_home_parallel_aggregation_and_caching(home_environment):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_coord_par_{uuid.uuid4()}",
-        email=f"coord_par_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_par_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     family = await family_svc.create_care_circle(

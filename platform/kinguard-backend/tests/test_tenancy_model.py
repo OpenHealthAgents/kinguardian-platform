@@ -43,12 +43,12 @@ async def test_platform_organization_hierarchy(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_tenancy",
-        email="coord_tenancy@kinguard.com",
+        email="coord_tenancy@kinguardian.com",
         display_name="Maya Coordinator"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_tenancy",
-        email="parent_tenancy@kinguard.com",
+        email="parent_tenancy@kinguardian.com",
         display_name="Senior Parent"
     )
 
@@ -89,7 +89,7 @@ async def test_derive_family_from_identity_never_rely_on_client_family_id(db_ses
     # User A in Family A
     user_a = await family_svc.get_or_create_profile(
         iam_subject_id="iam_user_a",
-        email="user_a@kinguard.com",
+        email="user_a@kinguardian.com",
         display_name="User A"
     )
     family_a = await family_svc.create_care_circle(user_a.id, "Family A", "coordinator")
@@ -97,7 +97,7 @@ async def test_derive_family_from_identity_never_rely_on_client_family_id(db_ses
     # User B in Family B
     user_b = await family_svc.get_or_create_profile(
         iam_subject_id="iam_user_b",
-        email="user_b@kinguard.com",
+        email="user_b@kinguardian.com",
         display_name="User B"
     )
     family_b = await family_svc.create_care_circle(user_b.id, "Family B", "coordinator")
@@ -132,7 +132,7 @@ async def test_subject_access_derivation_without_client_family_id(db_session):
 
     user_a = await family_svc.get_or_create_profile(
         iam_subject_id="iam_user_subj_a",
-        email="user_subj_a@kinguard.com",
+        email="user_subj_a@kinguardian.com",
         display_name="User Subj A"
     )
     family_a = await family_svc.create_care_circle(user_a.id, "Family Subj A", "coordinator")
@@ -146,7 +146,7 @@ async def test_subject_access_derivation_without_client_family_id(db_session):
 
     user_b = await family_svc.get_or_create_profile(
         iam_subject_id="iam_user_subj_b",
-        email="user_subj_b@kinguard.com",
+        email="user_subj_b@kinguardian.com",
         display_name="User Subj B"
     )
     family_b = await family_svc.create_care_circle(user_b.id, "Family Subj B", "coordinator")

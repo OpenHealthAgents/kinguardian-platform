@@ -49,19 +49,19 @@ async def test_family_home_read_service_aggregation_and_caching(db_session: Asyn
     # 1. Setup Profiles & Family Circle
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_home_01",
-        email="anjali.home@kinguard.com",
+        email="anjali.home@kinguardian.com",
         display_name="Anjali",
         timezone="Europe/London"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_home_01",
-        email="ramesh.home@kinguard.com",
+        email="ramesh.home@kinguardian.com",
         display_name="Ramesh",
         timezone="Asia/Kolkata"
     )
     stranger = await family_svc.get_or_create_profile(
         iam_subject_id="iam_stranger_home_01",
-        email="stranger.home@kinguard.com",
+        email="stranger.home@kinguardian.com",
         display_name="Stranger",
         timezone="UTC"
     )

@@ -27,19 +27,19 @@ async def test_ai_context_builder_consent_and_authorization(db_session):
     # 1. Create Profiles: Coordinator, Parent, and Stranger
     coord = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_ctx",
-        email="coord_ctx@kinguard.com",
+        email="coord_ctx@kinguardian.com",
         display_name="Sarah Jenkins",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_ctx",
-        email="parent_ctx@kinguard.com",
+        email="parent_ctx@kinguardian.com",
         display_name="Robert Jenkins",
         timezone="Asia/Kolkata"
     )
     stranger = await family_svc.get_or_create_profile(
         iam_subject_id="iam_stranger_ctx",
-        email="stranger_ctx@kinguard.com",
+        email="stranger_ctx@kinguardian.com",
         display_name="Eve Hacker",
         timezone="UTC"
     )
@@ -206,7 +206,7 @@ async def test_ai_context_scoping_multi_subject_and_components(db_session):
     # 1. Setup Actor and Family
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_scope",
-        email="coord_scope@kinguard.com",
+        email="coord_scope@kinguardian.com",
         display_name="Emma Watson",
         timezone="America/Los_Angeles"
     )
@@ -215,13 +215,13 @@ async def test_ai_context_scoping_multi_subject_and_components(db_session):
     # 2. Setup TWO Care Subjects: Father (with full consent) and Mother (with NO consent)
     father = await family_svc.get_or_create_profile(
         iam_subject_id="iam_father_scope",
-        email="father_scope@kinguard.com",
+        email="father_scope@kinguardian.com",
         display_name="John Watson",
         timezone="Asia/Kolkata"
     )
     mother = await family_svc.get_or_create_profile(
         iam_subject_id="iam_mother_scope",
-        email="mother_scope@kinguard.com",
+        email="mother_scope@kinguardian.com",
         display_name="Mary Watson",
         timezone="Asia/Kolkata"
     )

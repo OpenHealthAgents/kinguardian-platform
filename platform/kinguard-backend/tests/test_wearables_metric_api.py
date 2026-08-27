@@ -6,7 +6,7 @@ Verifies:
 2. Metric type filtering (e.g. metric=steps, metric=resting_heart_rate, metric=sleep_duration)
 3. Provider and source filtering (provider=garmin)
 4. Cursor-based pagination with limit and next_cursor
-5. Contract compliance with KinGuard WearableMetric domain models.
+5. Contract compliance with KinGuardian WearableMetric domain models.
 """
 
 import pytest
@@ -112,7 +112,7 @@ async def test_unified_wearable_metric_api_filters_and_cursor(test_db_session: A
         subject_id=subject.id,
         profile_id=coordinator_id,
         provider="garmin",
-        open_wearables_user_id=f"kinguard_subject_{subject.id}",
+        open_wearables_user_id=f"kinguardian_subject_{subject.id}",
         provider_user_id="garmin_user_9921",
         connection_status="connected"
     )

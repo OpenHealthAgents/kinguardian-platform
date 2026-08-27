@@ -9,7 +9,7 @@ Wearable:
   activity lower than baseline
 Parent:
   "Feeling okay"
-KinGuard Multimodal Correlation:
+KinGuardian Multimodal Correlation:
   No urgent signal.
   Continue monitoring.
   -> Produces a contextual insight rather than a diagnosis.

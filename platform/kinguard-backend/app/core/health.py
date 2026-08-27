@@ -32,7 +32,7 @@ class HealthCheckService:
         uptime_seconds = round(time.time() - START_TIME, 2)
         return {
             "status": "ok",
-            "service": "kinguard-backend",
+            "service": "kinguardian-backend",
             "version": "0.1.0",
             "uptime_seconds": uptime_seconds,
             "timestamp": datetime.now(timezone.utc).isoformat()
@@ -114,7 +114,7 @@ class HealthCheckService:
 
         result = {
             "status": "ready" if all_ready else "unhealthy",
-            "service": "kinguard-backend",
+            "service": "kinguardian-backend",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "checks": {
                 "postgresql": db_details,

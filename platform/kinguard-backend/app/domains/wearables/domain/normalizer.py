@@ -28,7 +28,7 @@ from app.domains.wearables.domain.units import HealthUnitConverter, StandardUnit
 
 class WearableMetricNormalizer:
     """
-    Standardizes heterogeneous wearable telemetry into normalized KinGuard domain models.
+    Standardizes heterogeneous wearable telemetry into normalized KinGuardian domain models.
     Acts as an Anti-Corruption Layer (ACL) across Apple Health, Garmin, Fitbit, Oura, Whoop, and FHIR.
     """
 
@@ -373,7 +373,7 @@ class WearableMetricNormalizer:
         local_timezone: Optional[str] = None
     ) -> WearableMetric:
         """
-        Normalizes a single vendor measurement into a standard KinGuard WearableMetric domain model.
+        Normalizes a single vendor measurement into a standard KinGuardian WearableMetric domain model.
         Guarantees measured_at_utc in UTC and preserves local_timezone.
         """
         # 1. Normalize Provider

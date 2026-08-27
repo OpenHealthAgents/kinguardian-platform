@@ -1,5 +1,5 @@
 """
-KinGuard Centralized Application Use Cases Registry:
+KinGuardian Centralized Application Use Cases Registry:
 All controller endpoints invoke explicit Use Cases rather than calling repositories directly.
 """
 
@@ -35,7 +35,7 @@ from app.application.documents.use_cases import (
     ReviewDocumentExtractionUseCase
 )
 from app.application.ai.use_cases import (
-    AskKinGuardUseCase,
+    AskKinGuardianUseCase,
     GenerateHealthInsightUseCase,
     GenerateGuardianMomentUseCase
 )
@@ -79,7 +79,7 @@ __all__ = [
     "ReviewDocumentExtractionUseCase",
 
     # AI Use Cases
-    "AskKinGuardUseCase",
+    "AskKinGuardianUseCase",
     "GenerateHealthInsightUseCase",
     "GenerateGuardianMomentUseCase",
 

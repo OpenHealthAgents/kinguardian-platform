@@ -288,7 +288,7 @@ class WearableConsentGrantRequest(BaseModel):
         }
     )
     acknowledgement_text: str = Field(
-        default="I understand that KinGuard will receive Activity, Sleep, and Heart rate data from connected wearables, and I can disconnect at any time."
+        default="I understand that KinGuardian will receive Activity, Sleep, and Heart rate data from connected wearables, and I can disconnect at any time."
     )
 
 

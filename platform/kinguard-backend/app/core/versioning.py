@@ -18,7 +18,7 @@ class APIVersionInfo(BaseModel):
 
 class VersionRegistry:
     """
-    KinGuard API Versioning Architecture:
+    KinGuardian API Versioning Architecture:
     - Current Active API: /api/v1
     - Future Breaking Versions: /api/v2
     - Domain Services are strictly Version-Independent: Business rules, domain models,
@@ -33,7 +33,7 @@ class VersionRegistry:
             version="v1",
             status="active",
             prefix="/api/v1",
-            description="KinGuard Platform Production API v1.0. Two-sided care coordination, health metrics, and guardian agent interfaces.",
+            description="KinGuardian Platform Production API v1.0. Two-sided care coordination, health metrics, and guardian agent interfaces.",
             breaking_changes_policy="No breaking changes permitted on /api/v1. Additive non-breaking changes only."
         ),
         APIVersion.V2: APIVersionInfo(

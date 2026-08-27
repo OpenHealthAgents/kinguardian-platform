@@ -6,7 +6,7 @@ Verifies:
 2. Exact user scenario:
    Wearable: activity lower than baseline
    Parent: "Feeling okay"
-   KinGuard: No urgent signal. Continue monitoring.
+   KinGuardian: No urgent signal. Continue monitoring.
 3. Invariant: Produces a contextual insight rather than a medical diagnosis.
 """
 
@@ -24,7 +24,7 @@ def test_wearable_activity_lower_plus_parent_feeling_okay_produces_contextual_in
     Scenario directly from user request:
     Wearable: activity lower than baseline
     Parent: "Feeling okay"
-    KinGuard: No urgent signal. Continue monitoring.
+    KinGuardian: No urgent signal. Continue monitoring.
     Guarantee: Contextual insight, NOT a medical diagnosis.
     """
     subject_id = uuid.uuid4()

@@ -1,13 +1,13 @@
-# KinGuard AI & Guardian Moments Architecture
+# KinGuardian AI & Guardian Moments Architecture
 
 ## 1. Overview
-KinGuard incorporates a clinically guarded AI agent system designed to support adult child coordinators and aging parents with personalized health insights, trend detection, and appointment preparation.
+KinGuardian incorporates a clinically guarded AI agent system designed to support adult child coordinators and aging parents with personalized health insights, trend detection, and appointment preparation.
 
 ```mermaid
 flowchart TD
     INPUT["User Query / Voice Note / Document"] --> WRAP["1. UntrustedContentWrapper<br/>(Sanitize & Neutralize Injection)"]
     WRAP --> CTX["2. Context Builder<br/>(Apply Consent, Minimization & Pseudonyms)"]
-    CTX --> AGENT["3. KinGuard Agent Runtime<br/>(Gemini / OpenAI Gateway)"]
+    CTX --> AGENT["3. KinGuardian Agent Runtime<br/>(Gemini / OpenAI Gateway)"]
     AGENT --> GATE["4. ExternalToolAuthorizationGatekeeper<br/>(Deterministic RBAC Check Outside LLM)"]
     GATE -->|High Risk Action| HITL["5. Human-in-the-Loop Approval Queue"]
     GATE -->|Low Risk Read Tool| TOOL["6. Execute Authorized Tool (FHIR / Circle)"]
@@ -48,7 +48,7 @@ Take note of morning vitals.
 ```
 
 ### C. Tool Authorization Gatekeeper
-AI-requested tool executions are intercepted and validated by [`ExternalToolAuthorizationGatekeeper`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/domains/agent/safety.py) strictly outside the LLM:
+AI-requested tool executions are intercepted and validated by [`ExternalToolAuthorizationGatekeeper`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/domains/agent/safety.py) strictly outside the LLM:
 - Verifies caller RBAC permissions (`CAP_ASSIGN_CARE_TASKS`, `CAP_MANAGE_MEDICATIONS`).
 - High-risk mutations (prescriptions, record deletion) are rejected or routed to the human approval queue (`AIAction` status `awaiting_approval`).
 
@@ -57,6 +57,6 @@ AI-requested tool executions are intercepted and validated by [`ExternalToolAuth
 ## 4. Safe Fallback Behavior During Outages
 If the AI model provider times out, encounters rate limits, or triggers a safety refusal, the platform returns a safe clinical fallback without failing the application:
 
-> *"KinGuard couldn't generate the insight right now. You can review the underlying health information."*
+> *"KinGuardian couldn't generate the insight right now. You can review the underlying health information."*
 
 Underlying raw vitals, check-in history, and lab reports remain fully accessible to caregivers.

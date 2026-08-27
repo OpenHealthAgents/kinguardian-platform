@@ -139,7 +139,7 @@ def test_infrastructure_layered_packages():
     assert hasattr(infra_persistence, "AppProfile")
     assert hasattr(infra_fhir, "FHIRClinicalRecordGateway")
     assert hasattr(infra_filenest, "FileNestGateway")
-    assert hasattr(infra_agent, "KinGuardEMRMCPBridge")
+    assert hasattr(infra_agent, "KinGuardianEMRMCPBridge")
 
     assert hasattr(infra_notifications, "NotificationPolicyEngine")
     assert hasattr(infra_messaging, "InMemoryEventBus")

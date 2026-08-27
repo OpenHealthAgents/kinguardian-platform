@@ -3,9 +3,9 @@ Most Important Product Scenario — End-to-End Cross-Border Caregiving Journey.
 
 Tests the central narrative flow:
 1. Dad in Chennai submits daily check-in: "I'm feeling okay"
-2. KinGuard stores check-in (Parent history + Domain event in outbox + dual-timezone audit)
+2. KinGuardian stores check-in (Parent history + Domain event in outbox + dual-timezone audit)
 3. Notification policy delivers notification to Anjali in London: "Dad checked in"
-4. Anjali asks KinGuard AI: "How has Dad been doing this week?"
+4. Anjali asks KinGuardian AI: "How has Dad been doing this week?"
 5. AI Context Builder aggregates all 6 clinical & care dimensions:
    - FHIR observations
    - Medications
@@ -40,7 +40,7 @@ from app.domains.events.outbox import OutboxService
 from app.domains.clinical.gateway import MockClinicalRecordGateway
 from app.domains.agent.context_builder import AIContextBuilder
 from app.domains.agent.safety import AISafetyGuard
-from app.application.ai.use_cases import AskKinGuardUseCase
+from app.application.ai.use_cases import AskKinGuardianUseCase
 from app.domains.family.infrastructure.models import (
     WellbeingCheckin,
     CareTask,
@@ -62,7 +62,7 @@ def product_scenario_env(db_session: AsyncSession):
     safety_guard = AISafetyGuard()
     outbox_svc = OutboxService(db_session)
 
-    ask_use_case = AskKinGuardUseCase(
+    ask_use_case = AskKinGuardianUseCase(
         context_builder=context_builder,
         safety_guard=safety_guard,
         family_service=family_svc
@@ -87,7 +87,7 @@ async def test_dad_in_chennai_and_anjali_in_london_complete_flow(product_scenari
     session: AsyncSession = product_scenario_env["session"]
     family_svc: FamilyService = product_scenario_env["family_svc"]
     outbox_svc: OutboxService = product_scenario_env["outbox_svc"]
-    ask_use_case: AskKinGuardUseCase = product_scenario_env["ask_use_case"]
+    ask_use_case: AskKinGuardianUseCase = product_scenario_env["ask_use_case"]
     coord_read_svc: CoordinatorHomeReadService = product_scenario_env["coord_read_svc"]
 
     # -------------------------------------------------------------------------
@@ -147,7 +147,7 @@ async def test_dad_in_chennai_and_anjali_in_london_complete_flow(product_scenari
 
 
     # -------------------------------------------------------------------------
-    # STEP 2: KinGuard stores check-in -> stages domain event in transactional outbox
+    # STEP 2: KinGuardian stores check-in -> stages domain event in transactional outbox
     # -------------------------------------------------------------------------
     outbox_evt = await outbox_svc.stage_event(
         event_type="wellbeing_checkin.created",
@@ -199,7 +199,7 @@ async def test_dad_in_chennai_and_anjali_in_london_complete_flow(product_scenari
     assert home_view.parent_statuses[0].latest_checkin_feeling == "okay"
 
     # -------------------------------------------------------------------------
-    # STEP 4 & 5: Anjali asks KinGuard: "How has Dad been doing this week?"
+    # STEP 4 & 5: Anjali asks KinGuardian: "How has Dad been doing this week?"
     # AI Context Builder gathers all 6 clinical & care dimensions
     # -------------------------------------------------------------------------
     ai_result = await ask_use_case.execute(
@@ -210,7 +210,7 @@ async def test_dad_in_chennai_and_anjali_in_london_complete_flow(product_scenari
     )
 
     # -------------------------------------------------------------------------
-    # STEP 6: Agent service synthesizes KinGuard response
+    # STEP 6: Agent service synthesizes KinGuardian response
     # -------------------------------------------------------------------------
     assert ai_result is not None
     assert ai_result["status"] == "answered"

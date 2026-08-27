@@ -55,7 +55,7 @@ def test_wearable_identity_aggregate_root():
         baseline_sleep_hours_goal=7.5
     )
 
-    assert identity.external_wearable_user_id == f"kinguard_subject_{subject_id}"
+    assert identity.external_wearable_user_id == f"kinguardian_subject_{subject_id}"
     assert len(identity.connections) == 0
 
     # Add Garmin device connection

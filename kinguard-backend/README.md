@@ -1,4 +1,4 @@
-# KinGuard backend
+# KinGuardian backend
 
 Domain-oriented FastAPI platform for cross-border family healthcare coordination. The service owns family relationships, consent/grants, care tasks, check-ins, conversation metadata, audit records, and durable outbox events. Clinical records, document bytes, AI execution, wearables, and identity stay behind external integration contracts.
 
@@ -13,7 +13,7 @@ Domain-oriented FastAPI platform for cross-border family healthcare coordination
 ## Local run
 
 ```powershell
-cd kinguard-backend
+cd kinguardian-backend
 uv sync
 uv run fastapi dev app/main.py
 ```

@@ -1,7 +1,7 @@
-# KinGuard Platform Event Choreography & Outbox Guide
+# KinGuardian Platform Event Choreography & Outbox Guide
 
 ## 1. Event Architecture Overview
-KinGuard relies on **Asynchronous Event-Driven Choreography** to decouple bounded domains, eliminate distributed transactions, and coordinate multi-channel notifications and cache invalidations.
+KinGuardian relies on **Asynchronous Event-Driven Choreography** to decouple bounded domains, eliminate distributed transactions, and coordinate multi-channel notifications and cache invalidations.
 
 ```mermaid
 flowchart TD
@@ -76,7 +76,7 @@ await session.commit()
 ---
 
 ## 4. Distributed Sagas & Compensating Actions
-When downstream external integrations fail permanently (e.g. unresolvable FHIR patient conflict or unrecoverable FileNest error), the [`CompensatingActionEngine`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/core/transaction_boundary/saga.py) executes automated compensation:
+When downstream external integrations fail permanently (e.g. unresolvable FHIR patient conflict or unrecoverable FileNest error), the [`CompensatingActionEngine`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/core/transaction_boundary/saga.py) executes automated compensation:
 1. Reverts local entity status to `sync_failed`.
 2. Emits audit trail event: `audit.compensating_action_executed`.
 3. Marks outbox record as `compensated_failure`.
@@ -84,7 +84,7 @@ When downstream external integrations fail permanently (e.g. unresolvable FHIR p
 ---
 
 ## 5. Realtime Projection Invalidation
-When domain events are processed, the [`ProjectionInvalidationRegistry`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/infrastructure/realtime/projections.py) determines which client cache keys are dirty and emits targeted invalidation messages over WebSockets and SSE:
+When domain events are processed, the [`ProjectionInvalidationRegistry`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/infrastructure/realtime/projections.py) determines which client cache keys are dirty and emits targeted invalidation messages over WebSockets and SSE:
 
 ```json
 {

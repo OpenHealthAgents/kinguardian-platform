@@ -15,7 +15,7 @@ async def test_openapi_schema_endpoint_and_structure():
         schema = response.json()
 
         assert schema["openapi"].startswith("3.")
-        assert schema["info"]["title"] in ["KinGuardian Platform API", "KinGuard Platform API"]
+        assert schema["info"]["title"] in ["KinGuardian Platform API", "KinGuardian Platform API"]
         assert schema["info"]["version"] == "0.1.0"
 
         assert "paths" in schema

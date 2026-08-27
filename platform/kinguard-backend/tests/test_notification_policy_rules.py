@@ -32,13 +32,13 @@ async def test_notification_policy_rule_parent_checkin_submitted(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_rule1",
-        email="coord_rule1@kinguard.com",
+        email="coord_rule1@kinguardian.com",
         display_name="Maya Coordinator",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_rule1",
-        email="parent_rule1@kinguard.com",
+        email="parent_rule1@kinguardian.com",
         display_name="George Senior",
         timezone="Asia/Kolkata"
     )
@@ -90,13 +90,13 @@ async def test_notification_policy_rule_medication_missed(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_rule2",
-        email="coord_rule2@kinguard.com",
+        email="coord_rule2@kinguardian.com",
         display_name="Maya Coordinator",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_rule2",
-        email="parent_rule2@kinguard.com",
+        email="parent_rule2@kinguardian.com",
         display_name="David Senior",
         timezone="Asia/Kolkata"
     )
@@ -152,13 +152,13 @@ async def test_notification_policy_rule_guardian_moment_created(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_rule3",
-        email="coord_rule3@kinguard.com",
+        email="coord_rule3@kinguardian.com",
         display_name="Dr. Sarah Coordinator",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_rule3",
-        email="parent_rule3@kinguard.com",
+        email="parent_rule3@kinguardian.com",
         display_name="Eleanor Senior",
         timezone="Asia/Kolkata"
     )
@@ -214,13 +214,13 @@ async def test_notification_policy_rule_appointment_tomorrow(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_rule4",
-        email="coord_rule4@kinguard.com",
+        email="coord_rule4@kinguardian.com",
         display_name="Maya Coordinator",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_rule4",
-        email="parent_rule4@kinguard.com",
+        email="parent_rule4@kinguardian.com",
         display_name="Robert Senior",
         timezone="Asia/Kolkata"
     )

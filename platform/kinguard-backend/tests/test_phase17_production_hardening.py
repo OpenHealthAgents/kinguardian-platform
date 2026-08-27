@@ -78,7 +78,7 @@ def test_security_secrets_and_logging_redaction():
 
     # 2. Verify PHI and secret redaction
     sample_log = {
-        "user_email": "coordinator@kinguard.com",
+        "user_email": "coordinator@kinguardian.com",
         "blood_pressure": "135/85 mmHg",
         "glucose": "115 mg/dL",
         "password": "CleartextPassword!",
@@ -88,7 +88,7 @@ def test_security_secrets_and_logging_redaction():
         "status": "active"
     }
     sanitized = sanitize_value(sample_log)
-    assert sanitized["user_email"] == "coordinator@kinguard.com"
+    assert sanitized["user_email"] == "coordinator@kinguardian.com"
     assert sanitized["status"] == "active"
     assert sanitized["blood_pressure"] == "[REDACTED]"
     assert sanitized["glucose"] == "[REDACTED]"
@@ -190,7 +190,7 @@ async def test_cache_behavior_and_parallel_latency(hardening_env):
     # Create test care circle
     coord = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_hard_{uuid.uuid4()}",
-        email=f"hard_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"hard_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Hardening Coordinator"
     )
     fam = await family_svc.create_care_circle(
@@ -226,7 +226,7 @@ async def test_audit_logging_and_rate_limiting(hardening_env):
     # 1. Audit Log Generation
     coord = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_audit_{uuid.uuid4()}",
-        email=f"audit_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"audit_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Audit Coord"
     )
     fam = await family_svc.create_care_circle(

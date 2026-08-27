@@ -813,7 +813,7 @@ class AIContextBuilder:
 
             if "wearables" in authorized_dims:
                 try:
-                    wearable_uid = f"kinguard_subject_{subject.id}"
+                    wearable_uid = f"kinguardian_subject_{subject.id}"
                     end_d = datetime.now().strftime("%Y-%m-%d")
                     # If query mentions month or timeframe_days >= 30, evaluate 30-day window
                     eval_days = 30 if (user_query and ("month" in user_query.lower() or "30 day" in user_query.lower())) else timeframe_days

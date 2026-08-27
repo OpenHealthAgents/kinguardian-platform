@@ -3,10 +3,10 @@ Wearable Authentication Boundary Test Suite.
 
 Verifies:
 1. Authentication Topology:
-   - KinGuard IAM -> KinGuard API -> Open Wearables Service Credentials/API
-2. Mobile application authenticates ONLY with KinGuard IAM.
-3. Open Wearables internal authentication model is NEVER exposed to KinGuard users.
-4. KinGuard Backend acts as the sole credentialed proxy to Open Wearables using server-to-server API keys.
+   - KinGuardian IAM -> KinGuardian API -> Open Wearables Service Credentials/API
+2. Mobile application authenticates ONLY with KinGuardian IAM.
+3. Open Wearables internal authentication model is NEVER exposed to KinGuardian users.
+4. KinGuardian Backend acts as the sole credentialed proxy to Open Wearables using server-to-server API keys.
 """
 
 import uuid
@@ -14,9 +14,9 @@ import pytest
 from app.domains.wearables.domain.auth_boundary import AuthenticationBoundaryVerifier
 
 
-def test_mobile_authenticates_only_with_kinguard_iam():
+def test_mobile_authenticates_only_with_kinguardian_iam():
     """
-    Verifies that client requests must contain KinGuard IAM Bearer tokens
+    Verifies that client requests must contain KinGuardian IAM Bearer tokens
     and do not carry Open Wearables internal API credentials.
     """
     valid_iam_jwt = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5ODc2NSIsImZhbWlseV9pZCI6IjEyMzQ1In0.signature"
@@ -33,11 +33,11 @@ def test_mobile_authenticates_only_with_kinguard_iam():
 
 def test_backend_uses_service_credentials_for_open_wearables():
     """
-    Verifies that the KinGuard API acts as the authenticated gateway
+    Verifies that the KinGuardian API acts as the authenticated gateway
     using server-to-server credentials and pseudonymized subject identifiers.
     """
     subject_id = uuid.uuid4()
-    service_api_key = "kinguard_open_wearables_sec_key_prod"
+    service_api_key = "kinguardian_open_wearables_sec_key_prod"
 
     headers = AuthenticationBoundaryVerifier.build_backend_service_headers(
         service_api_key=service_api_key,
@@ -46,5 +46,5 @@ def test_backend_uses_service_credentials_for_open_wearables():
 
     assert headers["Authorization"] == f"Bearer {service_api_key}"
     assert headers["X-API-Key"] == service_api_key
-    assert headers["X-Client-Platform"] == "KinGuard"
-    assert headers["X-Subject-Pseudonym"] == f"kinguard_subject_{subject_id}"
+    assert headers["X-Client-Platform"] == "KinGuardian"
+    assert headers["X-Subject-Pseudonym"] == f"kinguardian_subject_{subject_id}"

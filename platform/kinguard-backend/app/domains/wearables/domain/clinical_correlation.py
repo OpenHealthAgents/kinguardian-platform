@@ -148,7 +148,7 @@ class WearableClinicalCorrelationEngine:
                 f"weight gain, elevated blood pressure, and missed medications."
             )
             summary = (
-                f"KinGuard identified concurrent changes across multiple health streams over recent days: "
+                f"KinGuardian identified concurrent changes across multiple health streams over recent days: "
                 f"wearable activity decreased by {round((1 - ctx.activity_steps_today/ctx.activity_baseline_steps)*100)}%, "
                 f"weight increased by {round(ctx.weight_current_kg - ctx.weight_baseline_kg, 1)} kg, "
                 f"blood pressure rose to {ctx.systolic_bp}/{ctx.diastolic_bp} mmHg, and scheduled doses were missed. "

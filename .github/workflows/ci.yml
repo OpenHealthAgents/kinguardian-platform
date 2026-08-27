@@ -1,4 +1,4 @@
-name: KinGuard CI/CD Pipeline
+name: KinGuardian CI/CD Pipeline
 
 on:
   push:
@@ -46,11 +46,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install Dependencies
-        working-directory: platform/kinguard-backend
+        working-directory: platform/kinguardian-backend
         run: uv sync --frozen
 
       - name: Run Bandit Static Security Analysis (SAST)
-        working-directory: platform/kinguard-backend
+        working-directory: platform/kinguardian-backend
         run: uv run bandit -r app --severity-level medium --confidence-level medium
 
   # ============================================================================
@@ -75,11 +75,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install Dependencies
-        working-directory: platform/kinguard-backend
+        working-directory: platform/kinguardian-backend
         run: uv sync --frozen
 
       - name: Run Ruff Linter
-        working-directory: platform/kinguard-backend
+        working-directory: platform/kinguardian-backend
         run: uv run ruff check app tests
 
   # ============================================================================
@@ -104,11 +104,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install Dependencies
-        working-directory: platform/kinguard-backend
+        working-directory: platform/kinguardian-backend
         run: uv sync --frozen
 
       - name: Run Mypy Type Checker
-        working-directory: platform/kinguard-backend
+        working-directory: platform/kinguardian-backend
         run: uv run mypy app
 
   # ============================================================================
@@ -121,9 +121,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: kinguard_test
-          POSTGRES_PASSWORD: kinguard_password
-          POSTGRES_DB: kinguard_db_test
+          POSTGRES_USER: kinguardian_test
+          POSTGRES_PASSWORD: kinguardian_password
+          POSTGRES_DB: kinguardian_db_test
         ports:
           - 5432:5432
         options: >-
@@ -148,13 +148,13 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install Dependencies
-        working-directory: platform/kinguard-backend
+        working-directory: platform/kinguardian-backend
         run: uv sync --frozen
 
       - name: Verify Migration Chain Integrity & Offline SQL Generation
-        working-directory: platform/kinguard-backend
+        working-directory: platform/kinguardian-backend
         env:
-          DATABASE_URL: postgresql://kinguard_test:kinguard_password@localhost:5432/kinguard_db_test
+          DATABASE_URL: postgresql://kinguardian_test:kinguardian_password@localhost:5432/kinguardian_db_test
         run: |
           uv run pytest tests/test_database_migrations.py -v
           uv run alembic upgrade head
@@ -184,11 +184,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install Dependencies
-        working-directory: platform/kinguard-backend
+        working-directory: platform/kinguardian-backend
         run: uv sync --frozen
 
       - name: Run Full Test Suite with Coverage
-        working-directory: platform/kinguard-backend
+        working-directory: platform/kinguardian-backend
         env:
           ENVIRONMENT: testing
         run: uv run python -m pytest tests/ -v -W ignore --cov=app --cov-report=term-missing
@@ -207,12 +207,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build KinGuard Backend Container Image
+      - name: Build KinGuardian Backend Container Image
         uses: docker/build-push-action@v5
         with:
-          context: platform/kinguard-backend
-          file: platform/kinguard-backend/Dockerfile
+          context: platform/kinguardian-backend
+          file: platform/kinguardian-backend/Dockerfile
           push: false
-          tags: kinguard-backend:ci-${{ github.sha }}
+          tags: kinguardian-backend:ci-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

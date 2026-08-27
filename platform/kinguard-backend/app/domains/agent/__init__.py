@@ -22,7 +22,7 @@ from app.domains.agent.safety import (
 )
 from app.domains.agent.tools import (
     ControlledToolRegistry,
-    KinGuardDomainTool,
+    KinGuardianDomainTool,
     AgentToolContext,
     AgentToolResult,
     GetParentSummaryTool,
@@ -66,7 +66,7 @@ __all__ = [
     "HIGH_RISK_ACTION_TYPES",
     "LOW_RISK_ACTION_TYPES",
     "ControlledToolRegistry",
-    "KinGuardDomainTool",
+    "KinGuardianDomainTool",
     "AgentToolContext",
     "AgentToolResult",
     "GetParentSummaryTool",

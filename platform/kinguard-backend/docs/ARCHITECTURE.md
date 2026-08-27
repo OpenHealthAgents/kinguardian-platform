@@ -1,6 +1,6 @@
-# KinGuard Platform Architecture Specification
+# KinGuardian Platform Architecture Specification
 
-This document provides the definitive architectural specification for the **KinGuard Platform Backend**, detailing system context, bounded domains, data ownership, security boundaries, event-driven choreography, database schemas, authorization models, and notification pipelines.
+This document provides the definitive architectural specification for the **KinGuardian Platform Backend**, detailing system context, bounded domains, data ownership, security boundaries, event-driven choreography, database schemas, authorization models, and notification pipelines.
 
 ---
 
@@ -8,13 +8,13 @@ This document provides the definitive architectural specification for the **KinG
 
 ```mermaid
 C4Context
-    title KinGuard Platform - System Context & Container Diagram
+    title KinGuardian Platform - System Context & Container Diagram
 
     Person(caregiver, "Care Coordinator / Adult Child", "Monitors aging parents, manages tasks, coordinates appointments, receives Guardian Moments.")
     Person(parent, "Aging Parent / Care Subject", "Logs daily check-ins, confirms medication doses, views care circle updates.")
     Person(clinician, "Attending Physician / Doctor", "Reviews appointment summaries, clinical trends, and historical records.")
 
-    System_Boundary(kinguard_boundary, "KinGuard Core Platform (Modular Monolith)") {
+    System_Boundary(kinguardian_boundary, "KinGuardian Core Platform (Modular Monolith)") {
         Container(api_gateway, "API & Realtime Gateway", "FastAPI, WebSockets, SSE", "Handles mobile/web ingress, JWT authentication, rate limiting, and projection invalidations.")
         Container(domain_modules, "Domain Modules (13 Bounded Contexts)", "Python 3.12, Clean Architecture", "Executes business logic, domain state machines, and use cases.")
         Container(event_engine, "Event Choreography & Outbox Engine", "NATS JetStream / In-Memory Bus", "Guarantees reliable cross-domain event dispatch and distributed sagas.")
@@ -25,7 +25,7 @@ C4Context
     System_Ext(iam_service, "IAM Identity Service", "JWKS / OAuth2 / OIDC", "Issues user access tokens and handles credential authentication.")
     System_Ext(fhir_service, "FHIR R4 EMR Service", "HAPI FHIR / Hospital EMR", "Stores and serves clinical resources (Observations, Medications, Appointments).")
     System_Ext(filenest_service, "FileNest Object Store", "WORM Compliant S3/Blob Storage", "Stores immutable medical PDFs, discharge summaries, and diagnostic scans.")
-    System_Ext(agent_runtime, "KinGuard Agent / LLM Gateway", "Gemini Pro / OpenAI / Claude", "Generates clinical summaries, trend insights, and appointment preparation briefs.")
+    System_Ext(agent_runtime, "KinGuardian Agent / LLM Gateway", "Gemini Pro / OpenAI / Claude", "Generates clinical summaries, trend insights, and appointment preparation briefs.")
     System_Ext(notif_providers, "Notification Providers", "FCM, Twilio, WhatsApp Cloud, SendGrid", "Multi-channel message delivery network.")
     System_Ext(wearables_feed, "Global Wearables & Labs", "Apple Health, Fitbit, Garmin, Oura, Lal PathLabs", "Wearable and diagnostic telemetry pipelines.")
 
@@ -74,7 +74,7 @@ flowchart TD
 
     subgraph IntelligenceContext["4. Intelligence & Operations Domain"]
         INS["insight (Trend Analytics, Baselines, Guardian Moments)"]
-        AI["ai (KinGuard Agent, Safety Shields, Tool Gatekeeper)"]
+        AI["ai (KinGuardian Agent, Safety Shields, Tool Gatekeeper)"]
         NOTIF["notification (Policy Rules, Multi-Channel Delivery)"]
         AUDIT["audit (Immutable Event Logs, Legal Holds)"]
     end
@@ -118,10 +118,10 @@ Each database table is exclusively owned by a single domain module. Cross-domain
 ```mermaid
 flowchart TD
     subgraph MobileClient["Mobile Client (Caregiver / Parent App)"]
-        APP["KinGuard App"]
+        APP["KinGuardian App"]
     end
 
-    subgraph SecurityBoundaries["KinGuard Gateway & Security Boundaries"]
+    subgraph SecurityBoundaries["KinGuardian Gateway & Security Boundaries"]
         IAM_B["1. IAM Boundary<br/>• RS256/HS256 JWKS validation<br/>• Token claim extraction (sub, user_id)"]
         FHIR_B["2. FHIR Boundary<br/>• Zero direct client FHIR access<br/>• Consent & RBAC proxy evaluation<br/>• Internal M2M credential injection"]
         FILE_B["3. FileNest Boundary<br/>• Zero master storage keys exposed<br/>• Short-lived HMAC signed URLs (max 15m)<br/>• MIME whitelisting & Quarantine blocks"]
@@ -165,7 +165,7 @@ flowchart TD
 ### D. AI Security Boundary
 - Zero model-provider API keys are exposed to mobile clients.
 - User text, OCR outputs, and voice transcripts are treated as untrusted and wrapped in `<untrusted_user_text>` tags.
-- Tool requests from the LLM are evaluated deterministically by [`ExternalToolAuthorizationGatekeeper`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/domains/agent/safety.py) strictly outside the model.
+- Tool requests from the LLM are evaluated deterministically by [`ExternalToolAuthorizationGatekeeper`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/domains/agent/safety.py) strictly outside the model.
 - High-risk clinical actions enforce a Human-in-the-Loop approval workflow (`status="awaiting_approval"`).
 
 ---
@@ -176,7 +176,7 @@ flowchart TD
 sequenceDiagram
     autonumber
     actor Parent as Parent Mobile App
-    participant API as KinGuard API
+    participant API as KinGuardian API
     participant DB as PostgreSQL 16
     participant Outbox as Outbox Dispatcher
     participant Bus as Event Bus (NATS / In-Memory)
@@ -215,7 +215,7 @@ sequenceDiagram
 To ensure resilience without 2-Phase Commit (2PC) across PostgreSQL, FHIR, FileNest, and Notification providers:
 1. Core state and outbox events commit in a **Local DB Transaction**.
 2. Asynchronous workers attempt downstream delivery with exponential backoff (up to 5 retries).
-3. If an external system rejects the payload permanently (e.g. invalid FHIR schema), [`CompensatingActionEngine`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/core/transaction_boundary/saga.py) executes compensation logic, transitions the entity to `sync_failed`, logs `audit.compensating_action_executed`, and marks the outbox event as `compensated_failure`.
+3. If an external system rejects the payload permanently (e.g. invalid FHIR schema), [`CompensatingActionEngine`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/core/transaction_boundary/saga.py) executes compensation logic, transitions the entity to `sync_failed`, logs `audit.compensating_action_executed`, and marks the outbox event as `compensated_failure`.
 
 ---
 
@@ -306,7 +306,7 @@ The following append-only tables are partitioned monthly by timestamp (`TablePar
 
 ## 7. Authorization Model & Capabilities Matrix
 
-KinGuard enforces a 2-tier security model: **RBAC Role Capabilities** + **Explicit Consent Grants**.
+KinGuardian enforces a 2-tier security model: **RBAC Role Capabilities** + **Explicit Consent Grants**.
 
 ```mermaid
 flowchart TD

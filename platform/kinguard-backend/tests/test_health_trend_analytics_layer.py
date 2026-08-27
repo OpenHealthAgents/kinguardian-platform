@@ -141,7 +141,7 @@ async def test_health_analytics_rest_endpoints(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_analytics_rest",
-        email="coord_analytics@kinguard.com",
+        email="coord_analytics@kinguardian.com",
         display_name="Maya Analytics",
         timezone="America/New_York"
     )

@@ -373,7 +373,7 @@ class WearableDemoScenarioEngine:
         invitation = await service.create_connection_invitation(
             subject_id=subject_id,
             provider=provider,
-            redirect_url="kinguard://wearables/callback"
+            redirect_url="kinguardian://wearables/callback"
         )
 
         # Inbound completion

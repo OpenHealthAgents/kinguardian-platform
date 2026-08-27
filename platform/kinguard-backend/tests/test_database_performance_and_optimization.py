@@ -59,13 +59,13 @@ async def test_selectin_eager_loading_avoids_n_plus_one(db_session: AsyncSession
 
     coord = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_perf_01",
-        email="coord.perf@kinguard.com",
+        email="coord.perf@kinguardian.com",
         display_name="Meera",
         timezone="America/New_York"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id="iam_parent_perf_01",
-        email="parent.perf@kinguard.com",
+        email="parent.perf@kinguardian.com",
         display_name="Kishore",
         timezone="Asia/Kolkata"
     )
@@ -77,7 +77,7 @@ async def test_selectin_eager_loading_avoids_n_plus_one(db_session: AsyncSession
     await family_service.add_member_to_circle(
         requester_id=coord.id,
         care_circle_id=family.id,
-        target_email="parent.perf@kinguard.com",
+        target_email="parent.perf@kinguardian.com",
         role="parent"
     )
     subject = await family_service.add_care_subject(
@@ -122,7 +122,7 @@ async def test_high_performance_projection_queries(db_session: AsyncSession):
 
     coord = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_proj_01",
-        email="coord.proj@kinguard.com",
+        email="coord.proj@kinguardian.com",
         display_name="Radha",
         timezone="America/New_York"
     )

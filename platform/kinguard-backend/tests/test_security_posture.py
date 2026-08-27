@@ -11,7 +11,7 @@ from app.core.security import validate_jwt_claims, get_current_user
 from app.core.logging import sanitize_value, SENSITIVE_PATTERNS
 from app.core.rate_limit import InMemoryRateLimiter
 from app.domains.agent.tools import ControlledToolRegistry
-from app.domains.agent.mcp.server import KinGuardEMRMCPBridge
+from app.domains.agent.mcp.server import KinGuardianEMRMCPBridge
 from app.domains.family.infrastructure.models import AppProfile
 from app.domains.family.infrastructure.repositories import (
     SQLAlchemyAppProfileRepository,
@@ -55,7 +55,7 @@ def test_jwt_validation_and_required_claims():
     valid_payload = {
         "sub": "user_123",
         "iss": settings.IAM_ISSUER,
-        "aud": "kinguard-platform-api",
+        "aud": "kinguardian-platform-api",
         "exp": 1999999999,
         "iat": 1700000000
     }
@@ -100,7 +100,7 @@ async def test_no_unrestricted_ai_tool_access_and_mcp_raw_sql_block(db_session):
     consent_repo = SQLAlchemyConsentRepository(db_session)
     event_logger = EventService(db_session)
 
-    mcp_bridge = KinGuardEMRMCPBridge(
+    mcp_bridge = KinGuardianEMRMCPBridge(
         family_repo=family_repo,
         consent_repo=consent_repo,
         profile_repo=user_repo,
@@ -166,7 +166,7 @@ async def test_security_headers_and_request_id_in_responses(db_session):
 
     user = await family_svc.get_or_create_profile(
         iam_subject_id="iam_user_sec_headers",
-        email="sec_user@kinguard.com",
+        email="sec_user@kinguardian.com",
         display_name="Sec User"
     )
 

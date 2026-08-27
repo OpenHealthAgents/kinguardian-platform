@@ -1,5 +1,5 @@
 """
-Adapters Package for KinGuard Platform.
+Adapters Package for KinGuardian Platform.
 Contains both Production Gateways and Mock Fallbacks:
 - Production: FHIRGateway, FileNestGateway, AgentGateway, ObservabilityGateway
 - Fallbacks: MockFHIRGateway, MockFileStorageGateway, MockAgentGateway, MockNotificationProvider, MockObservabilityGateway

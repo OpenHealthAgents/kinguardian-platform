@@ -9,7 +9,7 @@ Each deployable service owns its schema, migrations, and write authority. Other 
 | Data domain / store | Owner | Evidence | Authorized writers | Access from other services |
 |---|---|---|---|---|
 | FHIR clinical resources and terminology | `bezs-emr-core` | SQLAlchemy models; Alembic under `migrations/` | EMR core | REST through EMR core/gateway |
-| Family care, documents metadata, notifications, outbox | `kinguard-backend` | `app/domains/family/infrastructure/models.py`, `domains/events/models.py` | Kinguard backend worker/API | its API/events; FileNest ID is a reference only |
+| Family care, documents metadata, notifications, outbox | `kinguardian-backend` | `app/domains/family/infrastructure/models.py`, `domains/events/models.py` | Kinguard backend worker/API | its API/events; FileNest ID is a reference only |
 | File metadata, projects, upload sessions, webhooks, outbox | FileNest backend | backend Alembic migrations and `app/models/` | FileNest backend | FileNest API/SDKs |
 | IAM users, sessions, OAuth/app metadata | each IAM deployment (`bezs-iam`, FileNest IAM, Observability IAM) | separate Prisma schemas | respective IAM service | auth/OIDC/API boundary only; no assumed shared identity database |
 | HMS application data | `bezs-hms` | Prisma schema/migrations | HMS | HMS APIs / FHIR gateway for clinical data |
@@ -22,7 +22,7 @@ Each deployable service owns its schema, migrations, and write authority. Other 
 ## Migration authority
 
 - `bezs-emr-core` and FileNest backend use Alembic migration trees.
-- `kinguard-backend` runs Alembic from its development Compose command.
+- `kinguardian-backend` runs Alembic from its development Compose command.
 - IAM and HMS use Prisma schemas/migrations.
 - Open Wearables has backend migrations and Compose-managed service startup.
 - Observability has PostgreSQL and ClickHouse SQL migration directories.
@@ -42,4 +42,4 @@ For events, producers retain an outbox/idempotency record and consumers store th
 
 1. The observability gateway and realtime service are configured to read the IAM PostgreSQL database for API-key validation. Make that read-only role explicit now; later replace it with a versioned IAM validation endpoint or cache.
 2. Database names, versions, and tenancy models vary across Compose files and are deployment configuration, not platform-wide contracts. Record them in environment-specific operations documentation rather than treating default values as canonical.
-3. `kinguard-backend` connects to both its own PostgreSQL database and external service URLs. Establish which data is canonical in family-care vs. FHIR before adding synchronization.
+3. `kinguardian-backend` connects to both its own PostgreSQL database and external service URLs. Establish which data is canonical in family-care vs. FHIR before adding synchronization.

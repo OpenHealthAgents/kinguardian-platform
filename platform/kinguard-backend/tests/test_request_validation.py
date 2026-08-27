@@ -41,13 +41,13 @@ def test_create_schema_validation_and_rejection():
     # 1. Valid ProfileCreate
     profile = ProfileCreate(
         iam_subject_id="iam_valid_user",
-        email="valid@kinguard.com",
+        email="valid@kinguardian.com",
         display_name="Valid User",
         timezone="Asia/Kolkata",
         preferred_language="hi"
     )
     assert profile.iam_subject_id == "iam_valid_user"
-    assert profile.email == "valid@kinguard.com"
+    assert profile.email == "valid@kinguardian.com"
 
     # Invalid email format in ProfileCreate
     with pytest.raises(ValidationError):

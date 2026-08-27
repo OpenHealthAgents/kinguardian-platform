@@ -1,7 +1,7 @@
-# KinGuard Platform Security Architecture
+# KinGuardian Platform Security Architecture
 
 ## 1. Zero-Trust Security Posture
-KinGuard operates under a zero-trust model: every API request is authenticated, authorized, tenant-checked, and logged to an immutable audit trail.
+KinGuardian operates under a zero-trust model: every API request is authenticated, authorized, tenant-checked, and logged to an immutable audit trail.
 
 ```mermaid
 flowchart TD
@@ -22,7 +22,7 @@ flowchart TD
 ---
 
 ## 3. RBAC & Granular Consent Engine
-KinGuard decouples **Identity Roles** from **Clinical Data Access Rights**:
+KinGuardian decouples **Identity Roles** from **Clinical Data Access Rights**:
 
 ### A. Role Hierarchy
 - `primary_coordinator`: Circle creator, full administrative control.
@@ -54,7 +54,7 @@ Access to sensitive clinical data (vitals, medications, medical records) require
 
 ### A. FHIR Security Boundary
 Mobile clients **never** access the internal FHIR server directly.
-- All requests flow: `Mobile -> KinGuard API -> Consent Check -> FHIR Adapter -> FHIR Server`.
+- All requests flow: `Mobile -> KinGuardian API -> Consent Check -> FHIR Adapter -> FHIR Server`.
 - Server injects machine-to-machine (M2M) credentials.
 - Direct client bypass attempts are rejected with **HTTP 403 Forbidden**.
 
@@ -67,7 +67,7 @@ Mobile clients **never** receive master FileNest / S3 credentials.
 ### C. AI & Model Security Boundary
 - Zero model-provider API keys (OpenAI / Gemini / Claude) are exposed to clients.
 - All user text, OCR transcripts, and voice notes are wrapped in `<untrusted_user_text>` tags to neutralize prompt injection attacks.
-- Tool authorizations are verified deterministically by [`ExternalToolAuthorizationGatekeeper`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/domains/agent/safety.py) strictly outside the LLM.
+- Tool authorizations are verified deterministically by [`ExternalToolAuthorizationGatekeeper`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/domains/agent/safety.py) strictly outside the LLM.
 
 ---
 

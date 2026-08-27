@@ -1,6 +1,6 @@
 """
 Open Wearables Integration Test Suite.
-Verifies the integration between KinGuard backend and the Open Wearables aggregation platform:
+Verifies the integration between KinGuardian backend and the Open Wearables aggregation platform:
 1. Hexagonal OpenWearablesGateway & Circuit Breaker resilience.
 2. WearableService metrics querying, connection invitations, and dashboard aggregation.
 3. Baseline anomaly detection (activity drop) triggering Guardian Moments.
@@ -89,7 +89,7 @@ async def test_wearable_data_gateway_protocol_and_pinned_commit():
     prod_gw = OpenWearablesGateway()
     assert isinstance(prod_gw, WearableDataGateway)
 
-    user_id = "kinguard_subject_123"
+    user_id = "kinguardian_subject_123"
 
     # 1. create_user
     user_res = await mock_gw.create_user(user_id, email="dad@chennai.in", display_name="Ramesh")
@@ -235,7 +235,7 @@ async def test_open_wearables_inbound_webhook_processing(test_db_session: AsyncS
 
     payload = OpenWearablesWebhookPayload(
         event_type="data:synced",
-        user_id=f"kinguard_subject_{subject.id}",
+        user_id=f"kinguardian_subject_{subject.id}",
         provider="garmin",
         timestamp=datetime.utcnow(),
         data={
@@ -387,7 +387,7 @@ async def test_wearables_rest_api_endpoints(test_db_session: AsyncSession):
         # 7. POST /webhooks/open-wearables
         webhook_body = {
             "event_type": "data:synced",
-            "user_id": f"kinguard_subject_{subject.id}",
+            "user_id": f"kinguardian_subject_{subject.id}",
             "provider": "oura",
             "timestamp": datetime.utcnow().isoformat(),
             "data": {"activity": {"steps": 4500}}

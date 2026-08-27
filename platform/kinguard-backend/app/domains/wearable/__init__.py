@@ -1,5 +1,5 @@
 """
-KinGuard Wearable Domain Package.
+KinGuardian Wearable Domain Package.
 Re-exports the core DDD aggregates, entities, value objects, domain services, events, policies, and repositories.
 """
 

@@ -127,7 +127,7 @@ class AnomalyThreshold:
 
 class WearableMetricType(str, Enum):
     """
-    Standardized, normalized KinGuard wearable biometric and activity metric types.
+    Standardized, normalized KinGuardian wearable biometric and activity metric types.
     Represents normalized measurements across all integrated hardware and aggregator providers.
     """
     STEPS = "steps"

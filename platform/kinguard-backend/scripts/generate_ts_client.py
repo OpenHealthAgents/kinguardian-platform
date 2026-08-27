@@ -1,5 +1,5 @@
 """
-TypeScript SDK & Client Contract Generator for KinGuard / DrGodly.
+TypeScript SDK & Client Contract Generator for KinGuardian / DrGodly.
 Extracts OpenAPI 3.1.0 schemas and routes from FastAPI and generates typed TypeScript client contracts.
 """
 
@@ -26,7 +26,7 @@ def generate_typescript_client():
     types_file = output_dir / "types.ts"
     types_content = """/* eslint-disable */
 /**
- * Auto-generated Typed Client Contracts for DrGodly / KinGuard Platform API.
+ * Auto-generated Typed Client Contracts for DrGodly / KinGuardian Platform API.
  * Generated from OpenAPI 3.1.0 Specification.
  * DO NOT EDIT MANUALLY.
  */
@@ -193,7 +193,7 @@ export interface HealthCheckResponse {
     client_content = """/* eslint-disable */
 /**
  * DrGodly Typed Mobile API Client.
- * Automatically wraps KinGuard REST API endpoints with typed contracts,
+ * Automatically wraps KinGuardian REST API endpoints with typed contracts,
  * automatic Bearer token injection, correlation tracking, and idempotency support.
  */
 
@@ -407,7 +407,7 @@ export class DrGodlyApiClient {
     pkg_content = {
         "name": "@drgodly/api-client",
         "version": "0.1.0",
-        "description": "Typed Mobile & Web Client Contract SDK for DrGodly / KinGuard Healthcare Platform",
+        "description": "Typed Mobile & Web Client Contract SDK for DrGodly / KinGuardian Healthcare Platform",
         "main": "dist/index.js",
         "types": "dist/index.d.ts",
         "scripts": {

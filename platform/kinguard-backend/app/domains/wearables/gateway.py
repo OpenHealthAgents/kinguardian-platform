@@ -5,12 +5,12 @@ Treats Open Wearables purely as an EXTERNAL INFRASTRUCTURE CAPABILITY.
 EARLY-STAGE COMPATIBILITY GUARANTEES:
 - Open Wearables is pinned to Commit: `a3c9df8091ee591db4a7b3e1580e150c4c8d0e9b` (v0.1.0-alpha).
 - Isolated behind `WearableDataGateway(Protocol)` Anti-Corruption Layer (ACL).
-- Zero Open Wearables internal models/schemas are imported into the KinGuard domain.
+- Zero Open Wearables internal models/schemas are imported into the KinGuardian domain.
 
 Architectural Topology:
 Mobile App
     ↓
-KinGuard API
+KinGuardian API
     ↓
 WearableDataGateway (Anti-Corruption Protocol)
     ↓
@@ -19,8 +19,8 @@ Open Wearables (External Capability Platform, Pinned: a3c9df8)
 Wearable Provider (Garmin, Oura, Apple Health, Health Connect, Whoop, Fitbit)
 
 Ownership Boundary:
-1. KinGuard Backend OWNS:
-   - "This wearable/health-data identity belongs to this KinGuard parent (CareSubject)."
+1. KinGuardian Backend OWNS:
+   - "This wearable/health-data identity belongs to this KinGuardian parent (CareSubject)."
    - Family Circle RBAC, Consent Grants, and Dual-Timezone Presentation.
    - Transactional Outbox Event Staging & Guardian Moment AI Synthesis.
 2. Open Wearables OWNS:
@@ -62,7 +62,7 @@ OPEN_WEARABLES_PINNED_COMMIT = "a3c9df8091ee591db4a7b3e1580e150c4c8d0e9b"
 class WearableDataGateway(Protocol):
     """
     Primary Port protocol for wearable telemetry retrieval.
-    Acts as the Hexagonal Boundary isolating KinGuard from external wearable platforms.
+    Acts as the Hexagonal Boundary isolating KinGuardian from external wearable platforms.
     """
 
     async def create_user(
@@ -193,7 +193,7 @@ class OpenWearablesGateway(WearableDataGateway):
     def _get_headers(self) -> Dict[str, str]:
         headers = {
             "Content-Type": "application/json",
-            "X-Client-Platform": "KinGuard",
+            "X-Client-Platform": "KinGuardian",
             "X-Target-Commit": OPEN_WEARABLES_PINNED_COMMIT
         }
         if self.api_key:

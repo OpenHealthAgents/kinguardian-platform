@@ -2,7 +2,7 @@
 FHIR Security Boundary Test Suite:
 Verifies that:
 1. Mobile clients NEVER call FHIR server directly.
-2. All clinical requests MUST pass through KinGuard API -> Authorization -> FHIR Adapter -> FHIR Service.
+2. All clinical requests MUST pass through KinGuardian API -> Authorization -> FHIR Adapter -> FHIR Service.
 3. Requests lacking membership or explicit consent are strictly rejected (HTTP 403 Forbidden).
 """
 
@@ -26,7 +26,7 @@ from app.domains.family.infrastructure.models import (
 async def test_fhir_security_boundary_authorized_flow(db_session: AsyncSession):
     """
     Verifies that an authorized caregiver with active consent passes through
-    the KinGuard Security Boundary and resolves the internal FHIR patient identifier.
+    the KinGuardian Security Boundary and resolves the internal FHIR patient identifier.
     """
     # 1. Setup Parent & Coordinator in DB
     parent = AppProfile(
@@ -68,7 +68,7 @@ async def test_fhir_security_boundary_authorized_flow(db_session: AsyncSession):
     db_session.add_all([parent, coord, family, mem_parent, mem_coord, subject, consent])
     await db_session.commit()
 
-    # 2. Authorize FHIR access via KinGuard boundary
+    # 2. Authorize FHIR access via KinGuardian boundary
     auth_result = await FHIRSecurityBoundary.authorize_fhir_access(
         session=db_session,
         requester_id=coord.id,

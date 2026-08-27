@@ -4,7 +4,7 @@ Wearable Full Lifecycle Integration Test Suite.
 Verifies the complete 3-phase integration lifecycle:
 
 #Connect:
-KinGuard
+KinGuardian
 → Open Wearables
 → connection link
 → callback / webhook
@@ -14,10 +14,10 @@ KinGuard
 Open Wearables
 → data retrieved
 → normalized
-→ available through KinGuard
+→ available through KinGuardian
 
 #Disconnect:
-KinGuard
+KinGuardian
 → disconnect
 → connection status updated
 → access revoked
@@ -134,18 +134,18 @@ async def test_full_lifecycle_connect_sync_disconnect(integration_db_session: As
     wearable_user_id = wearable_service.get_wearable_user_id(subject_id)
 
     # =========================================================================
-    # 1. #Connect: KinGuard -> Open Wearables -> link -> callback -> persisted
+    # 1. #Connect: KinGuardian -> Open Wearables -> link -> callback -> persisted
     # =========================================================================
     # a. Request Connection Link
     connection_invitation = await wearable_service.create_connection_invitation(
         subject_id=subject_id,
         provider="garmin",
-        redirect_url="kinguard://wearables/callback"
+        redirect_url="kinguardian://wearables/callback"
     )
     assert connection_invitation.provider == "garmin"
     assert connection_invitation.connect_url is not None
 
-    # b. Verify initial pending record in KinGuard DB
+    # b. Verify initial pending record in KinGuardian DB
     res_pending = await session.execute(
         select(WearableConnection).where(
             WearableConnection.subject_id == subject_id,
@@ -188,7 +188,7 @@ async def test_full_lifecycle_connect_sync_disconnect(integration_db_session: As
     assert active_conn.provider_user_id == "garmin_usr_99812"
 
     # =========================================================================
-    # 2. #Sync: Open Wearables -> data retrieved -> normalized -> available through KinGuard
+    # 2. #Sync: Open Wearables -> data retrieved -> normalized -> available through KinGuardian
     # =========================================================================
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     mock_gateway.seed_user_data(
@@ -238,7 +238,7 @@ async def test_full_lifecycle_connect_sync_disconnect(integration_db_session: As
     sync_result = await wearable_service.process_inbound_webhook(sync_webhook)
     assert sync_result["status"] == "processed"
 
-    # Query normalized telemetry through KinGuard API
+    # Query normalized telemetry through KinGuardian API
     dashboard = await wearable_service.get_wearable_dashboard(subject_id=subject_id)
     assert dashboard is not None
     assert dashboard.latest_activity is not None
@@ -249,7 +249,7 @@ async def test_full_lifecycle_connect_sync_disconnect(integration_db_session: As
     assert dashboard.latest_recovery.resting_heart_rate_bpm == 64
 
     # =========================================================================
-    # 3. #Disconnect: KinGuard -> disconnect -> status updated -> access revoked
+    # 3. #Disconnect: KinGuardian -> disconnect -> status updated -> access revoked
     # =========================================================================
     disconnect_res = await wearable_service.disconnect_connection_by_id(connection_id=active_conn.id)
     assert disconnect_res.status == "disconnected"

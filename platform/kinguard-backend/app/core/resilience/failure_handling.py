@@ -4,7 +4,7 @@ Implements graceful degradation patterns for external dependency outages:
 1. FHIR Unavailability -> Family data returned with clinical data marked temporarily unavailable.
 2. Notification Provider Failure -> Notification intent safely persisted for async background retry.
 3. AI Generation Failure -> Safe fallback message:
-   'KinGuard couldn't generate the insight right now. You can review the underlying health information.'
+   'KinGuardian couldn't generate the insight right now. You can review the underlying health information.'
 """
 
 from typing import Dict, Any, Optional, List
@@ -16,7 +16,7 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 SAFE_AI_FALLBACK_MESSAGE = (
-    "KinGuard couldn't generate the insight right now. "
+    "KinGuardian couldn't generate the insight right now. "
     "You can review the underlying health information."
 )
 

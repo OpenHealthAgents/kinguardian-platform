@@ -108,7 +108,7 @@ async def test_sync_failure_12_hours_outage_scenario(test_db_session: AsyncSessi
         subject_id=subj_id,
         profile_id=dad_profile_id,
         provider="garmin",
-        open_wearables_user_id=f"kinguard_subject_{subj_id}",
+        open_wearables_user_id=f"kinguardian_subject_{subj_id}",
         connection_status="connected",
         last_sync_at=sync_12h_ago
     )
@@ -165,7 +165,7 @@ async def test_sync_failure_error_status_behavior(test_db_session: AsyncSession)
         subject_id=subj_id,
         profile_id=dad_profile.id,
         provider="apple_health",
-        open_wearables_user_id=f"kinguard_subject_{subj_id}",
+        open_wearables_user_id=f"kinguardian_subject_{subj_id}",
         connection_status="error"
     )
 

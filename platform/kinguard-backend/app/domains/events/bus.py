@@ -67,7 +67,7 @@ class NatsJetStreamEventBus(EventPublisher, EventConsumer):
         self,
         nats_url: Optional[str] = None,
         stream_name: Optional[str] = None,
-        subject_prefix: str = "kinguard"
+        subject_prefix: str = "kinguardian"
     ):
         self.nats_url = nats_url or settings.NATS_URL
         self.stream_name = stream_name or settings.NATS_STREAM_NAME
@@ -86,7 +86,7 @@ class NatsJetStreamEventBus(EventPublisher, EventConsumer):
 
             self._nc = await nats.connect(
                 servers=[self.nats_url],
-                name="kinguard-event-bus",
+                name="kinguardian-event-bus",
                 reconnect_time_wait=2,
                 max_reconnect_attempts=-1
             )

@@ -52,7 +52,7 @@ async def test_webhook_endpoint_success_with_valid_signature():
     payload = {
         "event_id": event_id,
         "event_type": "wearable.data.received",
-        "user_id": f"kinguard_subject_{subject_uuid}",
+        "user_id": f"kinguardian_subject_{subject_uuid}",
         "provider": "garmin",
         "timestamp": now_iso,
         "data": {
@@ -88,7 +88,7 @@ async def test_webhook_rejected_on_invalid_signature():
     payload = {
         "event_id": f"evt_{uuid.uuid4().hex[:12]}",
         "event_type": "wearable.data.received",
-        "user_id": f"kinguard_subject_{subject_uuid}",
+        "user_id": f"kinguardian_subject_{subject_uuid}",
         "provider": "garmin",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "data": {}
@@ -121,7 +121,7 @@ async def test_webhook_replay_protection_triggers_on_stale_timestamp():
     payload = {
         "event_id": f"evt_{uuid.uuid4().hex[:12]}",
         "event_type": "wearable.data.received",
-        "user_id": f"kinguard_subject_{subject_uuid}",
+        "user_id": f"kinguardian_subject_{subject_uuid}",
         "provider": "oura",
         "timestamp": stale_time,
         "data": {}
@@ -157,7 +157,7 @@ async def test_webhook_idempotency_deduplication():
     payload = {
         "event_id": event_id,
         "event_type": "wearable.sync.completed",
-        "user_id": f"kinguard_subject_{subject_uuid}",
+        "user_id": f"kinguardian_subject_{subject_uuid}",
         "provider": "apple_health",
         "timestamp": now_iso,
         "data": {"records_synced": 20}
@@ -201,7 +201,7 @@ def test_zero_phi_logging_security_unit_test():
     payload = OpenWearablesWebhookPayload(
         event_id="evt_test_phi_001",
         event_type="wearable.data.received",
-        user_id="kinguard_subject_11dad7c2-b7de-49fe-baf4-ba024e40cc69",
+        user_id="kinguardian_subject_11dad7c2-b7de-49fe-baf4-ba024e40cc69",
         provider="garmin",
         timestamp=datetime.now(timezone.utc),
         data={

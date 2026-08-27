@@ -1,13 +1,13 @@
-# KinGuard backend architecture
+# KinGuardian backend architecture
 
 ## Bounded contexts
 
-| Context | KinGuard owns | Integrates through |
+| Context | KinGuardian owns | Integrates through |
 |---|---|---|
 | Identity projection | local profile reference only | IAM JWT/JWKS; it never owns credentials or sessions |
 | Family access | families, memberships, parent/caregiver roles, subject-scoped grants and consents | API only |
-| Care coordination | tasks, wellbeing check-ins, communication metadata | versioned KinGuard API/events |
-| Clinical record | external patient reference only | FHIR service API; KinGuard does not write FHIR tables |
+| Care coordination | tasks, wellbeing check-ins, communication metadata | versioned KinGuardian API/events |
+| Clinical record | external patient reference only | FHIR service API; KinGuardian does not write FHIR tables |
 | Documents | FileNest object identifier only | FileNest API/SDK |
 | AI assistance | authorization context and future task requests | agent API; no broad database/tool credentials |
 | Observability | audit/event envelopes | observability ingestion API |

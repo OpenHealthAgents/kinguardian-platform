@@ -104,7 +104,7 @@ async def test_wearable_permissions_storage_and_explanations(test_db_session: As
         subject_id=subject.id,
         profile_id=coordinator_id,
         provider="garmin",
-        open_wearables_user_id=f"kinguard_subject_{subject.id}",
+        open_wearables_user_id=f"kinguardian_subject_{subject.id}",
         provider_user_id="garmin_user_9921",
         connection_status="connected",
         permissions=initial_permissions

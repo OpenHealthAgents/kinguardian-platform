@@ -50,8 +50,8 @@ def test_jwt_claims_validation():
     # 1. Valid Claims
     valid_payload = {
         "sub": "iam_user_123",
-        "iss": settings.IAM_ISSUER or "https://iam.kinguard.com",
-        "aud": settings.IAM_AUDIENCE or "kinguard-api",
+        "iss": settings.IAM_ISSUER or "https://iam.kinguardian.com",
+        "aud": settings.IAM_AUDIENCE or "kinguardian-api",
         "exp": (now + timedelta(hours=1)).timestamp(),
         "iat": now.timestamp(),
         "email": "user@example.com"
@@ -90,8 +90,8 @@ async def test_get_current_user_profile_lookup_and_provisioning(db_session):
         "email": unique_email,
         "name": "Integration User",
         "timezone": "Asia/Kolkata",
-        "iss": settings.IAM_ISSUER or "https://iam.kinguard.com",
-        "aud": settings.IAM_AUDIENCE or "kinguard-api",
+        "iss": settings.IAM_ISSUER or "https://iam.kinguardian.com",
+        "aud": settings.IAM_AUDIENCE or "kinguardian-api",
         "exp": (now + timedelta(hours=1)).timestamp(),
         "iat": now.timestamp()
     }

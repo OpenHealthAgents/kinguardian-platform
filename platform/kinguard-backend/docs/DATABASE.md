@@ -1,6 +1,6 @@
-# KinGuard Database Documentation & Entity-Relationship Model
+# KinGuardian Database Documentation & Entity-Relationship Model
 
-This document specifies the database architecture, complete Entity-Relationship Diagram (ERD), multi-tenancy isolation model, indexing strategies, monthly table partitioning, and data ownership classifications for the KinGuard Platform.
+This document specifies the database architecture, complete Entity-Relationship Diagram (ERD), multi-tenancy isolation model, indexing strategies, monthly table partitioning, and data ownership classifications for the KinGuardian Platform.
 
 ---
 
@@ -266,30 +266,30 @@ erDiagram
 
 ## 2. Entity Ownership & Classification Matrix
 
-Every entity in the KinGuard platform belongs to one of four clear architectural tiers:
+Every entity in the KinGuardian platform belongs to one of four clear architectural tiers:
 
 | # | Entity Name | Ownership Classification | Primary Storage Location | Authoritative Source of Truth & Governance |
 | :---: | :--- | :--- | :--- | :--- |
-| 1 | **`AppProfile`** | **Application-Owned** | PostgreSQL (`app_profiles`) | KinGuard Identity Domain; linked to external IAM via `iam_subject_id`. |
-| 2 | **`Family`** | **Application-Owned** | PostgreSQL (`families`) | KinGuard Family Domain; root tenant boundary. |
-| 3 | **`FamilyMembership`** | **Application-Owned** | PostgreSQL (`family_memberships`) | KinGuard Family Domain; RBAC roles (`coordinator`, `parent`, `viewer`). |
-| 4 | **`FamilyRelationship`**| **Application-Owned** | PostgreSQL (`family_relationships`) | KinGuard Family Domain; genealogical relations. |
-| 5 | **`CareSubject`** | **Application-Owned** | PostgreSQL (`care_subjects`) | KinGuard Care Domain; bridges family member to external `fhir_patient_id`. |
-| 6 | **`CareRelationship`** | **Application-Owned** | PostgreSQL (`care_relationships`) | KinGuard Care Domain; maps caregivers to care subjects. |
-| 7 | **`Consent`** | **Application-Owned** | PostgreSQL (`consents`) | KinGuard Consent Domain; governs legal scopes (`vitals`, `medications`). |
-| 8 | **`CareTask`** | **Application-Owned** | PostgreSQL (`care_tasks`) | KinGuard Care Domain; task management lifecycle. |
+| 1 | **`AppProfile`** | **Application-Owned** | PostgreSQL (`app_profiles`) | KinGuardian Identity Domain; linked to external IAM via `iam_subject_id`. |
+| 2 | **`Family`** | **Application-Owned** | PostgreSQL (`families`) | KinGuardian Family Domain; root tenant boundary. |
+| 3 | **`FamilyMembership`** | **Application-Owned** | PostgreSQL (`family_memberships`) | KinGuardian Family Domain; RBAC roles (`coordinator`, `parent`, `viewer`). |
+| 4 | **`FamilyRelationship`**| **Application-Owned** | PostgreSQL (`family_relationships`) | KinGuardian Family Domain; genealogical relations. |
+| 5 | **`CareSubject`** | **Application-Owned** | PostgreSQL (`care_subjects`) | KinGuardian Care Domain; bridges family member to external `fhir_patient_id`. |
+| 6 | **`CareRelationship`** | **Application-Owned** | PostgreSQL (`care_relationships`) | KinGuardian Care Domain; maps caregivers to care subjects. |
+| 7 | **`Consent`** | **Application-Owned** | PostgreSQL (`consents`) | KinGuardian Consent Domain; governs legal scopes (`vitals`, `medications`). |
+| 8 | **`CareTask`** | **Application-Owned** | PostgreSQL (`care_tasks`) | KinGuardian Care Domain; task management lifecycle. |
 | 9 | **`MedicationAdherenceEvent`** | **Application-Owned / FHIR-Ref** | PostgreSQL (`medication_adherence_events`) | Application logs adherence; references external FHIR `MedicationRequest`. |
-| 10 | **`WellbeingCheckin`** | **Application-Owned** | PostgreSQL (`wellbeing_checkins`) | KinGuard Care Domain; daily feeling & symptom logs. |
+| 10 | **`WellbeingCheckin`** | **Application-Owned** | PostgreSQL (`wellbeing_checkins`) | KinGuardian Care Domain; daily feeling & symptom logs. |
 | 11 | **`AIInsight`** | **Derived / Projection** | PostgreSQL (`ai_insights`) | Generated asynchronously by the Trend Analytics & Insight Engine. |
 | 12 | **`AIInsightSource`** | **Derived / Projection** | PostgreSQL (`ai_insight_sources`) | Audit trail of health evidence citing why an insight was generated. |
-| 13 | **`Notification`** | **Application-Owned** | PostgreSQL (`notifications`) | KinGuard Notification Domain; alert intent and policy metadata. |
+| 13 | **`Notification`** | **Application-Owned** | PostgreSQL (`notifications`) | KinGuardian Notification Domain; alert intent and policy metadata. |
 | 14 | **`NotificationDelivery`** | **External-Service-Owned** | PostgreSQL (`notification_deliveries`) | Delivery receipts & status tracking from FCM, Twilio, WhatsApp, SendGrid. |
-| 15 | **`FamilyConversation`**| **Application-Owned** | PostgreSQL (`family_conversations`) | KinGuard Communication Domain; chat channels. |
-| 16 | **`FamilyMessage`** | **Application-Owned** | PostgreSQL (`family_messages`) | KinGuard Communication Domain; cursor-paginated chat messages. |
-| 17 | **`AppointmentCoordination`** | **Application-Owned / FHIR-Ref** | PostgreSQL (`appointment_coordinations`) | KinGuard Appointment Domain; coordinates prep, syncs to FHIR `Appointment`. |
+| 15 | **`FamilyConversation`**| **Application-Owned** | PostgreSQL (`family_conversations`) | KinGuardian Communication Domain; chat channels. |
+| 16 | **`FamilyMessage`** | **Application-Owned** | PostgreSQL (`family_messages`) | KinGuardian Communication Domain; cursor-paginated chat messages. |
+| 17 | **`AppointmentCoordination`** | **Application-Owned / FHIR-Ref** | PostgreSQL (`appointment_coordinations`) | KinGuardian Appointment Domain; coordinates prep, syncs to FHIR `Appointment`. |
 | 18 | **`HealthDocument`** | **Application-Owned / Ext-Ref** | PostgreSQL (`health_documents`) | Metadata in Postgres; binary WORM files stored in FileNest (`filenest_file_id`). |
 | 19 | **`DocumentExtraction`** | **Derived / Projection** | PostgreSQL (`document_extractions`) | OCR extraction results derived asynchronously from medical PDFs. |
-| 20 | **`AIConversation`** | **Application-Owned** | PostgreSQL (`ai_conversations`) | KinGuard Agent Domain; session state and prompt exchanges. |
+| 20 | **`AIConversation`** | **Application-Owned** | PostgreSQL (`ai_conversations`) | KinGuardian Agent Domain; session state and prompt exchanges. |
 | 21 | **`AIAction`** | **Application-Owned** | PostgreSQL (`ai_actions`) | High-risk AI-proposed mutations awaiting explicit human approval. |
 | 22 | **`OutboxEvent`** | **Application-Owned** | PostgreSQL (`outbox_events`) | Transactional outbox table guaranteeing resilient asynchronous event dispatch. |
 

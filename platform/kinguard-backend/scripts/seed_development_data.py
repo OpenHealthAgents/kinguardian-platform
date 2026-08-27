@@ -1,5 +1,5 @@
 """
-Safe Development Seed Script for DrGodly / KinGuard Platform.
+Safe Development Seed Script for DrGodly / KinGuardian Platform.
 Populates safe, non-real synthetic data for development, UI preview, and testing:
 - Family: "Anjali's Family"
 - Coordinator: Anjali — London (Europe/London)

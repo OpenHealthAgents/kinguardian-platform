@@ -1,4 +1,4 @@
-"""Route-level integration tests for the mobile-facing KinGuard API contract."""
+"""Route-level integration tests for the mobile-facing KinGuardian API contract."""
 import uuid
 import httpx
 import pytest

@@ -1,11 +1,11 @@
-# KinGuard Platform External & Global Integrations Guide
+# KinGuardian Platform External & Global Integrations Guide
 
 ## 1. Core Integration Adapters
 
 ```mermaid
 flowchart TD
-    subgraph Core["KinGuard Core Platform"]
-        APP["KinGuard Backend"]
+    subgraph Core["KinGuardian Core Platform"]
+        APP["KinGuardian Backend"]
     end
 
     subgraph CoreAdapters["Core System Adapters"]
@@ -43,33 +43,33 @@ flowchart TD
 ## 2. India-Specific Integrations Layer
 
 ### A. ABDM & ABHA Identity & Consent Manager
-- **Protocols**: [`IABHAService`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/infrastructure/india_integrations/abdm.py), [`IABDMHealthDataExchange`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/infrastructure/india_integrations/abdm.py).
+- **Protocols**: [`IABHAService`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/infrastructure/india_integrations/abdm.py), [`IABDMHealthDataExchange`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/infrastructure/india_integrations/abdm.py).
 - **Features**: Aadhaar OTP verification, creation of ABHA numbers and addresses (`user@abdm`), consent artefact management, and linking Care Contexts.
 
 ### B. Indian Diagnostic Labs
-- **Protocol**: [`IIndianLabAdapter`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/infrastructure/india_integrations/labs.py).
+- **Protocol**: [`IIndianLabAdapter`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/infrastructure/india_integrations/labs.py).
 - **Target Providers**: Dr Lal PathLabs, Metropolis Healthcare, Agilus Diagnostics (SRL), Thyrocare.
 - **Features**: Pincode serviceability check, phlebotomist home collection booking, and report ingestion normalized to LOINC.
 
 ### C. Indian Pharmacies & E-Prescriptions
-- **Protocol**: [`IIndianPharmacyAdapter`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/infrastructure/india_integrations/pharmacy.py).
+- **Protocol**: [`IIndianPharmacyAdapter`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/infrastructure/india_integrations/pharmacy.py).
 - **Target Providers**: Tata 1mg, Apollo Pharmacy, Netmeds, PharmEasy.
 - **Features**: Prescription validation, pincode stock availability, and automated medicine reorders.
 
 ### D. Indian Hospitals & Consultations
-- **Protocol**: [`IIndianHospitalAdapter`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/infrastructure/india_integrations/hospitals.py).
+- **Protocol**: [`IIndianHospitalAdapter`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/infrastructure/india_integrations/hospitals.py).
 - **Target Providers**: Apollo Hospitals, Fortis Healthcare, Max Healthcare, Manipal Hospitals.
 
 ### E. WhatsApp Healthcare Communication
-- **Protocol**: [`IWhatsAppHealthcareAdapter`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/infrastructure/india_integrations/whatsapp.py).
+- **Protocol**: [`IWhatsAppHealthcareAdapter`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/infrastructure/india_integrations/whatsapp.py).
 - **Features**: Interactive quick-reply medication reminders (*"Taken Dose"* / *"Snooze 30m"*), daily wellbeing check-ins, and incoming voice note processing.
 
 ### F. Indian Languages & Bhashini Voice
-- **Protocol**: [`IIndianLanguageService`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/infrastructure/india_integrations/localization.py).
+- **Protocol**: [`IIndianLanguageService`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/infrastructure/india_integrations/localization.py).
 - **Languages Supported**: Hindi (`hi`), Telugu (`te`), Tamil (`ta`), Kannada (`kn`), Bengali (`bn`), Marathi (`mr`), Gujarati (`gu`), Malayalam (`ml`), Punjabi (`pa`), Indian English (`en`).
 
 ### G. UPI & AutoPay Recurring Billing
-- **Protocol**: [`IUPIPaymentGateway`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/infrastructure/india_integrations/payments.py).
+- **Protocol**: [`IUPIPaymentGateway`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/infrastructure/india_integrations/payments.py).
 - **Features**: Dynamic Bharat QR generation, mobile UPI app intents (`upi://pay`), and recurring monthly UPI AutoPay mandates for subscription billing.
 
 ---
@@ -77,7 +77,7 @@ flowchart TD
 ## 3. Global Wearables & Health Ingestion Pipeline
 
 ### A. Core Architectural Principle: Universal Ingestion Pipeline
-All wearable feeds (Apple Health, Fitbit, Google Health Connect, Garmin, Oura, SMART on FHIR) flow through [`NormalizedObservationPipeline`](file:///d:/Kalyan/kinguard-platform/platform/kinguard-backend/app/infrastructure/global_integrations/pipeline.py), which normalizes raw vendor telemetry into canonical LOINC metrics without special-case application logic:
+All wearable feeds (Apple Health, Fitbit, Google Health Connect, Garmin, Oura, SMART on FHIR) flow through [`NormalizedObservationPipeline`](file:///d:/Kalyan/kinguardian-platform/platform/kinguardian-backend/app/infrastructure/global_integrations/pipeline.py), which normalizes raw vendor telemetry into canonical LOINC metrics without special-case application logic:
 
 ```python
 # Unified Ingestion Flow

@@ -62,7 +62,7 @@ async def test_meaningful_business_soft_deletions_and_audit_trail(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_retention",
-        email="coord_retention@kinguard.com",
+        email="coord_retention@kinguardian.com",
         display_name="Maya Retention"
     )
     family = await family_svc.create_care_circle(coordinator.id, "Retention Circle", "coordinator")
@@ -145,12 +145,12 @@ async def test_consent_history_immutably_preserved_on_revocation(db_session):
 
     coordinator = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_consent_ret",
-        email="coord_consent_ret@kinguard.com",
+        email="coord_consent_ret@kinguardian.com",
         display_name="Sarah Consent"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_consent_ret",
-        email="parent_consent_ret@kinguard.com",
+        email="parent_consent_ret@kinguardian.com",
         display_name="George Consent"
     )
     family = await family_svc.create_care_circle(coordinator.id, "Consent Retention Circle", "coordinator")

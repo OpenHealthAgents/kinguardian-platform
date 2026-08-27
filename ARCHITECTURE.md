@@ -54,7 +54,7 @@ The **Family Care Graph** is the core KinGuardian-owned aggregate tying the enti
 ```mermaid
 graph TB
     subgraph Client_Layer ["Client Presentation Layer"]
-        MobileApp["kinguard-mobile (React Native / Expo)"]
+        MobileApp["kinguardian-mobile (React Native / Expo)"]
         WebApp["Web Portal (Next.js)"]
     end
 
@@ -216,7 +216,7 @@ classDiagram
 
 ## 4. Internal Layered Dependency Graph
 
-KinGuard enforces **Clean Architecture** with strict inward dependency flows:
+KinGuardian enforces **Clean Architecture** with strict inward dependency flows:
 
 ```mermaid
 graph TD
@@ -261,13 +261,13 @@ To eliminate distributed race conditions and synchronization drifts, **every dat
 
 | Domain Concept | Authoritative Owner | System of Record | Anti-Duplication Rule |
 | :--- | :--- | :--- | :--- |
-| **Medication Prescriptions & Dose** | **FHIR / EMR** | `MedicationRequest`, `MedicationStatement` | KinGuard holds only external reference pointers (`fhir_medication_request_id`). No parallel prescription catalog is stored in KinGuard SQL. |
-| **Medication Adherence Tracking** | **KinGuard** | `medication_adherence_events` | KinGuard is the single authoritative source of truth for dosage confirmations, dual-timezone timestamps, and adherence metrics. |
-| **Parent & Care Circle Hierarchy** | **KinGuard** | `care_subjects`, `family_memberships`, `care_relationships` | Family groupings, member roles, and caregiver delegations are exclusively managed by KinGuard. |
-| **Patient Identity & Demographics** | **FHIR + IAM Linkage** | `Patient` resource + IAM `sub` | Clinical demographics originate in FHIR; KinGuard maintains linkage (`care_subjects.fhir_patient_id`). |
-| **File Binary Storage** | **FileNest** | WORM Storage Chunks | Raw PDF/image bytes are stored in FileNest; KinGuard stores only metadata pointers (`health_documents.filenest_file_id`, `sha256_checksum`). |
-| **AI Conversational Session** | **bezs-agent** | LLM Context & Scratchpads | Intermediate LLM prompt windows are owned by `bezs-agent`; KinGuard stores session pointers (`ai_conversations.agent_session_id`). |
-| **AI Insight Application Metadata** | **KinGuard** | `ai_insights`, `ai_actions`, `care_tasks` | Clinical insight metadata, severity, human-in-the-loop approvals, and care task state transitions are strictly owned by KinGuard. |
+| **Medication Prescriptions & Dose** | **FHIR / EMR** | `MedicationRequest`, `MedicationStatement` | KinGuardian holds only external reference pointers (`fhir_medication_request_id`). No parallel prescription catalog is stored in KinGuardian SQL. |
+| **Medication Adherence Tracking** | **KinGuardian** | `medication_adherence_events` | KinGuardian is the single authoritative source of truth for dosage confirmations, dual-timezone timestamps, and adherence metrics. |
+| **Parent & Care Circle Hierarchy** | **KinGuardian** | `care_subjects`, `family_memberships`, `care_relationships` | Family groupings, member roles, and caregiver delegations are exclusively managed by KinGuardian. |
+| **Patient Identity & Demographics** | **FHIR + IAM Linkage** | `Patient` resource + IAM `sub` | Clinical demographics originate in FHIR; KinGuardian maintains linkage (`care_subjects.fhir_patient_id`). |
+| **File Binary Storage** | **FileNest** | WORM Storage Chunks | Raw PDF/image bytes are stored in FileNest; KinGuardian stores only metadata pointers (`health_documents.filenest_file_id`, `sha256_checksum`). |
+| **AI Conversational Session** | **bezs-agent** | LLM Context & Scratchpads | Intermediate LLM prompt windows are owned by `bezs-agent`; KinGuardian stores session pointers (`ai_conversations.agent_session_id`). |
+| **AI Insight Application Metadata** | **KinGuardian** | `ai_insights`, `ai_actions`, `care_tasks` | Clinical insight metadata, severity, human-in-the-loop approvals, and care task state transitions are strictly owned by KinGuardian. |
 
 ---
 
@@ -295,7 +295,7 @@ graph TD
 ```
 
 ### Security Controls Breakdown:
-1. **Identity & Auth Boundary**: Stateless RS256 JWKS validation against `bezs-iam`. Passwords and credentials never touch KinGuard.
+1. **Identity & Auth Boundary**: Stateless RS256 JWKS validation against `bezs-iam`. Passwords and credentials never touch KinGuardian.
 2. **Access Control Matrix**: Fine-grained role capabilities (`coordinator`, `parent`, `caregiver`, `doctor`, `admin`) validated before service execution.
 3. **PHI Perimeter & Consent Verification**: Every health data read or document extraction strictly checks active, unexpired `Consent` records (`grantor -> grantee`).
 4. **Untrusted LLM Input Neutralization**: Inbound transcripts, OCR strings, and user messages are encapsulated in `<untrusted_user_text>` wrappers to prevent indirect prompt injection.
@@ -309,7 +309,7 @@ graph TD
 sequenceDiagram
     autonumber
     actor Parent as Parent (Mobile App)
-    participant API as KinGuard API & Service Layer
+    participant API as KinGuardian API & Service Layer
     participant DB as PostgreSQL Transaction
     participant Outbox as Transactional Outbox Worker
     participant EventBus as Domain Event Bus / Broker

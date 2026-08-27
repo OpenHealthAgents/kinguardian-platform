@@ -15,7 +15,7 @@ async def test_liveness_probe_endpoint():
         data = response.json()
         assert data["status"] in ["ok", "healthy"]
 
-        assert data["service"] == "kinguard-backend"
+        assert data["service"] == "kinguardian-backend"
         assert "uptime_seconds" in data
         assert "timestamp" in data
 
@@ -30,7 +30,7 @@ async def test_readiness_probe_endpoint():
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ready"
-        assert data["service"] == "kinguard-backend"
+        assert data["service"] == "kinguardian-backend"
         
         # Verify check components
         checks = data["checks"]

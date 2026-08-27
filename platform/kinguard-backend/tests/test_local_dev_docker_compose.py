@@ -14,7 +14,7 @@ def test_docker_compose_dev_structure_and_env_variables():
     env_example = backend_dir / ".env.example"
     dockerfile = backend_dir / "Dockerfile"
 
-    assert compose_file.exists(), "platform/kinguard-backend/docker-compose.dev.yml must exist"
+    assert compose_file.exists(), "platform/kinguardian-backend/docker-compose.dev.yml must exist"
     assert root_compose_file.exists(), "root docker-compose.dev.yml must exist"
     assert env_example.exists(), ".env.example must exist"
     assert dockerfile.exists(), "Dockerfile must exist"

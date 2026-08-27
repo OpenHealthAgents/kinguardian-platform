@@ -48,13 +48,13 @@ async def test_job_scheduler_all_seven_jobs_registered_and_executed(db_session):
     # 1. Setup Data
     coord = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_sched",
-        email="coord_sched@kinguard.com",
+        email="coord_sched@kinguardian.com",
         display_name="Maya Scheduler",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_sched",
-        email="parent_sched@kinguard.com",
+        email="parent_sched@kinguardian.com",
         display_name="Arthur Scheduler",
         timezone="Asia/Kolkata"
     )
@@ -174,7 +174,7 @@ async def test_scheduling_rest_endpoints(db_session):
 
     user = await family_svc.get_or_create_profile(
         iam_subject_id="iam_user_sched_rest",
-        email="user_sched_rest@kinguard.com",
+        email="user_sched_rest@kinguardian.com",
         display_name="Lisa Sched REST",
         timezone="America/Los_Angeles"
     )

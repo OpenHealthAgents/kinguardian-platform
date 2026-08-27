@@ -1,5 +1,5 @@
 """
-Comprehensive Unit Test Suite for KinGuard Platform:
+Comprehensive Unit Test Suite for KinGuardian Platform:
 1. Authorization Policies
 2. Consent Evaluation
 3. Baseline Calculations

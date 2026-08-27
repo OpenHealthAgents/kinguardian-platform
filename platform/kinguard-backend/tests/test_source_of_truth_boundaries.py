@@ -4,8 +4,8 @@ Architectural Boundary Test Suite: Source of Truth Verification.
 Enforces the three non-overlapping Sources of Truth:
 1. Open Wearables:
    - Source of truth for connected wearable data, raw telemetry, provider synchronization.
-   - KinGuard stores NO raw time-series biometric streams; queries through WearableDataGateway.
-2. KinGuard Application Core:
+   - KinGuardian stores NO raw time-series biometric streams; queries through WearableDataGateway.
+2. KinGuardian Application Core:
    - Source of truth for:
      * Family relationships (Family, FamilyMembership)
      * Care relationships (CareRelationship, CareSubject)
@@ -17,7 +17,7 @@ Enforces the three non-overlapping Sources of Truth:
      * Caregiving actions (CareTask, WellbeingCheckin, MedicationAdherenceEvent)
 3. FHIR Server (EMR / Medplum / HAPI FHIR):
    - Source of truth for clinical records (Patient, Observation, Condition, MedicationRequest).
-   - KinGuard stores only FHIR reference pointers (fhir_patient_id, fhir_medication_request_id),
+   - KinGuardian stores only FHIR reference pointers (fhir_patient_id, fhir_medication_request_id),
      delegating clinical source of truth to the FHIR gateway.
 
 Strict Rule: NO competing sources of truth are created in the platform.
@@ -67,7 +67,7 @@ async def test_source_of_truth_triad_boundaries(test_db_session: AsyncSession):
     session = test_db_session
 
     # =========================================================================
-    # SOURCE OF TRUTH 1: KinGuard Application Database
+    # SOURCE OF TRUTH 1: KinGuardian Application Database
     # Owns: Family, Care Relationships, Permissions, Consent, Monitoring Preferences,
     # Derived Insights, Alerts, and Caregiving Actions.
     # =========================================================================
@@ -223,20 +223,20 @@ async def test_source_of_truth_triad_boundaries(test_db_session: AsyncSession):
         subject_id=subject.id,
         profile_id=coordinator_id,
         provider="garmin",
-        open_wearables_user_id=f"kinguard_subject_{subject.id}",
+        open_wearables_user_id=f"kinguardian_subject_{subject.id}",
         connection_status="connected"
     )
     session.add(wearable_conn)
     await session.commit()
 
-    # Verify KinGuard transactional queries
+    # Verify KinGuardian transactional queries
     res_subject = await session.execute(select(CareSubject).where(CareSubject.id == subject.id))
     assert res_subject.scalar_one().fhir_patient_id == "synthetic-pat-ramesh-001"
 
     # =========================================================================
     # SOURCE OF TRUTH 2: Open Wearables Platform
     # Owns: Provider telemetry, daily activity, nocturnal sleep, recovery HR streams.
-    # KinGuard NEVER duplicates raw time-series in PostgreSQL; queries via Gateway.
+    # KinGuardian NEVER duplicates raw time-series in PostgreSQL; queries via Gateway.
     # =========================================================================
     wearable_gw: WearableDataGateway = MockWearableDataGateway()
     user_ext_id = wearable_conn.open_wearables_user_id
@@ -253,7 +253,7 @@ async def test_source_of_truth_triad_boundaries(test_db_session: AsyncSession):
     # =========================================================================
     # SOURCE OF TRUTH 3: FHIR Clinical Records
     # Owns: Official medical observations, labs, clinical conditions, medication requests.
-    # KinGuard links via fhir_patient_id and fhir_medication_request_id.
+    # KinGuardian links via fhir_patient_id and fhir_medication_request_id.
     # =========================================================================
     fhir_gw = MockFHIRGateway()
     patient = await fhir_gw.get_patient(subject.fhir_patient_id)

@@ -1,5 +1,5 @@
 """
-Application Service Tests for KinGuard Platform:
+Application Service Tests for KinGuardian Platform:
 1. Submit Check-in Workflow:
    Parent submits check-in -> check-in persisted -> domain event created -> coordinator notification created.
 2. Medication Taken Workflow:

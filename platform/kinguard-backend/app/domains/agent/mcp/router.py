@@ -13,7 +13,7 @@ from app.domains.family.infrastructure.repositories import (
 )
 from app.domains.events.services import EventService
 from app.domains.agent.mcp.server import (
-    KinGuardEMRMCPBridge,
+    KinGuardianEMRMCPBridge,
     MCPToolInfo,
     MCPToolCallRequest,
     MCPToolCallResponse
@@ -22,12 +22,12 @@ from app.domains.agent.mcp.server import (
 router = APIRouter(prefix="/mcp", tags=["Model Context Protocol (MCP)"])
 
 
-def get_mcp_bridge(session: AsyncSession) -> KinGuardEMRMCPBridge:
+def get_mcp_bridge(session: AsyncSession) -> KinGuardianEMRMCPBridge:
     user_repo = SQLAlchemyAppProfileRepository(session)
     family_repo = SQLAlchemyFamilyRepository(session)
     consent_repo = SQLAlchemyConsentRepository(session)
     event_logger = EventService(session)
-    return KinGuardEMRMCPBridge(
+    return KinGuardianEMRMCPBridge(
         family_repo=family_repo,
         consent_repo=consent_repo,
         profile_repo=user_repo,
@@ -42,7 +42,7 @@ async def list_mcp_tools(
 ):
     """
     MCP Protocol:
-    Lists all business-safe EMR MCP tools exposed by KinGuard.
+    Lists all business-safe EMR MCP tools exposed by KinGuardian.
     Raw DB operations (e.g. execute_sql) are strictly excluded and blocked.
     """
     bridge = get_mcp_bridge(db_session)

@@ -63,7 +63,7 @@ def test_audit_event_contract_records_forensic_trail():
         subject_id=subject_id,
         status="SUCCESS",
         ip_address="203.0.113.45",
-        user_agent="KinGuard-Android/2.4.0",
+        user_agent="KinGuardian-Android/2.4.0",
         changes_diff={"feeling": "not_well", "notes": "Felt fatigued after morning walk"}
     )
 
@@ -121,7 +121,7 @@ async def test_single_action_generates_both_domain_and_audit_events(db_session):
         family_id=fid,
         subject_id=subject_id,
         ip_address="49.37.150.12",
-        user_agent="KinGuard-iOS/1.9.0",
+        user_agent="KinGuardian-iOS/1.9.0",
         changes_diff={"feeling": "not_well"}
     )
     audit_record = await service.record_audit_event(

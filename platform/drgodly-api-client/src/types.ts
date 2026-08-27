@@ -1,6 +1,6 @@
 /* eslint-disable */
 /**
- * Auto-generated Typed Client Contracts for DrGodly / KinGuard Platform API.
+ * Auto-generated Typed Client Contracts for DrGodly / KinGuardian Platform API.
  * Generated from OpenAPI 3.1.0 Specification.
  * DO NOT EDIT MANUALLY.
  */

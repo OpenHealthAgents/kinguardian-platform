@@ -79,7 +79,7 @@ def test_wearable_metric_snapshot_crud_and_relationship():
     prof = AppProfile(
         id=profile_id,
         iam_subject_id=f"auth0|{uuid.uuid4()}",
-        email="dad@kinguard.test",
+        email="dad@kinguardian.test",
         display_name="Dad In Chennai"
     )
     session.add(prof)

@@ -42,7 +42,7 @@ async def initiate_document_upload(
 ):
     """
     Step 1 of FileNest Integration:
-    Creates KinGuard document metadata and initiates secure FileNest upload target.
+    Creates KinGuardian document metadata and initiates secure FileNest upload target.
     """
     service = get_family_service(db_session)
     subject_id = payload.subject_id
@@ -76,7 +76,7 @@ async def handle_filenest_webhook(
     """
     FileNest Webhook Receiver:
     Triggered when a file finishes uploading or processing in FileNest.
-    Advances KinGuard document processing workflow and executes AI Extraction.
+    Advances KinGuardian document processing workflow and executes AI Extraction.
     """
     service = get_family_service(db_session)
     try:

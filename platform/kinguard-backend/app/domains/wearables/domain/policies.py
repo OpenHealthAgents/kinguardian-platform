@@ -186,7 +186,7 @@ class FHIRMappingRules:
 class WearableToFHIRMappingPolicy:
     """
     Governs the Wearable -> FHIR Anti-Corruption Boundary.
-    Enforces that high-frequency, noisy wearable streams stay in Open Wearables / KinGuard analytics,
+    Enforces that high-frequency, noisy wearable streams stay in Open Wearables / KinGuardian analytics,
     while mapping clinically significant events into FHIR Observation, Device, and DeviceMetric resources.
     """
 
@@ -265,7 +265,7 @@ class WearableToFHIRMappingPolicy:
         """
         loinc = self.LOINC_CODES.get(
             metric.metric_type,
-            {"code": "custom-wearable", "display": metric.metric_type.value, "system": "http://kinguard.org/metrics"}
+            {"code": "custom-wearable", "display": metric.metric_type.value, "system": "http://kinguardian.org/metrics"}
         )
 
         category_code = "vital-signs" if metric.metric_type in (
@@ -359,7 +359,7 @@ class WearableToFHIRMappingPolicy:
             },
             "identifier": [
                 {
-                    "system": f"http://kinguard.org/devices/{provider.value}",
+                    "system": f"http://kinguardian.org/devices/{provider.value}",
                     "value": device_id or str(uuid.uuid4())
                 }
             ]
@@ -376,7 +376,7 @@ class WearableToFHIRMappingPolicy:
         metric_uuid = str(uuid.uuid4())
         loinc = self.LOINC_CODES.get(
             metric_type,
-            {"code": "custom-metric", "display": metric_type.value, "system": "http://kinguard.org/metrics"}
+            {"code": "custom-metric", "display": metric_type.value, "system": "http://kinguardian.org/metrics"}
         )
 
         return {

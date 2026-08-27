@@ -45,7 +45,7 @@ services:
 
   api:
     build:
-      context: ./platform/kinguard-backend
+      context: ./platform/kinguardian-backend
       dockerfile: Dockerfile
     container_name: drgodly-api
     restart: unless-stopped
@@ -79,7 +79,7 @@ services:
 
   worker:
     build:
-      context: ./platform/kinguard-backend
+      context: ./platform/kinguardian-backend
       dockerfile: Dockerfile
     container_name: drgodly-worker
     restart: unless-stopped

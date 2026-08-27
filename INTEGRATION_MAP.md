@@ -1,7 +1,7 @@
 # Integration Map & Protocol Matrix
 
 ## Overview
-This document specifies the integration protocols, authentication flows, endpoint contracts, resilience configurations, and data boundaries between `kinguard-backend` and all external services in the `platform/` ecosystem.
+This document specifies the integration protocols, authentication flows, endpoint contracts, resilience configurations, and data boundaries between `kinguardian-backend` and all external services in the `platform/` ecosystem.
 
 ---
 
@@ -9,7 +9,7 @@ This document specifies the integration protocols, authentication flows, endpoin
 
 ```mermaid
 flowchart TD
-    KB["KinGuard Backend (Modular Monolith)"]
+    KB["KinGuardian Backend (Modular Monolith)"]
     
     subgraph Identity ["Identity & Access (IAM)"]
         IAM["bezs-iam (OIDC / OAuth2)"]
@@ -55,7 +55,7 @@ flowchart TD
 - **Protocol**: HTTP / OIDC (RS256 JWT validation via JWKS endpoint)
 - **Base URL Setting**: `IAM_JWKS_URL`, `IAM_ISSUER`, `IAM_AUDIENCE`
 - **Integration Mechanism**: Stateless cryptographic token verification in `app/core/security.py`
-- **Security Boundary**: KinGuard validates token signature, issuer, expiration, and extracts `sub` as `iam_subject_id`. Passwords and credentials never touch KinGuard.
+- **Security Boundary**: KinGuardian validates token signature, issuer, expiration, and extracts `sub` as `iam_subject_id`. Passwords and credentials never touch KinGuardian.
 - **Failover / Degradation**: Public keys are cached locally with TTL; requests fail-fast on token expiration (`401 Unauthorized`).
 
 ### 2.2 Clinical Record Gateway (`bezs-emr-core` & `bezs-emr-gql`)
@@ -72,7 +72,7 @@ flowchart TD
 - **Gateway Adapter**: `FileNestGateway` (`app/core/adapters/prod_filenest.py`)
 - **Timeouts & Retries**: Connect: 3.0s, Read: 8.0s, Write: 10.0s, Total: 10.0s. Max 3 retries.
 - **Circuit Breaker**: `failure_threshold: 5`, `recovery_timeout: 30s`, `half_open_probes: 2`.
-- **Data Boundary**: KinGuard stores metadata (`filenest_file_id`, `sha256_checksum`, `mime_type`), never raw binary bytes.
+- **Data Boundary**: KinGuardian stores metadata (`filenest_file_id`, `sha256_checksum`, `mime_type`), never raw binary bytes.
 
 ### 2.4 Autonomous AI Agent (`bezs-agent`)
 - **Protocol**: HTTP REST (`POST /api/v1/agent/chat`, `POST /api/v1/agent/propose-action`) & WebSockets
@@ -80,7 +80,7 @@ flowchart TD
 - **Gateway Adapter**: `AgentGateway` (`app/core/adapters/prod_agent.py`)
 - **Timeouts & Retries**: Connect: 3.0s, Read: 12.0s, Total: 15.0s. 2 bounded attempts on transient network errors. Non-idempotent mutations are never retried blindly.
 - **Circuit Breaker**: `failure_threshold: 3`, `recovery_timeout: 15s`, `half_open_probes: 1`.
-- **Degradation Policy**: When breaker is OPEN or LLM fails, returns safe fallback insight: *"KinGuard couldn't generate the insight right now. You can review the underlying health information."*
+- **Degradation Policy**: When breaker is OPEN or LLM fails, returns safe fallback insight: *"KinGuardian couldn't generate the insight right now. You can review the underlying health information."*
 
 ### 2.6 Wearable Aggregation Platform (`open-wearables`)
 - **Protocol**: HTTP REST API (`/v1/users`, `/v1/connections`, `/v1/metrics`) & Inbound HMAC Webhooks

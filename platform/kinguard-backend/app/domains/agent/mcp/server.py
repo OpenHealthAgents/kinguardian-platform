@@ -57,10 +57,10 @@ FORBIDDEN_RAW_DB_TOOLS = {
 
 
 # ==========================================
-# KinGuard EMR MCP Bridge
+# KinGuardian EMR MCP Bridge
 # ==========================================
 
-class KinGuardEMRMCPBridge:
+class KinGuardianEMRMCPBridge:
     """
     Business-Safe Model Context Protocol (MCP) Bridge for bezs-emr-mcp and bezs-agent.
     Guarantees:
@@ -354,5 +354,5 @@ class KinGuardEMRMCPBridge:
 
 
 # Platform alias
-KinGuardianEMRMCPBridge = KinGuardEMRMCPBridge
+KinGuardianEMRMCPBridge = KinGuardianEMRMCPBridge
 

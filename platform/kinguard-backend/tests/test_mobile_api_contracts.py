@@ -41,13 +41,13 @@ async def test_mobile_aggregated_home_and_partial_fields(db_session: AsyncSessio
     # 1. Setup Data
     coord = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_mobile_01",
-        email="coord.mobile@kinguard.com",
+        email="coord.mobile@kinguardian.com",
         display_name="Tara",
         timezone="America/Los_Angeles"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id="iam_parent_mobile_01",
-        email="parent.mobile@kinguard.com",
+        email="parent.mobile@kinguardian.com",
         display_name="Mohan",
         timezone="Asia/Kolkata"
     )
@@ -59,7 +59,7 @@ async def test_mobile_aggregated_home_and_partial_fields(db_session: AsyncSessio
     await family_service.add_member_to_circle(
         requester_id=coord.id,
         care_circle_id=family.id,
-        target_email="parent.mobile@kinguard.com",
+        target_email="parent.mobile@kinguardian.com",
         role="parent"
     )
     subject = await family_service.add_care_subject(
@@ -102,7 +102,7 @@ async def test_mobile_aggregated_home_and_partial_fields(db_session: AsyncSessio
         confidence=0.95
     )
 
-    token = create_access_token({"sub": "iam_coord_mobile_01", "email": "coord.mobile@kinguard.com"})
+    token = create_access_token({"sub": "iam_coord_mobile_01", "email": "coord.mobile@kinguardian.com"})
     headers = {"Authorization": f"Bearer {token}"}
 
     transport = ASGITransport(app=app)
@@ -147,7 +147,7 @@ async def test_mobile_cursor_pagination_messages(db_session: AsyncSession):
 
     coord = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_msg_01",
-        email="coord.msg@kinguard.com",
+        email="coord.msg@kinguardian.com",
         display_name="Sunil"
     )
     family = await family_service.create_care_circle(creator_id=coord.id, name="Sunil Circle", creator_role="coordinator")
@@ -163,7 +163,7 @@ async def test_mobile_cursor_pagination_messages(db_session: AsyncSession):
             body=f"Message index {i}"
         )
 
-    token = create_access_token({"sub": "iam_coord_msg_01", "email": "coord.msg@kinguard.com"})
+    token = create_access_token({"sub": "iam_coord_msg_01", "email": "coord.msg@kinguardian.com"})
     headers = {"Authorization": f"Bearer {token}"}
 
     transport = ASGITransport(app=app)
@@ -205,7 +205,7 @@ async def test_mobile_offset_pagination_and_filtering_tasks(db_session: AsyncSes
     now = datetime.now(timezone.utc)
     coord = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_task_01",
-        email="coord.task@kinguard.com",
+        email="coord.task@kinguardian.com",
         display_name="Pooja"
     )
     family = await family_service.create_care_circle(creator_id=coord.id, name="Pooja Circle", creator_role="coordinator")
@@ -251,7 +251,7 @@ async def test_mobile_offset_pagination_and_filtering_tasks(db_session: AsyncSes
         due_at=now + timedelta(hours=12)
     )
 
-    token = create_access_token({"sub": "iam_coord_task_01", "email": "coord.task@kinguard.com"})
+    token = create_access_token({"sub": "iam_coord_task_01", "email": "coord.task@kinguardian.com"})
     headers = {"Authorization": f"Bearer {token}"}
 
     transport = ASGITransport(app=app)

@@ -27,7 +27,7 @@ async def test_mock_gateway_dad_seeds():
     Verifies default seeded metrics for Dad (steps, sleep, resting heart rate).
     """
     gateway = MockWearableDataGateway()
-    dad_user_id = "kinguard_subject_dad_01"
+    dad_user_id = "kinguardian_subject_dad_01"
 
     activities = await gateway.get_daily_activity(dad_user_id, "2026-08-01", "2026-08-27")
     sleeps = await gateway.get_sleep(dad_user_id, "2026-08-01", "2026-08-27")
@@ -54,7 +54,7 @@ async def test_mock_gateway_mom_seeds():
     Verifies default seeded metrics for Mom (steps, sleep, heart rate).
     """
     gateway = MockWearableDataGateway()
-    mom_user_id = "kinguard_subject_mom_01"
+    mom_user_id = "kinguardian_subject_mom_01"
 
     activities = await gateway.get_daily_activity(mom_user_id, "2026-08-01", "2026-08-27")
     sleeps = await gateway.get_sleep(mom_user_id, "2026-08-01", "2026-08-27")
@@ -79,7 +79,7 @@ async def test_scenario_engine_dynamic_wearable_mutation():
     Verifies that the scenario engine can dynamically alter wearable metrics on the fly.
     """
     gateway = MockWearableDataGateway()
-    subject_user_id = "kinguard_subject_dad_01"
+    subject_user_id = "kinguardian_subject_dad_01"
 
     # 1. Modify steps
     gateway.set_subject_activity(subject_user_id, steps=3200, active_minutes=25)

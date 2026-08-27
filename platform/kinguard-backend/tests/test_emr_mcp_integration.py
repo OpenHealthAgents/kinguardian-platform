@@ -14,7 +14,7 @@ from app.domains.family.infrastructure.repositories import (
 from app.domains.events.services import EventService
 from app.domains.family.application.services import FamilyService
 from app.domains.agent.mcp.server import (
-    KinGuardEMRMCPBridge,
+    KinGuardianEMRMCPBridge,
     MCPToolCallRequest,
     FORBIDDEN_RAW_DB_TOOLS
 )
@@ -34,13 +34,13 @@ async def test_mcp_raw_db_operations_strictly_blocked(db_session):
 
     coord = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_mcp",
-        email="coord_mcp@kinguard.com",
+        email="coord_mcp@kinguardian.com",
         display_name="Sarah MCP",
         timezone="America/New_York"
     )
     family = await family_svc.create_care_circle(coord.id, "MCP Circle", "coordinator")
 
-    bridge = KinGuardEMRMCPBridge(
+    bridge = KinGuardianEMRMCPBridge(
         family_repo=family_repo,
         consent_repo=consent_repo,
         profile_repo=user_repo,
@@ -85,13 +85,13 @@ async def test_mcp_business_safe_tools_and_rest_endpoints(db_session):
 
     coord = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_mcp_rest",
-        email="coord_mcp_rest@kinguard.com",
+        email="coord_mcp_rest@kinguardian.com",
         display_name="Dr. Lisa Coordinator",
         timezone="America/Los_Angeles"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_mcp_rest",
-        email="parent_mcp_rest@kinguard.com",
+        email="parent_mcp_rest@kinguardian.com",
         display_name="George Senior",
         timezone="Asia/Kolkata"
     )

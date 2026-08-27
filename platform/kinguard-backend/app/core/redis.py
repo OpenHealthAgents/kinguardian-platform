@@ -94,7 +94,7 @@ class EphemeralMemoryBackend:
 
 class RedisCacheService:
     """
-    KinGuard Redis Cache & Coordination Gateway.
+    KinGuardian Redis Cache & Coordination Gateway.
 
     CRITICAL ARCHITECTURAL INVARIANT:
     --------------------------------

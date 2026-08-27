@@ -1,7 +1,7 @@
 {
   "name": "@drgodly/api-client",
   "version": "0.1.0",
-  "description": "Typed Mobile & Web Client Contract SDK for DrGodly / KinGuard Healthcare Platform",
+  "description": "Typed Mobile & Web Client Contract SDK for DrGodly / KinGuardian Healthcare Platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

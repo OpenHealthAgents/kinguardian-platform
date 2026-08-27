@@ -2,7 +2,7 @@
 File Security Boundary Test Suite:
 Verifies that:
 1. Mobile clients NEVER receive raw/unrestricted object storage credentials.
-2. All uploads & downloads MUST pass KinGuard permission checks.
+2. All uploads & downloads MUST pass KinGuardian permission checks.
 3. FileNest signed URLs have short TTLs and scoped HMAC signatures.
 4. Unauthorized access, disallowed MIME types, and quarantined files are strictly rejected.
 """

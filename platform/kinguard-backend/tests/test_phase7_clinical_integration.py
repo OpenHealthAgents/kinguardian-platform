@@ -9,7 +9,7 @@ Validates:
 5. Appointments retrieval (scheduled clinical visits)
 6. DiagnosticReports retrieval (imaging / lab panels)
 7. DocumentReferences retrieval (clinical discharge summaries / records)
-8. FHIR Anti-Duplication Rule (verifying zero duplicate FHIR storage in KinGuard DB)
+8. FHIR Anti-Duplication Rule (verifying zero duplicate FHIR storage in KinGuardian DB)
 """
 
 import pytest
@@ -159,7 +159,7 @@ def test_fhir_anti_duplication_rule():
     """
     8. Anti-Duplication Rule:
     Verifies that clinical concept schemas declare FHIR/EMR as authoritative owner
-    while KinGuard owns only metadata, pointers, and family coordination.
+    while KinGuardian owns only metadata, pointers, and family coordination.
     """
     ownership_map = {item.domain_concept: item for item in DATA_OWNERSHIP_CATALOG}
     

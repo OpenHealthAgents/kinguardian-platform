@@ -4,12 +4,12 @@ Wearable Consent & Authorization Layer Test Suite.
 Verifies:
 1. Wearable data is protected health information (PHI).
 2. Before connection pre-requisite disclosures:
-   - What KinGuard can receive:
+   - What KinGuardian can receive:
      ✓ Activity
      ✓ Sleep
      ✓ Heart rate
    - "You can disconnect this device at any time."
-3. Parent/coordinator consent enforcement by KinGuard authorization layer:
+3. Parent/coordinator consent enforcement by KinGuardian authorization layer:
    - Connection rejected when consent is absent.
    - Connection allowed once explicit consent is recorded.
 4. Revocation flow:

@@ -5,7 +5,7 @@ Enforces separate retention lifecycles across 4 distinct data tiers:
 1. Raw Open Wearables Data:
    - Short rolling retention (e.g. 30–90 days max).
    - STRICT INVARIANT: Do NOT indefinitely duplicate raw wearable data.
-2. KinGuard Analytics Projections:
+2. KinGuardian Analytics Projections:
    - Materialized snapshots & daily rollups (e.g. 1–3 years for historical baseline comparison).
 3. Derived Insights:
    - Guardian Moments, multi-source correlations, clinical recommendations (e.g. 5–7 years per health record regulations).
@@ -57,7 +57,7 @@ class DataRetentionPolicy:
     Master retention governance specifying distinct retention durations
     and actions across all 4 data categories.
     """
-    name: str = "Standard KinGuard Healthcare Retention Policy"
+    name: str = "Standard KinGuardian Healthcare Retention Policy"
     rules: Dict[DataRetentionCategory, RetentionRule] = field(default_factory=lambda: {
         # 1. Raw Open Wearables: 90 days rolling retention max (prevents DB bloat)
         DataRetentionCategory.RAW_OPEN_WEARABLES_DATA: RetentionRule(
@@ -67,7 +67,7 @@ class DataRetentionPolicy:
             is_indefinite=False,
             description="High-frequency minute-by-minute telemetry purged after 90 days rolling window."
         ),
-        # 2. KinGuard Analytics Projections: 2 years (730 days) for multi-season baselines
+        # 2. KinGuardian Analytics Projections: 2 years (730 days) for multi-season baselines
         DataRetentionCategory.ANALYTICS_PROJECTIONS: RetentionRule(
             category=DataRetentionCategory.ANALYTICS_PROJECTIONS,
             retention_period_days=730,

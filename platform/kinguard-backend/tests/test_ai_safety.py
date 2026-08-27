@@ -155,13 +155,13 @@ async def test_ai_human_in_the_loop_action_workflow(db_session):
 
     coord = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_hitl",
-        email="coord_hitl@kinguard.com",
+        email="coord_hitl@kinguardian.com",
         display_name="Dr. Sarah Coordinator",
         timezone="America/New_York"
     )
     parent = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_hitl",
-        email="parent_hitl@kinguard.com",
+        email="parent_hitl@kinguardian.com",
         display_name="David Senior",
         timezone="Asia/Kolkata"
     )

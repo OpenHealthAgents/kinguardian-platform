@@ -56,7 +56,7 @@ async def api_test_context(db_session):
     coord_profile = AppProfile(
         id=coord_id,
         iam_subject_id=f"iam_coord_api_{uuid.uuid4().hex[:8]}",
-        email="anjali.api@kinguard.com",
+        email="anjali.api@kinguardian.com",
         display_name="Anjali Sharma",
         timezone="Europe/London",
         city="London",
@@ -66,7 +66,7 @@ async def api_test_context(db_session):
     parent_profile = AppProfile(
         id=parent_id,
         iam_subject_id=f"iam_parent_api_{uuid.uuid4().hex[:8]}",
-        email="ramesh.api@kinguard.com",
+        email="ramesh.api@kinguardian.com",
         display_name="Ramesh Sharma",
         timezone="Asia/Kolkata",
         city="Chennai",
@@ -307,7 +307,7 @@ async def test_api_post_documents(db_session, api_test_context):
 async def test_api_post_ai_conversations_messages(db_session, api_test_context):
     """
     Test 5: POST /ai/conversations/{id}/messages and POST /api/v1/ai/conversations/{id}/messages
-    Verifies creating an AI session and sending messages through the KinGuard AI Facade.
+    Verifies creating an AI session and sending messages through the KinGuardian AI Facade.
     """
     ctx = api_test_context
     app.dependency_overrides[get_current_user] = lambda: ctx["coord_profile"]

@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-  Mobile[kinguard-mobile] --> KB[kinguard-backend]
+  Mobile[kinguardian-mobile] --> KB[kinguardian-backend]
   HMS[bezs-hms] --> GQL[bezs-emr-gql REST gateway]
   KB --> IAM[bezs-iam JWKS]
   KB --> EMR[bezs-emr-core]
@@ -23,14 +23,14 @@ flowchart LR
   Obs --> CH[(ClickHouse)]
 ```
 
-Arrows indicate configured or implemented calls, not proof that every service is deployed together. In particular, the `kinguard-backend` defaults currently point FileNest and agent URLs at the same localhost port, which requires environment-specific override.
+Arrows indicate configured or implemented calls, not proof that every service is deployed together. In particular, the `kinguardian-backend` defaults currently point FileNest and agent URLs at the same localhost port, which requires environment-specific override.
 
 ## Component inventory
 
 | Component | Runtime | Direct dependencies observed | Persistence / infrastructure |
 |---|---|---|---|
-| `kinguard-mobile` | Expo / React Native | API endpoints supplied at runtime; Google GenAI package | device storage |
-| `kinguard-backend` | FastAPI worker + API | IAM JWKS, FHIR API/gateway, FileNest, agent, observability | PostgreSQL, Redis; Alembic in Compose |
+| `kinguardian-mobile` | Expo / React Native | API endpoints supplied at runtime; Google GenAI package | device storage |
+| `kinguardian-backend` | FastAPI worker + API | IAM JWKS, FHIR API/gateway, FileNest, agent, observability | PostgreSQL, Redis; Alembic in Compose |
 | `bezs-iam` | Next.js / Better Auth / Prisma | PostgreSQL | Prisma database |
 | `bezs-hms` | Next.js / Prisma | `FHIR_GQL_URL` REST services | Prisma database |
 | `bezs-emr-core` | FastAPI / SQLAlchemy | JWT issuer/JWKS | PostgreSQL, Redis, Alembic |
@@ -52,7 +52,7 @@ Arrows indicate configured or implemented calls, not proof that every service is
 ## Source anchors
 
 - Root development stack: `docker-compose.dev.yml`.
-- Kinguard external bindings: `platform/kinguard-backend/app/core/config.py`.
+- Kinguard external bindings: `platform/kinguardian-backend/app/core/config.py`.
 - EMR core datastore requirements: `platform/bezs-emr-core/docker-compose.dev.yml`.
 - Gateway resources: `platform/bezs-emr-gql/app/routers/__init__.py`.
 - Observability topology: `platform/bezs-observability/apps/*/docs/overview.md`.

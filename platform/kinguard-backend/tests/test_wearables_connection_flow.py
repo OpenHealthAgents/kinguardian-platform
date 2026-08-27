@@ -2,11 +2,11 @@
 Wearable Connection Flow & Zero-Credential Architectural Test Suite.
 
 Verifies:
-1. Parent requests provider connection via KinGuard API.
-2. KinGuard delegates to Open Wearables via WearableDataGateway.
-3. Zero-Credential Invariant: Mobile app and KinGuard NEVER touch or receive provider secrets (OAuth client secrets, passwords, vendor tokens).
+1. Parent requests provider connection via KinGuardian API.
+2. KinGuardian delegates to Open Wearables via WearableDataGateway.
+3. Zero-Credential Invariant: Mobile app and KinGuardian NEVER touch or receive provider secrets (OAuth client secrets, passwords, vendor tokens).
 4. Parent authenticates on Open Wearables hosted authorization screen.
-5. Open Wearables webhook completes the connection -> KinGuard updates WearableConnection & WearableDataSource.
+5. Open Wearables webhook completes the connection -> KinGuardian updates WearableConnection & WearableDataSource.
 6. Disconnect lifecycle.
 """
 
@@ -119,7 +119,7 @@ async def test_connection_flow_zero_credential_boundary(test_db_session: AsyncSe
     connect_resp = await service.create_connection_invitation(
         subject_id=subject.id,
         provider="garmin",
-        redirect_url="kinguard://wearables/callback"
+        redirect_url="kinguardian://wearables/callback"
     )
 
     # ZERO-CREDENTIAL ASSERTIONS:
@@ -131,7 +131,7 @@ async def test_connection_flow_zero_credential_boundary(test_db_session: AsyncSe
     assert "oauth_token_secret" not in resp_dict
     assert "api_key" not in resp_dict
 
-    # Verify KinGuard DB recorded pending state
+    # Verify KinGuardian DB recorded pending state
     res_conn = await session.execute(
         select(WearableConnection).where(
             WearableConnection.subject_id == subject.id,
@@ -140,17 +140,17 @@ async def test_connection_flow_zero_credential_boundary(test_db_session: AsyncSe
     )
     conn = res_conn.scalar_one()
     assert conn.connection_status == "pending"
-    assert conn.open_wearables_user_id == f"kinguard_subject_{subject.id}"
+    assert conn.open_wearables_user_id == f"kinguardian_subject_{subject.id}"
 
     # -------------------------------------------------------------------------
     # STEP 2: Parent authenticates provider on Open Wearables hosted screen
-    # Open Wearables receives provider tokens & fires webhook callback to KinGuard
+    # Open Wearables receives provider tokens & fires webhook callback to KinGuardian
     # -------------------------------------------------------------------------
     webhook_payload = OpenWearablesWebhookPayload(
         event_id=f"evt_{uuid.uuid4().hex[:12]}",
         event_type="connection:completed",
         timestamp=datetime.utcnow().isoformat() + "Z",
-        user_id=f"kinguard_subject_{subject.id}",
+        user_id=f"kinguardian_subject_{subject.id}",
         provider="garmin",
         data={
             "provider_user_id": "garmin_ramesh_user_992",
@@ -163,7 +163,7 @@ async def test_connection_flow_zero_credential_boundary(test_db_session: AsyncSe
     webhook_res = await service.process_inbound_webhook(webhook_payload)
     assert webhook_res["status"] == "processed"
 
-    # Verify Connection status in KinGuard PostgreSQL is updated to "connected"
+    # Verify Connection status in KinGuardian PostgreSQL is updated to "connected"
     res_conn_updated = await session.execute(
         select(WearableConnection).where(WearableConnection.id == conn.id)
     )
@@ -188,7 +188,7 @@ async def test_connection_flow_zero_credential_boundary(test_db_session: AsyncSe
         event_id=f"evt_{uuid.uuid4().hex[:12]}",
         event_type="connection:disconnected",
         timestamp=datetime.utcnow().isoformat() + "Z",
-        user_id=f"kinguard_subject_{subject.id}",
+        user_id=f"kinguardian_subject_{subject.id}",
         provider="garmin",
         data={"reason": "user_revoked"}
     )

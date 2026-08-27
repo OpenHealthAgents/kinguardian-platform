@@ -41,17 +41,17 @@ async def test_care_task_creation_assignment_and_lifecycle(family_service, db_se
     """
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord_care_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_care_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Anjali Coordinator"
     )
     caregiver = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"caregiver_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"caregiver_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Priya Nurse"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"parent_care_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_care_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Ramesh Parent"
     )
 
@@ -129,17 +129,17 @@ async def test_caregiver_workflow_and_medication_adherence(family_service, db_se
     """
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord_adh_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_adh_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     caregiver = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"nurse_adh_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"nurse_adh_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Nurse Priya"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"parent_adh_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_adh_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Parent"
     )
 
@@ -202,13 +202,13 @@ async def test_parent_wellbeing_checkins(family_service, db_session):
     """
     parent = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"parent_chk_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"parent_chk_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Ramesh Parent",
         timezone="Asia/Kolkata"
     )
     coordinator = await family_service.get_or_create_profile(
         iam_subject_id=f"iam_{uuid.uuid4()}",
-        email=f"coord_chk_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"coord_chk_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Coordinator"
     )
     family = await family_service.create_care_circle(

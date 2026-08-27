@@ -29,15 +29,15 @@ async def test_user_creation(db_session):
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     user = await service.get_or_create_profile(
         iam_subject_id="iam_subject_test_user",
-        email="test_user@kinguard.com",
+        email="test_user@kinguardian.com",
         display_name="Test User",
         timezone="Asia/Kolkata"
     )
-    assert user.email == "test_user@kinguard.com"
+    assert user.email == "test_user@kinguardian.com"
     assert user.timezone == "Asia/Kolkata"
     assert user.iam_subject_id == "iam_subject_test_user"
 
-    existing = await service.get_or_create_profile(iam_subject_id="iam_subject_test_user", email="test_user@kinguard.com")
+    existing = await service.get_or_create_profile(iam_subject_id="iam_subject_test_user", email="test_user@kinguardian.com")
     assert existing.id == user.id
 
 
@@ -51,7 +51,7 @@ async def test_create_care_circle(db_session):
     event_logger = EventService(db_session)
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
-    creator = await service.get_or_create_profile(iam_subject_id="iam_creator", email="creator@kinguard.com")
+    creator = await service.get_or_create_profile(iam_subject_id="iam_creator", email="creator@kinguardian.com")
     
     circle = await service.create_care_circle(
         creator_id=creator.id,
@@ -77,8 +77,8 @@ async def test_family_relationship_creation(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -111,8 +111,8 @@ async def test_care_subject_creation(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     
@@ -147,8 +147,8 @@ async def test_care_relationship_creation(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     
@@ -190,8 +190,8 @@ async def test_care_task_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     sub = await service.add_care_subject(
@@ -265,8 +265,8 @@ async def test_medication_adherence_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     sub = await service.add_care_subject(
@@ -311,8 +311,8 @@ async def test_wellbeing_checkin_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     sub = await service.add_care_subject(
@@ -371,8 +371,8 @@ async def test_monitoring_preferences_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     sub = await service.add_care_subject(
@@ -441,8 +441,8 @@ async def test_ai_insights_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     sub = await service.add_care_subject(
@@ -508,8 +508,8 @@ async def test_ai_insight_sources_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     sub = await service.add_care_subject(
@@ -572,8 +572,8 @@ async def test_guardian_moments_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     sub = await service.add_care_subject(
@@ -624,8 +624,8 @@ async def test_notifications_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -686,8 +686,8 @@ async def test_notification_deliveries_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -754,8 +754,8 @@ async def test_family_conversations_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -837,8 +837,8 @@ async def test_appointment_coordination_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -902,8 +902,8 @@ async def test_health_documents_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -968,8 +968,8 @@ async def test_document_extractions_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -1069,8 +1069,8 @@ async def test_ai_conversations_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -1130,8 +1130,8 @@ async def test_ai_actions_lifecycle(db_session):
     
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Family", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -1224,8 +1224,8 @@ async def test_coordinator_home_read_service(db_session):
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
     # Setup coordinator & parent
-    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguard.com", "Anjali", timezone="America/New_York")
-    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguard.com", "Ramesh", timezone="Asia/Kolkata")
+    coordinator = await service.get_or_create_profile("iam_anjali", "anjali@kinguardian.com", "Anjali", timezone="America/New_York")
+    parent = await service.get_or_create_profile("iam_ramesh", "ramesh@kinguardian.com", "Ramesh", timezone="Asia/Kolkata")
     
     family = await service.create_care_circle(coordinator.id, "Anjali's Care Circle", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -1373,8 +1373,8 @@ async def test_parent_home_read_service(db_session):
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
     # 1. Setup coordinator and parent
-    coordinator = await service.get_or_create_profile("iam_anjali_parent_test", "anjali_pt@kinguard.com", "Anjali", timezone="America/New_York")
-    parent = await service.get_or_create_profile("iam_ramesh_parent_test", "ramesh_pt@kinguard.com", "Ramesh", timezone="Asia/Kolkata")
+    coordinator = await service.get_or_create_profile("iam_anjali_parent_test", "anjali_pt@kinguardian.com", "Anjali", timezone="America/New_York")
+    parent = await service.get_or_create_profile("iam_ramesh_parent_test", "ramesh_pt@kinguardian.com", "Ramesh", timezone="Asia/Kolkata")
     
     family = await service.create_care_circle(coordinator.id, "Ramesh Family", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -1491,9 +1491,9 @@ async def test_family_dashboard_read_service(db_session):
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
     # 1. Setup profiles
-    coordinator = await service.get_or_create_profile("iam_anjali_dash", "anjali_dash@kinguard.com", "Anjali Sharma", timezone="America/New_York")
-    parent = await service.get_or_create_profile("iam_ramesh_dash", "ramesh_dash@kinguard.com", "Ramesh Sharma", timezone="Asia/Kolkata")
-    caregiver = await service.get_or_create_profile("iam_nurse_dash", "nurse_dash@kinguard.com", "Nurse Maya", timezone="Asia/Kolkata")
+    coordinator = await service.get_or_create_profile("iam_anjali_dash", "anjali_dash@kinguardian.com", "Anjali Sharma", timezone="America/New_York")
+    parent = await service.get_or_create_profile("iam_ramesh_dash", "ramesh_dash@kinguardian.com", "Ramesh Sharma", timezone="Asia/Kolkata")
+    caregiver = await service.get_or_create_profile("iam_nurse_dash", "nurse_dash@kinguardian.com", "Nurse Maya", timezone="Asia/Kolkata")
     
     family = await service.create_care_circle(coordinator.id, "Sharma Family Care", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")
@@ -1620,9 +1620,9 @@ async def test_parent_health_summary_read_service(db_session):
     service = FamilyService(user_repo, circle_repo, consent_repo, event_logger)
     
     # 1. Setup profiles
-    coordinator = await service.get_or_create_profile("iam_anjali_sum", "anjali_sum@kinguard.com", "Anjali Sharma", timezone="America/New_York")
-    parent = await service.get_or_create_profile("iam_ramesh_sum", "ramesh_sum@kinguard.com", "Ramesh Sharma", timezone="Asia/Kolkata")
-    caregiver = await service.get_or_create_profile("iam_caregiver_sum", "cg_sum@kinguard.com", "Caregiver Suresh", timezone="Asia/Kolkata")
+    coordinator = await service.get_or_create_profile("iam_anjali_sum", "anjali_sum@kinguardian.com", "Anjali Sharma", timezone="America/New_York")
+    parent = await service.get_or_create_profile("iam_ramesh_sum", "ramesh_sum@kinguardian.com", "Ramesh Sharma", timezone="Asia/Kolkata")
+    caregiver = await service.get_or_create_profile("iam_caregiver_sum", "cg_sum@kinguardian.com", "Caregiver Suresh", timezone="Asia/Kolkata")
     
     family = await service.create_care_circle(coordinator.id, "Sharma Health Summary Circle", "coordinator")
     await service.add_member_to_circle(coordinator.id, family.id, parent.email, "parent")

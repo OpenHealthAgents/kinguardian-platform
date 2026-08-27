@@ -1,7 +1,7 @@
 """
 Multi-Source Correlation Module.
 
-KinGuard Core Health Capability:
+KinGuardian Core Health Capability:
 Correlates wearable data with:
 - Medication adherence
 - Parent/care-subject check-ins

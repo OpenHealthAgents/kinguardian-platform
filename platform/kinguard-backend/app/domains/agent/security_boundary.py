@@ -5,11 +5,11 @@ Enforces that mobile clients never hold direct model-provider credentials (OpenA
 Architectural Flow:
 Mobile Client
     ↓
-KinGuard API (/api/v1/agent/query)
+KinGuardian API (/api/v1/agent/query)
     ↓
 Authorization + Context Builder (Consent validation, PHI minimization, Prompt injection sanitization)
     ↓
-Agent Service (KinGuard Agent Runtime with Server-Side Model Authentication)
+Agent Service (KinGuardian Agent Runtime with Server-Side Model Authentication)
     ↓
 Authorized Tools (Deterministic capability verification strictly outside the LLM)
 """

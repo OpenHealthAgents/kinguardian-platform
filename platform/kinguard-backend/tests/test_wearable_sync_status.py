@@ -129,7 +129,7 @@ async def test_coordinator_and_parent_sync_status_views(test_db_session: AsyncSe
         subject_id=subj_id,
         profile_id=dad_profile_id,
         provider="garmin",
-        open_wearables_user_id=f"kinguard_subject_{subj_id}",
+        open_wearables_user_id=f"kinguardian_subject_{subj_id}",
         connection_status="connected",
         last_sync_at=sync_8m_ago
     )
@@ -185,7 +185,7 @@ async def test_get_sync_status_rest_endpoint(test_db_session: AsyncSession):
         subject_id=subj_id,
         profile_id=subject.profile_id,
         provider="garmin",
-        open_wearables_user_id=f"kinguard_subject_{subj_id}",
+        open_wearables_user_id=f"kinguardian_subject_{subj_id}",
         connection_status="connected",
         last_sync_at=datetime.now(timezone.utc) - timedelta(minutes=8)
     )

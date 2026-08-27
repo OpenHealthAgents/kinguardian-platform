@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "KinGuard Platform API",
+    "title": "KinGuardian Platform API",
     "description": "Enterprise two-sided cross-border parent healthcare coordination platform API. Enforces strict HIPAA/FHIR compliance, deterministic transactional consistency, and least-privilege consent governance.",
     "version": "0.1.0"
   },
@@ -10342,7 +10342,7 @@
           "Subjects"
         ],
         "summary": "Initiate Document Upload",
-        "description": "Step 1 of FileNest Integration:\nCreates KinGuard document metadata and initiates secure FileNest upload target.",
+        "description": "Step 1 of FileNest Integration:\nCreates KinGuardian document metadata and initiates secure FileNest upload target.",
         "operationId": "initiate_document_upload_api_v1_subjects__subject_id__documents_post",
         "security": [
           {
@@ -11283,7 +11283,7 @@
           "Subjects"
         ],
         "summary": "Initiate Document Upload",
-        "description": "Step 1 of FileNest Integration:\nCreates KinGuard document metadata and initiates secure FileNest upload target.",
+        "description": "Step 1 of FileNest Integration:\nCreates KinGuardian document metadata and initiates secure FileNest upload target.",
         "operationId": "initiate_document_upload_subjects__subject_id__documents_post",
         "security": [
           {
@@ -12566,7 +12566,7 @@
           "AI Facade"
         ],
         "summary": "Create Ai Conversation",
-        "description": "KinGuard AI Facade:\nStarts an application-managed AI conversation session for a family/subject context.\nDoes not expose raw agent runtime endpoints directly to mobile clients.",
+        "description": "KinGuardian AI Facade:\nStarts an application-managed AI conversation session for a family/subject context.\nDoes not expose raw agent runtime endpoints directly to mobile clients.",
         "operationId": "create_ai_conversation_api_v1_ai_conversations_post",
         "requestBody": {
           "content": {
@@ -12662,7 +12662,7 @@
           "AI Facade"
         ],
         "summary": "Send Ai Conversation Message",
-        "description": "Sends a message to the AI conversation session.\nThe KinGuard AI Facade evaluates the prompt in clinical context and returns an actionable response.",
+        "description": "Sends a message to the AI conversation session.\nThe KinGuardian AI Facade evaluates the prompt in clinical context and returns an actionable response.",
         "operationId": "send_ai_conversation_message_api_v1_ai_conversations__id__messages_post",
         "security": [
           {
@@ -12772,7 +12772,7 @@
           "AI Facade"
         ],
         "summary": "Generate Ai Insights",
-        "description": "KinGuard AI Facade:\nTriggers automated clinical insights and Guardian Moments generation for a subject.",
+        "description": "KinGuardian AI Facade:\nTriggers automated clinical insights and Guardian Moments generation for a subject.",
         "operationId": "generate_ai_insights_api_v1_ai_insights_generate_post",
         "requestBody": {
           "content": {
@@ -12819,7 +12819,7 @@
           "AI Facade"
         ],
         "summary": "Prepare Ai Appointment",
-        "description": "KinGuard AI Facade:\nGenerates intelligent preparation agendas and questions for the doctor ahead of a clinical appointment.",
+        "description": "KinGuardian AI Facade:\nGenerates intelligent preparation agendas and questions for the doctor ahead of a clinical appointment.",
         "operationId": "prepare_ai_appointment_api_v1_ai_appointments__id__prepare_post",
         "security": [
           {
@@ -13163,7 +13163,7 @@
           "AI Facade"
         ],
         "summary": "Create Ai Conversation",
-        "description": "KinGuard AI Facade:\nStarts an application-managed AI conversation session for a family/subject context.\nDoes not expose raw agent runtime endpoints directly to mobile clients.",
+        "description": "KinGuardian AI Facade:\nStarts an application-managed AI conversation session for a family/subject context.\nDoes not expose raw agent runtime endpoints directly to mobile clients.",
         "operationId": "create_ai_conversation_ai_conversations_post",
         "requestBody": {
           "content": {
@@ -13259,7 +13259,7 @@
           "AI Facade"
         ],
         "summary": "Send Ai Conversation Message",
-        "description": "Sends a message to the AI conversation session.\nThe KinGuard AI Facade evaluates the prompt in clinical context and returns an actionable response.",
+        "description": "Sends a message to the AI conversation session.\nThe KinGuardian AI Facade evaluates the prompt in clinical context and returns an actionable response.",
         "operationId": "send_ai_conversation_message_ai_conversations__id__messages_post",
         "security": [
           {
@@ -13369,7 +13369,7 @@
           "AI Facade"
         ],
         "summary": "Generate Ai Insights",
-        "description": "KinGuard AI Facade:\nTriggers automated clinical insights and Guardian Moments generation for a subject.",
+        "description": "KinGuardian AI Facade:\nTriggers automated clinical insights and Guardian Moments generation for a subject.",
         "operationId": "generate_ai_insights_ai_insights_generate_post",
         "requestBody": {
           "content": {
@@ -13416,7 +13416,7 @@
           "AI Facade"
         ],
         "summary": "Prepare Ai Appointment",
-        "description": "KinGuard AI Facade:\nGenerates intelligent preparation agendas and questions for the doctor ahead of a clinical appointment.",
+        "description": "KinGuardian AI Facade:\nGenerates intelligent preparation agendas and questions for the doctor ahead of a clinical appointment.",
         "operationId": "prepare_ai_appointment_ai_appointments__id__prepare_post",
         "security": [
           {
@@ -14400,7 +14400,7 @@
           "Documents"
         ],
         "summary": "Initiate Document Upload",
-        "description": "Step 1 of FileNest Integration:\nCreates KinGuard document metadata and initiates secure FileNest upload target.",
+        "description": "Step 1 of FileNest Integration:\nCreates KinGuardian document metadata and initiates secure FileNest upload target.",
         "operationId": "initiate_document_upload_api_v1_documents_post",
         "requestBody": {
           "content": {
@@ -14447,7 +14447,7 @@
           "Documents"
         ],
         "summary": "Handle Filenest Webhook",
-        "description": "FileNest Webhook Receiver:\nTriggered when a file finishes uploading or processing in FileNest.\nAdvances KinGuard document processing workflow and executes AI Extraction.",
+        "description": "FileNest Webhook Receiver:\nTriggered when a file finishes uploading or processing in FileNest.\nAdvances KinGuardian document processing workflow and executes AI Extraction.",
         "operationId": "handle_filenest_webhook_api_v1_documents_filenest_webhook_post",
         "requestBody": {
           "content": {
@@ -14487,7 +14487,7 @@
           "Documents"
         ],
         "summary": "Handle Filenest Webhook",
-        "description": "FileNest Webhook Receiver:\nTriggered when a file finishes uploading or processing in FileNest.\nAdvances KinGuard document processing workflow and executes AI Extraction.",
+        "description": "FileNest Webhook Receiver:\nTriggered when a file finishes uploading or processing in FileNest.\nAdvances KinGuardian document processing workflow and executes AI Extraction.",
         "operationId": "handle_filenest_webhook_api_v1_documents_webhook_post",
         "requestBody": {
           "content": {
@@ -14685,7 +14685,7 @@
           "Documents"
         ],
         "summary": "Initiate Document Upload",
-        "description": "Step 1 of FileNest Integration:\nCreates KinGuard document metadata and initiates secure FileNest upload target.",
+        "description": "Step 1 of FileNest Integration:\nCreates KinGuardian document metadata and initiates secure FileNest upload target.",
         "operationId": "initiate_document_upload_documents_post",
         "requestBody": {
           "content": {
@@ -14732,7 +14732,7 @@
           "Documents"
         ],
         "summary": "Handle Filenest Webhook",
-        "description": "FileNest Webhook Receiver:\nTriggered when a file finishes uploading or processing in FileNest.\nAdvances KinGuard document processing workflow and executes AI Extraction.",
+        "description": "FileNest Webhook Receiver:\nTriggered when a file finishes uploading or processing in FileNest.\nAdvances KinGuardian document processing workflow and executes AI Extraction.",
         "operationId": "handle_filenest_webhook_documents_filenest_webhook_post",
         "requestBody": {
           "content": {
@@ -14772,7 +14772,7 @@
           "Documents"
         ],
         "summary": "Handle Filenest Webhook",
-        "description": "FileNest Webhook Receiver:\nTriggered when a file finishes uploading or processing in FileNest.\nAdvances KinGuard document processing workflow and executes AI Extraction.",
+        "description": "FileNest Webhook Receiver:\nTriggered when a file finishes uploading or processing in FileNest.\nAdvances KinGuardian document processing workflow and executes AI Extraction.",
         "operationId": "handle_filenest_webhook_documents_webhook_post",
         "requestBody": {
           "content": {
@@ -14970,7 +14970,7 @@
           "AI Agent Runtime & Domain Tools"
         ],
         "summary": "List Agent Tools",
-        "description": "Returns the controlled list of KinGuard domain tools available to the bezs-agent\nruntime for this actor and care circle under least-privilege scoping.",
+        "description": "Returns the controlled list of KinGuardian domain tools available to the bezs-agent\nruntime for this actor and care circle under least-privilege scoping.",
         "operationId": "list_agent_tools_api_v1_agent_tools_get",
         "security": [
           {
@@ -15087,7 +15087,7 @@
           "AI Agent Runtime & Domain Tools"
         ],
         "summary": "Query Agent",
-        "description": "Dispatches a query to the bezs-agent runtime with registered KinGuard domain tools.",
+        "description": "Dispatches a query to the bezs-agent runtime with registered KinGuardian domain tools.",
         "operationId": "query_agent_api_v1_agent_query_post",
         "requestBody": {
           "content": {
@@ -15134,7 +15134,7 @@
           "AI Agent Runtime & Domain Tools"
         ],
         "summary": "List Agent Tools",
-        "description": "Returns the controlled list of KinGuard domain tools available to the bezs-agent\nruntime for this actor and care circle under least-privilege scoping.",
+        "description": "Returns the controlled list of KinGuardian domain tools available to the bezs-agent\nruntime for this actor and care circle under least-privilege scoping.",
         "operationId": "list_agent_tools_agent_tools_get",
         "security": [
           {
@@ -15251,7 +15251,7 @@
           "AI Agent Runtime & Domain Tools"
         ],
         "summary": "Query Agent",
-        "description": "Dispatches a query to the bezs-agent runtime with registered KinGuard domain tools.",
+        "description": "Dispatches a query to the bezs-agent runtime with registered KinGuardian domain tools.",
         "operationId": "query_agent_agent_query_post",
         "requestBody": {
           "content": {
@@ -15298,7 +15298,7 @@
           "Model Context Protocol (MCP)"
         ],
         "summary": "List Mcp Tools",
-        "description": "MCP Protocol:\nLists all business-safe EMR MCP tools exposed by KinGuard.\nRaw DB operations (e.g. execute_sql) are strictly excluded and blocked.",
+        "description": "MCP Protocol:\nLists all business-safe EMR MCP tools exposed by KinGuardian.\nRaw DB operations (e.g. execute_sql) are strictly excluded and blocked.",
         "operationId": "list_mcp_tools_api_v1_mcp_tools_list_post",
         "responses": {
           "200": {
@@ -15376,7 +15376,7 @@
           "Model Context Protocol (MCP)"
         ],
         "summary": "List Mcp Tools",
-        "description": "MCP Protocol:\nLists all business-safe EMR MCP tools exposed by KinGuard.\nRaw DB operations (e.g. execute_sql) are strictly excluded and blocked.",
+        "description": "MCP Protocol:\nLists all business-safe EMR MCP tools exposed by KinGuardian.\nRaw DB operations (e.g. execute_sql) are strictly excluded and blocked.",
         "operationId": "list_mcp_tools_mcp_tools_list_post",
         "responses": {
           "200": {

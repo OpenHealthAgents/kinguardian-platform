@@ -67,13 +67,13 @@ async def test_document_workflow_asynchronous_pipeline_with_clinical_write(db_se
     # 1. Setup Profiles & Care Circle
     coord = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_doc_01",
-        email="coord.doc@kinguard.com",
+        email="coord.doc@kinguardian.com",
         display_name="Rohan",
         timezone="America/Los_Angeles"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id="iam_parent_doc_01",
-        email="parent.doc@kinguard.com",
+        email="parent.doc@kinguardian.com",
         display_name="Suresh",
         timezone="Asia/Kolkata"
     )
@@ -85,7 +85,7 @@ async def test_document_workflow_asynchronous_pipeline_with_clinical_write(db_se
     await family_service.add_member_to_circle(
         requester_id=coord.id,
         care_circle_id=family.id,
-        target_email="parent.doc@kinguard.com",
+        target_email="parent.doc@kinguardian.com",
         role="parent"
     )
     subject = await family_service.add_care_subject(

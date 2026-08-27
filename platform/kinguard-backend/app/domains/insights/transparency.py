@@ -85,7 +85,7 @@ class AISourceTransparency:
 
     def format_display_text(self) -> str:
         """
-        Renders human-readable source attribution text formatted exactly to KinGuard design principles.
+        Renders human-readable source attribution text formatted exactly to KinGuardian design principles.
         """
         if not self.sources:
             return "Based on: Verified health records"

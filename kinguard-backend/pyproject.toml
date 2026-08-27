@@ -1,7 +1,7 @@
 [project]
-name = "kinguard-backend"
+name = "kinguardian-backend"
 version = "0.1.0"
-description = "KinGuard family-care platform API"
+description = "KinGuardian family-care platform API"
 requires-python = ">=3.12"
 dependencies = [
   "alembic>=1.14",

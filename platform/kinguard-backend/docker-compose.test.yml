@@ -4,15 +4,15 @@ services:
   # ── Ephemeral Test Database ───────────────────────────────────────────────
   postgres-test:
     image: postgres:16-alpine
-    container_name: kinguard-postgres-test
+    container_name: kinguardian-postgres-test
     environment:
-      POSTGRES_USER: kinguard_test
-      POSTGRES_PASSWORD: kinguard_test_password
-      POSTGRES_DB: kinguard_test_db
+      POSTGRES_USER: kinguardian_test
+      POSTGRES_PASSWORD: kinguardian_test_password
+      POSTGRES_DB: kinguardian_test_db
     tmpfs:
       - /var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kinguard_test -d kinguard_test_db"]
+      test: ["CMD-SHELL", "pg_isready -U kinguardian_test -d kinguardian_test_db"]
       interval: 3s
       timeout: 3s
       retries: 5
@@ -20,7 +20,7 @@ services:
   # ── Ephemeral Test Redis ──────────────────────────────────────────────────
   redis-test:
     image: redis:7-alpine
-    container_name: kinguard-redis-test
+    container_name: kinguardian-redis-test
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 3s
@@ -32,10 +32,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kinguard-test-runner
+    container_name: kinguardian-test-runner
     environment:
       ENVIRONMENT: testing
-      DATABASE_URL: postgresql+asyncpg://kinguard_test:kinguard_test_password@postgres-test:5432/kinguard_test_db
+      DATABASE_URL: postgresql+asyncpg://kinguardian_test:kinguardian_test_password@postgres-test:5432/kinguardian_test_db
       REDIS_URL: redis://redis-test:6379/0
       IAM_JWKS_URL: ""
       FHIR_API_URL: "http://mock-fhir:8000"

@@ -62,13 +62,13 @@ async def test_appointment_preparation_workflow_complete_pipeline(db_session: As
     # 1. Setup Family, Subject, and Profiles
     coord = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_appt_01",
-        email="coord.appt@kinguard.com",
+        email="coord.appt@kinguardian.com",
         display_name="Ananya",
         timezone="America/New_York"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id="iam_parent_appt_01",
-        email="parent.appt@kinguard.com",
+        email="parent.appt@kinguardian.com",
         display_name="Rajesh",
         timezone="Asia/Kolkata"
     )
@@ -80,7 +80,7 @@ async def test_appointment_preparation_workflow_complete_pipeline(db_session: As
     await family_service.add_member_to_circle(
         requester_id=coord.id,
         care_circle_id=family.id,
-        target_email="parent.appt@kinguard.com",
+        target_email="parent.appt@kinguardian.com",
         role="parent"
     )
     subject = await family_service.add_care_subject(
@@ -115,7 +115,7 @@ async def test_appointment_preparation_workflow_complete_pipeline(db_session: As
     # Stranger attempt must fail authorization
     stranger = await family_service.get_or_create_profile(
         iam_subject_id="iam_stranger_appt_99",
-        email="stranger.appt@kinguard.com",
+        email="stranger.appt@kinguardian.com",
         display_name="Intruder"
     )
     with pytest.raises(FamilyAccessError):
@@ -193,7 +193,7 @@ async def test_appointment_preparation_workflow_complete_pipeline(db_session: As
     # ==========================================
     # Step 7: Explicit User Sharing Action
     # ==========================================
-    recipients = ["dr.patel@cardiology.com", "caregiver.nurse@kinguard.com"]
+    recipients = ["dr.patel@cardiology.com", "caregiver.nurse@kinguardian.com"]
     shared_draft = await share_uc.execute(
         requester_id=coord.id,
         coordination_id=draft.coordination_id,

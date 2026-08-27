@@ -107,7 +107,7 @@ def test_ai_instrumentation():
     initial_insights = metrics.get_counter("insights_generated_total")
 
     # 4a. AI Call
-    with instrument_ai_call(model="kinguard-ai-v1", task="ask_kinguard"):
+    with instrument_ai_call(model="kinguardian-ai-v1", task="ask_kinguardian"):
         time.sleep(0.002)
 
     assert metrics.get_counter("ai_calls_total") == initial_ai + 1

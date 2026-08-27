@@ -8,7 +8,7 @@ Normalized wearable data (WearableMetricNormalizer)
       ↓
 Trend/Baseline Engine (ActivityTrendStrategy, SleepTrendStrategy, WearableCardiovascularTrendStrategy)
       ↓
-KinGuard Insight Engine (InsightEngine)
+KinGuardian Insight Engine (InsightEngine)
       ↓
 AI explanation (observation, recommendation, baseline_comparison)
       ↓
@@ -45,7 +45,7 @@ async def test_wearable_data_feeds_insight_engine_to_guardian_moment():
         {"provider": "Garmin", "metric": "steps", "value": 1450, "measured_at": "2026-08-27", "device": "Garmin Venu 3"},
     ]
 
-    # 2. Step 2: Normalize into KinGuard WearableMetric domain representations
+    # 2. Step 2: Normalize into KinGuardian WearableMetric domain representations
     normalized_metrics = WearableMetricNormalizer.normalize_batch(
         subject_id=subject_id,
         raw_measurements=raw_wearable_stream,
@@ -56,7 +56,7 @@ async def test_wearable_data_feeds_insight_engine_to_guardian_moment():
         assert m.unit == "count"
         assert m.measured_at_utc.tzinfo == timezone.utc
 
-    # 3. Step 3 & 4: Feed directly into the existing KinGuard Insight Engine (NO separate AI engine)
+    # 3. Step 3 & 4: Feed directly into the existing KinGuardian Insight Engine (NO separate AI engine)
     family_repo = MagicMock(spec=IFamilyRepository)
     created_insights_store: list[AIInsightEntity] = []
 

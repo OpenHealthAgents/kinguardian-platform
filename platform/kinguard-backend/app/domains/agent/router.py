@@ -26,7 +26,7 @@ async def list_agent_tools(
     db_session: AsyncSession = Depends(get_db)
 ):
     """
-    Returns the controlled list of KinGuard domain tools available to the bezs-agent
+    Returns the controlled list of KinGuardian domain tools available to the bezs-agent
     runtime for this actor and care circle under least-privilege scoping.
     """
     service = AgentProxyService(db_session)
@@ -60,7 +60,7 @@ async def query_agent(
     db_session: AsyncSession = Depends(get_db)
 ):
     """
-    Dispatches a query to the bezs-agent runtime with registered KinGuard domain tools.
+    Dispatches a query to the bezs-agent runtime with registered KinGuardian domain tools.
     """
     service = AgentProxyService(db_session)
     return await service.query_clinical_agent(current_user.id, payload)

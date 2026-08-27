@@ -73,7 +73,7 @@ async def test_person_profile_and_care_subject_cross_border_attributes(db_sessio
     # 1. Coordinator: London, GB, Europe/London
     coord_profile = await family_svc.get_or_create_profile(
         iam_subject_id="iam_coord_london",
-        email="coordinator@kinguard.co.uk",
+        email="coordinator@kinguardian.co.uk",
         display_name="Sarah Coordinator",
         timezone="Europe/London"
     )
@@ -89,7 +89,7 @@ async def test_person_profile_and_care_subject_cross_border_attributes(db_sessio
     # 2. Parent: Hyderabad, IN, Asia/Kolkata
     parent_profile = await family_svc.get_or_create_profile(
         iam_subject_id="iam_parent_hyderabad",
-        email="parent@kinguard.in",
+        email="parent@kinguardian.in",
         display_name="Ramesh Senior",
         timezone="Asia/Kolkata"
     )

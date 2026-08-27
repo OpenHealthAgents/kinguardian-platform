@@ -9,9 +9,9 @@ Verifies:
    - redis
    - workers
 2. Strict Schema & Database Isolation:
-   - KinGuard connects to `kinguard_db`.
+   - KinGuardian connects to `kinguardian_db`.
    - Open Wearables connects to `open_wearables_db`.
-   - Avoid sharing Open Wearables' PostgreSQL schema with KinGuard.
+   - Avoid sharing Open Wearables' PostgreSQL schema with KinGuardian.
 """
 
 import pytest
@@ -44,13 +44,13 @@ def test_docker_compose_deployment_topology_and_schema_isolation():
     assert open_wearables_svc["container_name"] == "drgodly-open-wearables"
     assert "8007:8000" in open_wearables_svc["ports"]
 
-    # 3. CRITICAL INVARIANT: Avoid sharing Open Wearables' PostgreSQL schema with KinGuard
-    kinguard_db_url = services["api"]["environment"]["DATABASE_URL"]
+    # 3. CRITICAL INVARIANT: Avoid sharing Open Wearables' PostgreSQL schema with KinGuardian
+    kinguardian_db_url = services["api"]["environment"]["DATABASE_URL"]
     open_wearables_db_url = open_wearables_svc["environment"]["DATABASE_URL"]
 
-    assert ("kinguardian_db" in kinguard_db_url or "kinguard_db" in kinguard_db_url)
+    assert ("kinguardian_db" in kinguardian_db_url or "kinguardian_db" in kinguardian_db_url)
     assert "open_wearables_db" in open_wearables_db_url
-    assert kinguard_db_url != open_wearables_db_url, "KinGuardian and Open Wearables must not share PostgreSQL databases"
+    assert kinguardian_db_url != open_wearables_db_url, "KinGuardian and Open Wearables must not share PostgreSQL databases"
 
 
     # 4. Multi-database init script mounted on Postgres

@@ -2,13 +2,13 @@
 Data Ownership & Single Source of Truth Tests.
 
 Validates that every field has a clear, authoritative owner:
-1. Medication dose -> FHIR (KinGuard holds only external pointer)
-2. Medication adherence -> KinGuard (MedicationAdherenceEvent)
-3. Parent relationship -> KinGuard (CareSubject, FamilyMembership, CareRelationship)
+1. Medication dose -> FHIR (KinGuardian holds only external pointer)
+2. Medication adherence -> KinGuardian (MedicationAdherenceEvent)
+3. Parent relationship -> KinGuardian (CareSubject, FamilyMembership, CareRelationship)
 4. Patient identity -> FHIR + identity linkage (care_subjects.fhir_patient_id)
 5. File binary -> FileNest (health_documents.filenest_file_id, no raw bytes in DB)
 6. AI session -> bezs-agent (ai_conversations.agent_session_id)
-7. AI insight application metadata -> KinGuard (AIInsight, AIAction, CareTask)
+7. AI insight application metadata -> KinGuardian (AIInsight, AIAction, CareTask)
 """
 
 import pytest
@@ -43,38 +43,38 @@ def test_data_ownership_registry_integrity():
     assert DataOwnershipRegistry.get_owner_for_concept("AI Insight Application Metadata") == SystemOfRecord.KINGUARD
 
 
-def test_kinguard_schema_adheres_to_data_ownership_rules():
+def test_kinguardian_schema_adheres_to_data_ownership_rules():
     """
-    Verifies that KinGuard database models only store pointers/metadata for external resources,
+    Verifies that KinGuardian database models only store pointers/metadata for external resources,
     and are authoritative only for their own domain concepts.
     """
-    # 1. Medication dose: KinGuard models hold ONLY the FHIR pointer, NOT duplicate dose records
+    # 1. Medication dose: KinGuardian models hold ONLY the FHIR pointer, NOT duplicate dose records
     assert hasattr(MedicationAdherenceEvent, "fhir_medication_request_id")
     assert not hasattr(MedicationAdherenceEvent, "active_prescription_catalog")
 
-    # 2. Medication adherence: KinGuard holds full authoritative adherence lifecycle
+    # 2. Medication adherence: KinGuardian holds full authoritative adherence lifecycle
     assert hasattr(MedicationAdherenceEvent, "status")
     assert hasattr(MedicationAdherenceEvent, "confirmed_at")
 
-    # 3. Parent relationship: KinGuard holds full hierarchy
+    # 3. Parent relationship: KinGuardian holds full hierarchy
     assert hasattr(CareSubject, "family_id")
     assert hasattr(CareSubject, "relationship_to_coordinator")
     assert hasattr(CareRelationship, "relationship_type")
     assert hasattr(FamilyMembership, "membership_role")
 
-    # 4. Patient identity: KinGuard holds linkage pointer to FHIR Patient
+    # 4. Patient identity: KinGuardian holds linkage pointer to FHIR Patient
     assert hasattr(CareSubject, "fhir_patient_id")
 
-    # 5. File binary: KinGuard holds FileNest reference, NEVER binary blob columns
+    # 5. File binary: KinGuardian holds FileNest reference, NEVER binary blob columns
     assert hasattr(HealthDocument, "filenest_file_id")
     assert not hasattr(HealthDocument, "binary_content")
     assert not hasattr(HealthDocument, "raw_bytes")
 
-    # 6. AI session: KinGuard holds external agent session linkage
+    # 6. AI session: KinGuardian holds external agent session linkage
     assert hasattr(AIConversation, "agent_session_id")
     assert not hasattr(AIConversation, "internal_llm_scratchpad")
 
-    # 7. AI insight application metadata: KinGuard holds full human-in-the-loop lifecycle
+    # 7. AI insight application metadata: KinGuardian holds full human-in-the-loop lifecycle
     assert hasattr(AIInsight, "status")
     assert hasattr(AIInsight, "severity")
     assert hasattr(CareTask, "priority")

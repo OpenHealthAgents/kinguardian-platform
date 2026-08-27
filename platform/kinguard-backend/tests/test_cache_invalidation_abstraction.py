@@ -90,7 +90,7 @@ async def test_confirm_medication_use_case_triggers_cache_invalidation(db_sessio
     # 1. Setup Family & Subject
     parent = await family_service.get_or_create_profile(
         iam_subject_id="iam_parent_cache_01",
-        email="parent.cache@kinguard.com",
+        email="parent.cache@kinguardian.com",
         display_name="Deepak",
         timezone="Asia/Kolkata"
     )

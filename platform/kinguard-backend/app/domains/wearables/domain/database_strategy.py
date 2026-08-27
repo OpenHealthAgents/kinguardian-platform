@@ -1,9 +1,9 @@
 """
 Wearable Data Database Strategy & Analytics Projection Management.
 
-Enforces KinGuard's database management strategy:
+Enforces KinGuardian's database management strategy:
 1. Do NOT immediately replicate every raw wearable record into PostgreSQL.
-2. Flow: Open Wearables → Query recent data on-demand → KinGuard analytics projection.
+2. Flow: Open Wearables → Query recent data on-demand → KinGuardian analytics projection.
 3. Materialize projections only when:
    - Dashboard latency requires it (fast sub-millisecond query response)
    - Trend detection requires historical data (7, 14, 30-day rolling baselines)

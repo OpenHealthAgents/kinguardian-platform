@@ -60,13 +60,13 @@ async def test_pipeline_integration_all_data_sources_and_stages(db_session: Asyn
     # 1. Setup Profiles
     coord = await family_service.get_or_create_profile(
         iam_subject_id="iam_coord_etl_01",
-        email="coord.etl@kinguard.com",
+        email="coord.etl@kinguardian.com",
         display_name="Karan",
         timezone="Asia/Kolkata"
     )
     parent = await family_service.get_or_create_profile(
         iam_subject_id="iam_parent_etl_01",
-        email="parent.etl@kinguard.com",
+        email="parent.etl@kinguardian.com",
         display_name="Vijay",
         timezone="Asia/Kolkata"
     )
@@ -78,7 +78,7 @@ async def test_pipeline_integration_all_data_sources_and_stages(db_session: Asyn
     await family_service.add_member_to_circle(
         requester_id=coord.id,
         care_circle_id=family.id,
-        target_email="parent.etl@kinguard.com",
+        target_email="parent.etl@kinguardian.com",
         role="parent"
     )
     subject = await family_service.add_care_subject(

@@ -54,8 +54,8 @@ class TestIAMServiceContract:
     """
 
     SECRET_KEY = "test_contract_iam_secret_key"
-    ISSUER = settings.IAM_ISSUER if settings.IAM_ISSUER else "https://iam.kinguard.internal"
-    AUDIENCE = "kinguard-backend"
+    ISSUER = settings.IAM_ISSUER if settings.IAM_ISSUER else "https://iam.kinguardian.internal"
+    AUDIENCE = "kinguardian-backend"
 
 
     def _generate_valid_iam_token(self, subject_id: str, exp_delta_hours: int = 2) -> str:
@@ -130,7 +130,7 @@ class TestIAMServiceContract:
 
         # 2. Production configuration requirement
         monkeypatch.setattr(settings, "ENVIRONMENT", "production")
-        monkeypatch.setattr(settings, "IAM_JWKS_URL", "https://iam.kinguard.internal/.well-known/jwks.json")
+        monkeypatch.setattr(settings, "IAM_JWKS_URL", "https://iam.kinguardian.internal/.well-known/jwks.json")
         assert settings.IAM_JWKS_URL.endswith("jwks.json")
 
 
@@ -306,7 +306,7 @@ class TestFileNestServiceContract:
 # ==============================================================================
 class TestAgentServiceContract:
     """
-    Contract Test for KinGuard AI Agent Service / LLM Gateway.
+    Contract Test for KinGuardian AI Agent Service / LLM Gateway.
     Validates conversational session management, context-aware prompt processing,
     structured action proposals, and safety bounds.
     """
@@ -412,7 +412,7 @@ class TestObservabilityServiceContract:
         span_id = f"span-{uuid.uuid4().hex[:16]}"
 
         emitted = await mock_obs.emit_span(
-            name="kinguard.checkin.submit",
+            name="kinguardian.checkin.submit",
             trace_id=trace_id,
             span_id=span_id,
             attributes={"subject_id": "subj-123", "feeling": "good"},
@@ -422,7 +422,7 @@ class TestObservabilityServiceContract:
         assert emitted is True
         assert mock_obs.get_span_count() == 1
         span = mock_obs.spans[0]
-        assert span["name"] == "kinguard.checkin.submit"
+        assert span["name"] == "kinguardian.checkin.submit"
         assert span["trace_id"] == trace_id
         assert span["duration_ms"] == 42.5
         assert span["attributes"]["subject_id"] == "subj-123"
@@ -435,7 +435,7 @@ class TestObservabilityServiceContract:
         mock_obs = MockObservabilityGateway()
 
         emitted = await mock_obs.emit_metric(
-            metric_name="kinguard.medication.adherence.rate",
+            metric_name="kinguardian.medication.adherence.rate",
             value=0.95,
             unit="percent",
             labels={"family_id": "fam-456", "country": "IN"}
@@ -444,7 +444,7 @@ class TestObservabilityServiceContract:
         assert emitted is True
         assert mock_obs.get_metric_count() == 1
         metric = mock_obs.metrics[0]
-        assert metric["metric_name"] == "kinguard.medication.adherence.rate"
+        assert metric["metric_name"] == "kinguardian.medication.adherence.rate"
         assert metric["value"] == 0.95
         assert metric["unit"] == "percent"
         assert metric["labels"]["country"] == "IN"

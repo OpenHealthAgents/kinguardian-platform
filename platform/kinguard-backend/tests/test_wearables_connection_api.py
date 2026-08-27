@@ -125,7 +125,7 @@ async def test_wearable_connection_api_endpoints_lifecycle(test_db_session: Asyn
             f"/api/v1/subjects/{subject.id}/wearables/connections",
             json={
                 "provider": "garmin",
-                "redirect_url": "https://kinguard.app/callback"
+                "redirect_url": "https://kinguardian.app/callback"
             }
         )
         assert create_resp.status_code == 201

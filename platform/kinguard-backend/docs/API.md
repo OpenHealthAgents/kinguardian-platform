@@ -1,7 +1,7 @@
-# KinGuard Platform API Documentation
+# KinGuardian Platform API Documentation
 
 ## 1. Overview
-The KinGuard Platform REST & Realtime APIs provide secure, mobile-optimized, high-performance interfaces for family caregivers, care coordinators, and parents.
+The KinGuardian Platform REST & Realtime APIs provide secure, mobile-optimized, high-performance interfaces for family caregivers, care coordinators, and parents.
 
 ### Base URLs & Versioning
 - **REST Base Path**: `/api/v1`

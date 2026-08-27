@@ -33,7 +33,7 @@ def test_openapi_schema_generation():
     schema = custom_openapi_generator(app)
     assert schema is not None
     assert schema["openapi"].startswith("3.")
-    assert schema["info"]["title"] in ["KinGuardian Platform API", "KinGuard Platform API"]
+    assert schema["info"]["title"] in ["KinGuardian Platform API", "KinGuardian Platform API"]
 
 
     # Verify Security Schemes
@@ -50,13 +50,27 @@ def test_openapi_schema_generation():
 
 
 
+def get_mobile_file(subpath: str) -> Path:
+    repo_root = Path(__file__).resolve().parents[3]
+    for base in [
+        repo_root / "kinguard-mobile",
+        repo_root / "kinguardian-mobile",
+        Path("d:/Kalyan/kinguard-platform/kinguard-mobile"),
+        Path("d:/Kalyan/kinguardian-platform/kinguardian-mobile"),
+    ]:
+        candidate = base / subpath
+        if candidate.exists():
+            return candidate
+    return repo_root / "kinguard-mobile" / subpath
+
+
 def test_mobile_contract_examples_validation():
     """
     2. Example Requests & Responses:
     Verifies that mobile contract examples validate cleanly against backend schemas.
     """
-    examples_path = Path("D:/Kalyan/kinguard-platform/kinguard-mobile/src/services/api-client/examples.json")
-    assert examples_path.exists()
+    examples_path = get_mobile_file("src/services/api-client/examples.json")
+    assert examples_path.exists(), f"Could not find {examples_path}"
 
     with open(examples_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -86,8 +100,9 @@ def test_error_codes_taxonomy():
     3. Error Codes Taxonomy:
     Verifies that errorCodes.ts and ErrorDetail schemas are consistent.
     """
-    error_codes_path = Path("D:/Kalyan/kinguard-platform/kinguard-mobile/src/services/api-client/errorCodes.ts")
-    assert error_codes_path.exists()
+    error_codes_path = get_mobile_file("src/services/api-client/errorCodes.ts")
+    assert error_codes_path.exists(), f"Could not find {error_codes_path}"
+
 
     content = error_codes_path.read_text(encoding="utf-8")
     expected_codes = [

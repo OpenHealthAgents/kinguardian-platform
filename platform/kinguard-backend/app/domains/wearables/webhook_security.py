@@ -45,7 +45,7 @@ class WebhookSecurityVerifier:
         if not signature_header:
             return False
 
-        sec_str = secret or (settings.OPEN_WEARABLES_WEBHOOK_SECRET.get_secret_value() if hasattr(settings, "OPEN_WEARABLES_WEBHOOK_SECRET") and settings.OPEN_WEARABLES_WEBHOOK_SECRET else "kinguard_open_wearables_dev_secret")
+        sec_str = secret or (settings.OPEN_WEARABLES_WEBHOOK_SECRET.get_secret_value() if hasattr(settings, "OPEN_WEARABLES_WEBHOOK_SECRET") and settings.OPEN_WEARABLES_WEBHOOK_SECRET else "kinguardian_open_wearables_dev_secret")
         secret_bytes = sec_str.encode("utf-8")
 
         # Strip optional prefix like 'sha256='

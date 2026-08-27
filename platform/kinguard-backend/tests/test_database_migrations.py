@@ -18,7 +18,7 @@ def alembic_config(monkeypatch):
 
     config = Config(str(ini_path))
     config.set_main_option("script_location", str(backend_dir / "migrations"))
-    pg_url = "postgresql://user:password@localhost:5432/kinguard_db"
+    pg_url = "postgresql://user:password@localhost:5432/kinguardian_db"
     config.set_main_option("sqlalchemy.url", pg_url)
     monkeypatch.setattr("app.core.config.settings.DATABASE_URL", pg_url)
     return config

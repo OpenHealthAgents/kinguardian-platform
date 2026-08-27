@@ -4,7 +4,7 @@ Agent runtime adapters, MCP servers, and LLM providers.
 """
 
 from app.domains.agent.mcp.server import (
-    KinGuardEMRMCPBridge,
+    KinGuardianEMRMCPBridge,
     MCPToolInfo,
     MCPToolCallRequest,
     MCPToolCallResponse
@@ -12,7 +12,7 @@ from app.domains.agent.mcp.server import (
 from app.domains.agent.tools import ControlledToolRegistry
 
 __all__ = [
-    "KinGuardEMRMCPBridge",
+    "KinGuardianEMRMCPBridge",
     "MCPToolInfo",
     "MCPToolCallRequest",
     "MCPToolCallResponse",

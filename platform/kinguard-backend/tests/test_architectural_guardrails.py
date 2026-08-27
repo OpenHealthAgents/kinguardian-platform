@@ -30,14 +30,14 @@ from app.domains.agent.tools import ControlledToolRegistry
 
 def test_no_second_authentication_system():
     """
-    Verifies that KinGuard does NOT implement a standalone auth server or password storage.
+    Verifies that KinGuardian does NOT implement a standalone auth server or password storage.
     Delegates authentication and token issuance strictly to IAM.
     """
     assert hasattr(settings, "IAM_ISSUER")
     assert hasattr(settings, "IAM_JWKS_URL")
     assert hasattr(settings, "IAM_AUDIENCE")
     
-    # KinGuard does not store user passwords
+    # KinGuardian does not store user passwords
     from app.domains.family.infrastructure.models import AppProfile
     assert not hasattr(AppProfile, "password_hash")
     assert not hasattr(AppProfile, "hashed_password")
@@ -46,7 +46,7 @@ def test_no_second_authentication_system():
 
 def test_no_second_fhir_server():
     """
-    Verifies that KinGuard interacts with FHIR via client gateway and does not store master clinical tables.
+    Verifies that KinGuardian interacts with FHIR via client gateway and does not store master clinical tables.
     """
     assert issubclass(FHIRClinicalRecordGateway, object)
     assert hasattr(settings, "EMR_GQL_URL")
@@ -55,7 +55,7 @@ def test_no_second_fhir_server():
 
 def test_no_second_object_storage_system():
     """
-    Verifies that KinGuard delegates binary storage to FileNest and stores no binary blobs in SQL.
+    Verifies that KinGuardian delegates binary storage to FileNest and stores no binary blobs in SQL.
     """
     from app.domains.family.infrastructure.models import HealthDocument
     assert hasattr(HealthDocument, "filenest_file_id")
@@ -65,7 +65,7 @@ def test_no_second_object_storage_system():
 
 def test_no_second_agent_runtime():
     """
-    Verifies that KinGuard integrates with the external autonomous bezs-agent rather than embedding LLM engines.
+    Verifies that KinGuardian integrates with the external autonomous bezs-agent rather than embedding LLM engines.
     """
     assert issubclass(AgentGateway, object)
     assert hasattr(settings, "AGENT_SERVICE_URL")
@@ -74,7 +74,7 @@ def test_no_second_agent_runtime():
 
 def test_no_second_observability_platform():
     """
-    Verifies that KinGuard exports standardized OpenTelemetry metrics to bezs-observability.
+    Verifies that KinGuardian exports standardized OpenTelemetry metrics to bezs-observability.
     """
     assert issubclass(MetricsCollector, object)
     assert hasattr(settings, "OBSERVABILITY_URL")

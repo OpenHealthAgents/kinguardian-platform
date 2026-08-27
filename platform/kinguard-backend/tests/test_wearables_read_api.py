@@ -89,7 +89,7 @@ async def test_wearable_read_api_endpoints_and_pagination(test_db_session: Async
         subject_id=subject.id,
         profile_id=coordinator_id,
         provider="garmin",
-        open_wearables_user_id=f"kinguard_subject_{subject.id}",
+        open_wearables_user_id=f"kinguardian_subject_{subject.id}",
         provider_user_id="garmin_user_123",
         connection_status="connected"
     )

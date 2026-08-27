@@ -89,7 +89,7 @@ async def test_transactional_outbox_staging_and_publishing(family_env):
     # Create real profile & family for foreign key integrity
     creator = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_outbox_{uuid.uuid4()}",
-        email=f"outbox_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"outbox_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Outbox Coordinator"
     )
     family = await family_svc.create_care_circle(
@@ -177,7 +177,7 @@ async def test_idempotency_and_retry_backoff(family_env):
 
     creator = await family_svc.get_or_create_profile(
         iam_subject_id=f"iam_retry_{uuid.uuid4()}",
-        email=f"retry_{uuid.uuid4().hex[:6]}@kinguard.com",
+        email=f"retry_{uuid.uuid4().hex[:6]}@kinguardian.com",
         display_name="Retry Coordinator"
     )
     family = await family_svc.create_care_circle(

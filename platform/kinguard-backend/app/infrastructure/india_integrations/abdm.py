@@ -58,7 +58,7 @@ class IABHAService(Protocol):
         abha_number: str,
         abha_address: str
     ) -> bool:
-        """Links verified ABHA identity to KinGuard CareSubject."""
+        """Links verified ABHA identity to KinGuardian CareSubject."""
         ...
 
 

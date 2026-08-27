@@ -60,7 +60,7 @@ class NotificationProvider(abc.ABC):
 
 class InAppNotificationProvider(NotificationProvider):
     channel = "in_app"
-    provider_name = "kinguard_in_app"
+    provider_name = "kinguardian_in_app"
 
     async def send(self, request: NotificationDeliveryRequest) -> NotificationDeliveryResult:
         """
@@ -186,7 +186,7 @@ class EmailProvider(NotificationProvider):
     channel = "email"
     provider_name = "sendgrid_email_adapter"
 
-    def __init__(self, api_key: Optional[str] = None, from_email: str = "notifications@kinguard.com"):
+    def __init__(self, api_key: Optional[str] = None, from_email: str = "notifications@kinguardian.com"):
         self.api_key = api_key
         self.from_email = from_email
 
@@ -207,7 +207,7 @@ class EmailProvider(NotificationProvider):
             channel=self.channel,
             provider=self.provider_name,
             success=True,
-            provider_message_id=f"msgid_{uuid.uuid4().hex[:16]}@kinguard.com",
+            provider_message_id=f"msgid_{uuid.uuid4().hex[:16]}@kinguardian.com",
             delivered_at=datetime.now()
         )
 

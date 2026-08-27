@@ -155,6 +155,8 @@ class CareSubject(Base):
     checkins = relationship("WellbeingCheckin", back_populates="subject", cascade="all, delete-orphan")
     wearable_identity = relationship("CareSubjectWearableIdentity", back_populates="subject", uselist=False, cascade="all, delete-orphan")
     wearable_connections = relationship("WearableConnection", back_populates="subject", cascade="all, delete-orphan")
+    wearable_snapshots = relationship("WearableMetricSnapshot", back_populates="subject", cascade="all, delete-orphan")
+
 
 
 
@@ -741,6 +743,35 @@ class WearableDataSource(Base):
         Index("ix_wearable_sources_provider_type", "provider", "source_type"),
         Index("ix_wearable_sources_status", "status"),
     )
+
+
+class WearableMetricSnapshot(Base):
+    """
+    Compact materialized metric projection in PostgreSQL for local analytics,
+    sub-second dashboard queries, trend detection, and cross-source correlation.
+    Table: wearable_metric_snapshots
+    """
+    __tablename__ = "wearable_metric_snapshots"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    subject_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("care_subjects.id", ondelete="CASCADE"), nullable=False, index=True)
+    metric_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    measured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    value: Mapped[float] = mapped_column(Numeric(12, 4), nullable=False)
+    unit: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    provider: Mapped[str] = mapped_column(String(100), nullable=False)  # garmin, oura, apple_health, fitbit
+    device: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Apple Watch, Garmin Venu, etc.
+    source_reference: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships
+    subject = relationship("CareSubject", back_populates="wearable_snapshots")
+
+    __table_args__ = (
+        Index("ix_wearable_snapshots_subj_type_meas", "subject_id", "metric_type", text("measured_at DESC")),
+        Index("ix_wearable_snapshots_subj_meas", "subject_id", text("measured_at DESC")),
+    )
+
 
 
 

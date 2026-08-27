@@ -33,8 +33,12 @@ from app.domains.wearables.schemas import (
     WearableWorkoutSummary,
     WearableSyncStatus,
     WearableDashboardResponse,
-    OpenWearablesWebhookPayload
+    OpenWearablesWebhookPayload,
+    WearableConnectionPermissionsResponse,
+    WearablePermissionDetail,
+    WEARABLE_PERMISSION_METADATA
 )
+
 
 from app.domains.events.outbox import OutboxService
 from app.domains.family.infrastructure.models import (
@@ -193,10 +197,98 @@ class WearableService:
         wearable_user_id = self.get_wearable_user_id(subject_id)
         return await self.gateway.get_sync_status(wearable_user_id)
 
+    async def get_connection_permissions(
+        self,
+        subject_id: uuid.UUID,
+        provider_or_connection_id: str
+    ) -> WearableConnectionPermissionsResponse:
+        """
+        Retrieves the granular permissions/scopes granted to a specific wearable connection,
+        along with clear, human-readable explanations of what data is shared.
+        """
+        # Look up connection by ID or provider name
+        query = select(WearableConnection).where(WearableConnection.subject_id == subject_id)
+        try:
+            conn_uuid = uuid.UUID(provider_or_connection_id)
+            query = query.where(WearableConnection.id == conn_uuid)
+        except ValueError:
+            query = query.where(WearableConnection.provider == provider_or_connection_id.lower())
+
+        res = await self.session.execute(query)
+        conn = res.scalar_one_or_none()
+        if not conn:
+            raise ValueError(f"Wearable connection '{provider_or_connection_id}' not found for care subject {subject_id}")
+
+        # Build default permissions if empty
+        current_perms = conn.permissions if isinstance(conn.permissions, dict) and conn.permissions else {
+            "activity": True,
+            "sleep": True,
+            "heart_rate": True,
+            "workouts": True,
+            "weight": False,
+            "blood_oxygen": True,
+            "body_temperature": False,
+            "stress": True
+        }
+
+        # Build human-friendly explanations
+        explanations: List[WearablePermissionDetail] = []
+        for key, meta in WEARABLE_PERMISSION_METADATA.items():
+            is_granted = current_perms.get(key, False)
+            explanations.append(
+                WearablePermissionDetail(
+                    key=key,
+                    label=meta["label"],
+                    description=meta["description"],
+                    is_granted=is_granted,
+                    data_types=meta["data_types"]
+                )
+            )
+
+        return WearableConnectionPermissionsResponse(
+            connection_id=conn.id,
+            subject_id=conn.subject_id,
+            provider=conn.provider,
+            permissions=current_perms,
+            permission_explanations=explanations,
+            updated_at=conn.updated_at
+        )
+
+    async def update_connection_permissions(
+        self,
+        subject_id: uuid.UUID,
+        provider_or_connection_id: str,
+        permissions: Dict[str, bool]
+    ) -> WearableConnectionPermissionsResponse:
+        """
+        Updates the granular telemetry scopes granted to a connection.
+        Persists changes to the KinGuard database and emits a permissions updated event.
+        """
+        query = select(WearableConnection).where(WearableConnection.subject_id == subject_id)
+        try:
+            conn_uuid = uuid.UUID(provider_or_connection_id)
+            query = query.where(WearableConnection.id == conn_uuid)
+        except ValueError:
+            query = query.where(WearableConnection.provider == provider_or_connection_id.lower())
+
+        res = await self.session.execute(query)
+        conn = res.scalar_one_or_none()
+        if not conn:
+            raise ValueError(f"Wearable connection '{provider_or_connection_id}' not found for care subject {subject_id}")
+
+        merged_perms = dict(conn.permissions or {})
+        merged_perms.update(permissions)
+        conn.permissions = merged_perms
+        conn.updated_at = datetime.utcnow()
+        await self.session.commit()
+
+        return await self.get_connection_permissions(subject_id, provider_or_connection_id)
+
     async def disconnect_provider(self, subject_id: uuid.UUID, provider: str) -> bool:
         """Revoke a provider connection."""
         wearable_user_id = self.get_wearable_user_id(subject_id)
         return await self.gateway.disconnect(wearable_user_id, provider)
+
 
 
     async def get_wearable_dashboard(self, subject_id: uuid.UUID) -> WearableDashboardResponse:

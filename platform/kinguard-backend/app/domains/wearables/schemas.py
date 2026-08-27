@@ -130,3 +130,72 @@ class OpenWearablesWebhookPayload(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     data: Dict[str, Any] = Field(default_factory=dict)
 
+
+class WearablePermissionDetail(BaseModel):
+    """Explains in clear, human-friendly terms what data is shared under a specific scope."""
+    key: str
+    label: str
+    description: str
+    is_granted: bool
+    data_types: List[str]
+
+
+class WearableConnectionPermissionsResponse(BaseModel):
+    """Granular permissions/scope granted to a specific wearable connection."""
+    connection_id: uuid.UUID
+    subject_id: uuid.UUID
+    provider: str
+    permissions: Dict[str, bool]
+    permission_explanations: List[WearablePermissionDetail]
+    updated_at: Optional[datetime] = None
+
+
+class UpdateWearablePermissionsRequest(BaseModel):
+    """Request payload to update granted scopes for a connection."""
+    permissions: Dict[str, bool]
+
+
+WEARABLE_PERMISSION_METADATA: Dict[str, Dict[str, Any]] = {
+    "activity": {
+        "label": "Daily Activity & Movement",
+        "description": "Daily steps, active minutes, walking distance, and estimated calorie expenditure.",
+        "data_types": ["steps", "distance", "active_minutes", "calories"]
+    },
+    "sleep": {
+        "label": "Sleep Architecture & Quality",
+        "description": "Total sleep duration, sleep scores, and sleep stage cycles (Deep, REM, Light).",
+        "data_types": ["sleep_duration", "sleep_score", "sleep_stages"]
+    },
+    "heart_rate": {
+        "label": "Heart Rate & Recovery",
+        "description": "Continuous pulse, resting heart rate (RHR), and heart rate variability (HRV RMSSD).",
+        "data_types": ["heart_rate", "resting_heart_rate", "heart_rate_variability"]
+    },
+    "workouts": {
+        "label": "Exercise & Workout Sessions",
+        "description": "Logged fitness activities including walking, running, and cardio sessions.",
+        "data_types": ["workout", "activity_level"]
+    },
+    "weight": {
+        "label": "Weight & Body Composition",
+        "description": "Body weight measurements and BMI trends.",
+        "data_types": ["weight"]
+    },
+    "blood_oxygen": {
+        "label": "Pulse Oximetry (SpO2)",
+        "description": "Blood oxygen saturation levels and nocturnal respiratory rate patterns.",
+        "data_types": ["blood_oxygen", "respiratory_rate"]
+    },
+    "body_temperature": {
+        "label": "Skin Temperature",
+        "description": "Wrist/skin temperature variations relative to baseline.",
+        "data_types": ["body_temperature"]
+    },
+    "stress": {
+        "label": "Autonomic Stress Index",
+        "description": "Physiological stress scores and relaxation balance derived from HRV.",
+        "data_types": ["stress"]
+    }
+}
+
+

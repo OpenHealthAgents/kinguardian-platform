@@ -19,8 +19,11 @@ from app.domains.wearables.schemas import (
     WearableActivitySummary,
     WearableSleepSummary,
     WearableRecoverySummary,
-    WearableDashboardResponse
+    WearableDashboardResponse,
+    WearableConnectionPermissionsResponse,
+    UpdateWearablePermissionsRequest
 )
+
 from sqlalchemy import select
 
 router = APIRouter(
@@ -88,6 +91,55 @@ async def generate_wearable_connect_link(
     """
     await _verify_family_access(db, current_user.id, family_id)
     return await service.create_connection_invitation(subject_id, provider)
+
+
+@router.get(
+    "/connections/{provider_or_id}/permissions",
+    response_model=WearableConnectionPermissionsResponse,
+    summary="Get granular permissions and scope explanations for a connection"
+)
+async def get_connection_permissions(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    provider_or_id: str,
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns the granular permissions/scope granted to a wearable device connection,
+    along with clear, human-readable explanations of what data is shared.
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+    try:
+        return await service.get_connection_permissions(subject_id, provider_or_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.put(
+    "/connections/{provider_or_id}/permissions",
+    response_model=WearableConnectionPermissionsResponse,
+    summary="Update granular permissions and scopes for a connection"
+)
+async def update_connection_permissions(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    provider_or_id: str,
+    payload: UpdateWearablePermissionsRequest,
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Updates the granted telemetry scopes (e.g. activity, sleep, heart_rate, workouts, weight).
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+    try:
+        return await service.update_connection_permissions(subject_id, provider_or_id, payload.permissions)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
 
 
 @router.get(

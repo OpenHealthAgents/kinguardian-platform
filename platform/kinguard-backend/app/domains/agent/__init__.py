@@ -39,6 +39,11 @@ from app.domains.agent.tools import (
     CreateInsightTool
 )
 from app.domains.agent.services import AgentProxyService
+from app.domains.agent.wearable_qa_handler import (
+    WearableQueryIntent,
+    WearableQAResponse,
+    WearableQAEngine
+)
 
 __all__ = [
     "AIContextBuilder",
@@ -75,5 +80,9 @@ __all__ = [
     "CreateCareTaskTool",
     "SendFamilyMessageTool",
     "PrepareAppointmentTool",
-    "CreateInsightTool"
+    "CreateInsightTool",
+    "WearableQueryIntent",
+    "WearableQAResponse",
+    "WearableQAEngine"
 ]
+

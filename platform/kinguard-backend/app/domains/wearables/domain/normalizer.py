@@ -22,6 +22,8 @@ from app.domains.wearables.domain.value_objects import (
     METRIC_UNIT_MAP
 )
 from app.domains.wearables.domain.entities import WearableMetric
+from app.domains.wearables.domain.units import HealthUnitConverter, StandardUnit
+
 
 
 class WearableMetricNormalizer:
@@ -268,87 +270,53 @@ class WearableMetricNormalizer:
         source_unit: Optional[str] = None
     ) -> Any:
         """
-        Normalizes numeric values, applying necessary conversions (miles -> meters, lbs -> kg, Fahrenheit -> Celsius)
-        and sanitizing missing values.
+        Normalizes numeric values using HealthUnitConverter as the centralized conversion engine.
+        Handles missing values, unit scaling, and conversions consistently across all providers.
         """
         if value_raw is None or value_raw == "" or str(value_raw).lower() in ("null", "none", "nan"):
             return 0 if metric_type in (WearableMetricType.STEPS, WearableMetricType.ACTIVE_MINUTES) else None
 
-        unit_clean = (source_unit or "").lower().strip()
-
-        # Numeric conversions
+        # 1. Discrete Counts
         if metric_type == WearableMetricType.STEPS:
-            try:
-                return int(float(value_raw))
-            except (ValueError, TypeError):
-                return 0
+            return HealthUnitConverter.to_count(value_raw)
 
+        # 2. Distance
         if metric_type == WearableMetricType.DISTANCE:
-            try:
-                dist = float(value_raw)
-                if "km" in unit_clean:
-                    return round(dist * 1000.0, 2)
-                if "mile" in unit_clean or unit_clean == "mi":
-                    return round(dist * 1609.344, 2)
-                return round(dist, 2)
-            except (ValueError, TypeError):
-                return 0.0
+            return HealthUnitConverter.to_meters(value_raw, source_unit=source_unit)
 
+        # 3. Weight / Mass
         if metric_type == WearableMetricType.WEIGHT:
-            try:
-                val = float(value_raw)
-                if "lb" in unit_clean or "pound" in unit_clean:
-                    return round(val * 0.45359237, 2)
-                return round(val, 2)
-            except (ValueError, TypeError):
-                return None
+            return HealthUnitConverter.to_kilograms(value_raw, source_unit=source_unit)
 
+        # 4. Temperature
         if metric_type == WearableMetricType.BODY_TEMPERATURE:
-            try:
-                temp = float(value_raw)
-                if "f" in unit_clean or temp > 50.0:  # Likely Fahrenheit
-                    return round((temp - 32.0) * (5.0 / 9.0), 2)
-                return round(temp, 2)
-            except (ValueError, TypeError):
-                return None
+            return HealthUnitConverter.to_celsius(value_raw, source_unit=source_unit)
 
+        # 5. Blood Oxygen (SpO2)
         if metric_type == WearableMetricType.BLOOD_OXYGEN:
-            try:
-                spo2 = float(value_raw)
-                if 0.0 < spo2 <= 1.0:  # Normalized ratio -> percentage
-                    return round(spo2 * 100.0, 2)
-                return round(spo2, 2)
-            except (ValueError, TypeError):
-                return None
+            return HealthUnitConverter.to_percentage(value_raw, source_unit=source_unit)
 
+        # 6. Cardiovascular Vitals
         if metric_type in (WearableMetricType.HEART_RATE, WearableMetricType.RESTING_HEART_RATE):
-            try:
-                return int(round(float(value_raw)))
-            except (ValueError, TypeError):
-                return None
+            return HealthUnitConverter.to_bpm(value_raw, source_unit=source_unit)
 
         if metric_type == WearableMetricType.HEART_RATE_VARIABILITY:
-            try:
-                return round(float(value_raw), 2)
-            except (ValueError, TypeError):
-                return None
+            return HealthUnitConverter.to_hrv_ms(value_raw, source_unit=source_unit)
 
+        # 7. Duration / Active Minutes / Sleep
         if metric_type in (WearableMetricType.ACTIVE_MINUTES, WearableMetricType.SLEEP_DURATION):
-            try:
-                mins = float(value_raw)
-                if "sec" in unit_clean or "s" == unit_clean:
-                    return int(round(mins / 60.0))
-                if "hour" in unit_clean or "h" == unit_clean:
-                    return int(round(mins * 60.0))
-                return int(round(mins))
-            except (ValueError, TypeError):
-                return 0
+            return HealthUnitConverter.to_minutes(value_raw, source_unit=source_unit)
+
+        # 8. Energy / Calories
+        if metric_type == WearableMetricType.CALORIES:
+            return HealthUnitConverter.to_kcal(value_raw, source_unit=source_unit)
 
         # General scalar fallback
         try:
             return float(value_raw)
         except (ValueError, TypeError):
             return value_raw
+
 
     @classmethod
     def normalize_device_info(

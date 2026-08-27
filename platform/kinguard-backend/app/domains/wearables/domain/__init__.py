@@ -39,6 +39,7 @@ from app.domains.wearables.domain.policies import (
     AutonomicRecoveryPolicy
 )
 from app.domains.wearables.domain.normalizer import WearableMetricNormalizer
+from app.domains.wearables.domain.units import HealthUnitConverter, StandardUnit
 
 __all__ = [
     "WearableIdentity",
@@ -47,7 +48,10 @@ __all__ = [
     "WearableAnomalyDiagnostic",
     "WearableMetric",
     "WearableMetricNormalizer",
+    "HealthUnitConverter",
+    "StandardUnit",
     "DeviceProvider",
+
     "ConnectionStatus",
     "AnomalySeverity",
     "ActivityMetrics",

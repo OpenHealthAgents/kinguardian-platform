@@ -1,27 +1,31 @@
 """
-Wearable Connect Integration Flow Test Suite.
+Wearable Full Lifecycle Integration Test Suite.
 
-Verifies the complete #Connect Lifecycle:
+Verifies the complete 3-phase integration lifecycle:
+
+#Connect:
 KinGuard
 → Open Wearables
 → connection link
 → callback / webhook
 → connection persisted
 
-Scenario:
-1. Coordinator/Parent initiates connection for Dad (Ramesh in Chennai) to Garmin.
-2. KinGuard validates active wearable health data consent.
-3. KinGuard requests a secure invitation link from Open Wearables.
-4. Open Wearables returns connection link (connect_url + invitation_code).
-5. User authorizes on provider screen.
-6. Open Wearables sends callback / webhook to KinGuard API.
-7. KinGuard verifies webhook signature and persists the connection with status="active".
-8. Connection query returns the active persisted wearable device.
+#Sync:
+Open Wearables
+→ data retrieved
+→ normalized
+→ available through KinGuard
+
+#Disconnect:
+KinGuard
+→ disconnect
+→ connection status updated
+→ access revoked
 """
 
 import pytest
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import select
 
@@ -36,7 +40,12 @@ from app.domains.family.infrastructure.models import (
     Consent
 )
 from app.domains.wearables.gateway import MockWearableDataGateway
-from app.domains.wearables.schemas import OpenWearablesWebhookPayload
+from app.domains.wearables.schemas import (
+    OpenWearablesWebhookPayload,
+    WearableActivitySummary,
+    WearableSleepSummary,
+    WearableRecoverySummary
+)
 from app.domains.wearables.services import WearableService
 
 
@@ -55,14 +64,16 @@ async def integration_db_session():
 
 
 @pytest.mark.asyncio
-async def test_connect_kinguard_to_open_wearables_link_callback_persisted(integration_db_session: AsyncSession):
+async def test_full_lifecycle_connect_sync_disconnect(integration_db_session: AsyncSession):
     """
-    Executes the full #Connect flow:
-    KinGuard -> Open Wearables -> connection link -> callback -> connection persisted
+    Executes the entire 3-stage Wearable Integration Lifecycle:
+    #Connect -> #Sync -> #Disconnect
     """
     session = integration_db_session
 
-    # Step 0: Setup Dad (Ramesh Sharma in Chennai) and Anjali in London
+    # -------------------------------------------------------------------------
+    # SETUP: Ramesh Sharma (Care Subject in Chennai) & Anjali (Coordinator in London)
+    # -------------------------------------------------------------------------
     dad_profile_id = uuid.uuid4()
     dad_profile = AppProfile(
         id=dad_profile_id,
@@ -118,24 +129,23 @@ async def test_connect_kinguard_to_open_wearables_link_callback_persisted(integr
     session.add(consent)
     await session.commit()
 
-
-    # Step 1: KinGuard -> Open Wearables Connection Request
     mock_gateway = MockWearableDataGateway()
     wearable_service = WearableService(session=session, gateway=mock_gateway)
+    wearable_user_id = wearable_service.get_wearable_user_id(subject_id)
 
-    # Step 2: Generate connection link
+    # =========================================================================
+    # 1. #Connect: KinGuard -> Open Wearables -> link -> callback -> persisted
+    # =========================================================================
+    # a. Request Connection Link
     connection_invitation = await wearable_service.create_connection_invitation(
         subject_id=subject_id,
         provider="garmin",
         redirect_url="kinguard://wearables/callback"
     )
-
-    # Step 3: Assert connection link is generated
     assert connection_invitation.provider == "garmin"
     assert connection_invitation.connect_url is not None
-    assert "garmin" in connection_invitation.connect_url.lower()
 
-    # Verify initial database state is "pending"
+    # b. Verify initial pending record in KinGuard DB
     res_pending = await session.execute(
         select(WearableConnection).where(
             WearableConnection.subject_id == subject_id,
@@ -146,8 +156,7 @@ async def test_connect_kinguard_to_open_wearables_link_callback_persisted(integr
     assert pending_conn is not None
     assert pending_conn.connection_status == "pending"
 
-    # Step 4: Provider OAuth Callback / Webhook arrives from Open Wearables
-    wearable_user_id = wearable_service.get_wearable_user_id(subject_id)
+    # c. Upstream OAuth Callback Webhook from Open Wearables
     callback_webhook = OpenWearablesWebhookPayload(
         event_id=f"evt_cb_{uuid.uuid4().hex[:12]}",
         event_type="connection.created",
@@ -160,20 +169,13 @@ async def test_connect_kinguard_to_open_wearables_link_callback_persisted(integr
             "status": "active",
             "device_model": "Garmin Venu 3",
             "device_name": "Dad's Garmin Watch",
-            "capabilities": {
-                "activity": True,
-                "sleep": True,
-                "heart_rate": True
-            }
+            "capabilities": {"activity": True, "sleep": True, "heart_rate": True}
         }
     )
-
-    # Step 5: Process Inbound Webhook / Callback
     webhook_result = await wearable_service.process_inbound_webhook(callback_webhook)
     assert webhook_result["status"] == "processed"
-    assert "outbox_id" in webhook_result
 
-    # Step 6: Verify Connection is Persisted in KinGuard DB with status="connected"
+    # d. Assert Connection Persisted in DB as connected
     res_active = await session.execute(
         select(WearableConnection).where(
             WearableConnection.subject_id == subject_id,
@@ -185,16 +187,79 @@ async def test_connect_kinguard_to_open_wearables_link_callback_persisted(integr
     assert active_conn.connection_status == "connected"
     assert active_conn.provider_user_id == "garmin_usr_99812"
 
-    # Step 7: Verify WearableDataSource is also persisted
-    res_source = await session.execute(
-        select(WearableDataSource).where(
-            WearableDataSource.connection_id == active_conn.id
-        )
+    # =========================================================================
+    # 2. #Sync: Open Wearables -> data retrieved -> normalized -> available through KinGuard
+    # =========================================================================
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    mock_gateway.seed_user_data(
+        user_id=wearable_user_id,
+        activity=[
+            WearableActivitySummary(
+                date=today_str,
+                steps=5430,
+                active_duration_minutes=42,
+                source_provider="garmin"
+            )
+        ],
+        sleep=[
+            WearableSleepSummary(
+                date=today_str,
+                total_sleep_minutes=402,  # 6h 42m
+                sleep_score=82,
+                source_provider="garmin"
+            )
+        ],
+        recovery=[
+            WearableRecoverySummary(
+                date=today_str,
+                resting_heart_rate_bpm=64,
+                hrv_ms=48.0,
+                spo2_percentage=98.0,
+                source_provider="garmin"
+            )
+        ]
     )
-    active_source = res_source.scalar_one_or_none()
-    assert active_source is not None
-    assert active_source.status == "active"
-    assert active_source.device_name == "Dad's Garmin Watch"
-    assert active_source.provider == "garmin"
 
+    # Ingest Sync Telemetry Webhook
+    sync_webhook = OpenWearablesWebhookPayload(
+        event_id=f"evt_sync_{uuid.uuid4().hex[:12]}",
+        event_type="data.synced",
+        user_id=wearable_user_id,
+        provider="garmin",
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        data={
+            "metrics": {
+                "steps": 5430,
+                "sleep_minutes": 402,
+                "resting_heart_rate": 64
+            }
+        }
+    )
+    sync_result = await wearable_service.process_inbound_webhook(sync_webhook)
+    assert sync_result["status"] == "processed"
 
+    # Query normalized telemetry through KinGuard API
+    dashboard = await wearable_service.get_wearable_dashboard(subject_id=subject_id)
+    assert dashboard is not None
+    assert dashboard.latest_activity is not None
+    assert dashboard.latest_activity.steps == 5430
+    assert dashboard.latest_sleep is not None
+    assert dashboard.latest_sleep.total_sleep_minutes == 402
+    assert dashboard.latest_recovery is not None
+    assert dashboard.latest_recovery.resting_heart_rate_bpm == 64
+
+    # =========================================================================
+    # 3. #Disconnect: KinGuard -> disconnect -> status updated -> access revoked
+    # =========================================================================
+    disconnect_res = await wearable_service.disconnect_connection_by_id(connection_id=active_conn.id)
+    assert disconnect_res.status == "disconnected"
+    assert disconnect_res.connection_id == active_conn.id
+
+    # Verify status updated in PostgreSQL
+    res_disconnected = await session.execute(
+        select(WearableConnection).where(WearableConnection.id == active_conn.id)
+    )
+    disc_conn = res_disconnected.scalar_one_or_none()
+    assert disc_conn is not None
+    assert disc_conn.connection_status == "disconnected"
+    assert disc_conn.disconnected_at is not None

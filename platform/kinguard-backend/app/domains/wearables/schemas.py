@@ -112,6 +112,52 @@ class WearableWorkoutSummary(BaseModel):
     source_provider: Optional[str] = None
 
 
+from enum import Enum
+
+
+class SyncStatusState(str, Enum):
+    """
+    Exposed canonical wearable sync status states:
+    - Connected
+    - Syncing
+    - Up to date
+    - Delayed
+    - Error
+    - Disconnected
+    """
+    CONNECTED = "connected"         # "Connected"
+    SYNCING = "syncing"             # "Syncing"
+    UP_TO_DATE = "up_to_date"       # "Up to date"
+    DELAYED = "delayed"             # "Delayed"
+    ERROR = "error"                 # "Error"
+    DISCONNECTED = "disconnected"   # "Disconnected"
+
+
+class DeviceSyncStatusItem(BaseModel):
+    """Individual connected device sync status descriptor."""
+    connection_id: uuid.UUID
+    provider: str
+    device_name: str
+    device_title: str                     # e.g. "Dad's Garmin" (Coordinator) or "My watch" (Parent)
+    status: SyncStatusState
+    status_label: str                     # e.g. "✓ Up to date", "✓ Connected", "⟳ Syncing", "⚠ Delayed", "✕ Error", "✕ Disconnected"
+    last_sync_at: Optional[datetime] = None
+    last_sync_relative: Optional[str] = None  # e.g. "Last sync: 8 minutes ago"
+    is_syncing: bool = False
+    error_message: Optional[str] = None
+
+
+class CareSubjectSyncStatusResponse(BaseModel):
+    """Aggregated role-aware sync status response for all devices associated with a care subject."""
+    subject_id: uuid.UUID
+    view_mode: str                        # "coordinator" | "parent"
+    overall_status: SyncStatusState
+    overall_status_label: str
+    devices: List[DeviceSyncStatusItem] = Field(default_factory=list)
+    last_sync_at: Optional[datetime] = None
+    last_sync_relative: Optional[str] = None
+
+
 class WearableSyncStatus(BaseModel):
     """Sync status and health diagnostics across all connected providers."""
     user_id: str
@@ -120,6 +166,7 @@ class WearableSyncStatus(BaseModel):
     connected_provider_count: int = 0
     active_providers: List[str] = Field(default_factory=list)
     errors: List[str] = Field(default_factory=list)
+
 
 
 class OpenWearablesWebhookPayload(BaseModel):

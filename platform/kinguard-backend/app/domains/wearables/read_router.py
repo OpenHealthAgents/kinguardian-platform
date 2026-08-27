@@ -44,8 +44,10 @@ from app.domains.wearables.schemas import (
     WearableDisconnectResponse,
     WearableMetricItem,
     UnifiedWearableMetricsResponse,
-    WearableDerivedSummaryResponse
+    WearableDerivedSummaryResponse,
+    CareSubjectSyncStatusResponse
 )
+
 
 
 
@@ -60,8 +62,9 @@ router = APIRouter(
 
 def get_wearable_gateway() -> WearableDataGateway:
     """Dependency provider for the external WearableDataGateway port."""
-    from app.domains.wearables.router import get_wearable_gateway as _get_gw
-    return _get_gw()
+    from app.domains.wearables.gateway import HttpOpenWearablesGateway
+    return HttpOpenWearablesGateway()
+
 
 
 def get_wearable_service(
@@ -221,6 +224,43 @@ async def get_subject_wearable_summary(
 
 
 @router.get(
+    "/sync-status",
+    response_model=CareSubjectSyncStatusResponse,
+    summary="Get granular 6-state sync status for care subject devices (role-aware: coordinator vs parent)"
+)
+async def get_subject_wearable_sync_status(
+    subject_id: uuid.UUID,
+    view_mode: Optional[str] = Query(default=None, description="Presentation mode: 'coordinator' or 'parent'"),
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Exposes canonical 6-state sync status:
+    - Connected
+    - Syncing
+    - Up to date
+    - Delayed
+    - Error
+    - Disconnected
+
+    Examples:
+    Coordinator View:
+      Dad's Garmin
+      ✓ Up to date
+      Last sync: 8 minutes ago
+
+    Parent View:
+      My watch
+      ✓ Connected
+    """
+    subject = await _verify_subject_access(db, current_user.id, subject_id)
+    # Default view mode: if caller is the care subject -> 'parent', else -> 'coordinator'
+    effective_mode = view_mode or ("parent" if subject.profile_id == current_user.id else "coordinator")
+    return await service.get_care_subject_sync_status(subject_id, view_mode=effective_mode)
+
+
+@router.get(
     "/dashboard",
     response_model=WearableDashboardResponse,
     summary="Get aggregated wearable dashboard summary"
@@ -237,6 +277,7 @@ async def get_subject_wearable_dashboard(
     """
     await _verify_subject_access(db, current_user.id, subject_id)
     return await service.get_wearable_dashboard(subject_id)
+
 
 
 

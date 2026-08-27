@@ -48,8 +48,12 @@ from app.domains.wearables.schemas import (
     WearableActivityDerivedSummary,
     WearableSleepDerivedSummary,
     WearableHeartRateDerivedSummary,
-    WearableDerivedSummaryResponse
+    WearableDerivedSummaryResponse,
+    SyncStatusState,
+    DeviceSyncStatusItem,
+    CareSubjectSyncStatusResponse
 )
+
 
 
 
@@ -509,6 +513,145 @@ class WearableService:
         """Fetch synchronization status and connected provider diagnostics."""
         wearable_user_id = self.get_wearable_user_id(subject_id)
         return await self.gateway.get_sync_status(wearable_user_id)
+
+    @staticmethod
+    def format_relative_sync_time(last_sync: Optional[datetime], now: Optional[datetime] = None) -> Optional[str]:
+        if not last_sync:
+            return None
+        now_dt = now or datetime.now(timezone.utc)
+        sync_dt = last_sync if last_sync.tzinfo is not None else last_sync.replace(tzinfo=timezone.utc)
+        diff = now_dt - sync_dt
+        secs = max(0, int(diff.total_seconds()))
+        if secs < 60:
+            return "Last sync: just now"
+        mins = secs // 60
+        if mins < 60:
+            return f"Last sync: {mins} minute{'s' if mins != 1 else ''} ago"
+        hours = mins // 60
+        if hours < 24:
+            return f"Last sync: {hours} hour{'s' if hours != 1 else ''} ago"
+        days = hours // 24
+        return f"Last sync: {days} day{'s' if days != 1 else ''} ago"
+
+    async def get_care_subject_sync_status(
+        self,
+        subject_id: uuid.UUID,
+        view_mode: str = "coordinator"
+    ) -> CareSubjectSyncStatusResponse:
+        """
+        Evaluates and exposes granular wearable sync status across 6 canonical states:
+        - Connected ("Connected" / "✓ Connected")
+        - Syncing ("Syncing" / "⟳ Syncing")
+        - Up to date ("Up to date" / "✓ Up to date")
+        - Delayed ("Delayed" / "⚠ Delayed")
+        - Error ("Error" / "✕ Error")
+        - Disconnected ("Disconnected" / "✕ Disconnected")
+
+        Formats presentation based on role/view_mode:
+        - Coordinator (e.g. Anjali in London): "Dad's Garmin", "✓ Up to date", "Last sync: 8 minutes ago"
+        - Parent (e.g. Dad in Chennai): "My watch", "✓ Connected"
+        """
+        res_subj = await self.session.execute(
+            select(CareSubject).where(CareSubject.id == subject_id)
+        )
+        subject = res_subj.scalar_one_or_none()
+        subject_title = (subject.relationship_to_coordinator if subject and subject.relationship_to_coordinator else "Dad")
+
+        res_conns = await self.session.execute(
+            select(WearableConnection).where(WearableConnection.subject_id == subject_id)
+        )
+        conns = res_conns.scalars().all()
+
+        gateway_sync = await self.get_sync_status(subject_id)
+        now_dt = datetime.now(timezone.utc)
+
+        device_items: List[DeviceSyncStatusItem] = []
+        most_recent_sync: Optional[datetime] = gateway_sync.last_successful_sync_at
+
+        for conn in conns:
+            last_sync = conn.last_sync_at or gateway_sync.last_successful_sync_at
+            if last_sync and (not most_recent_sync or (last_sync > most_recent_sync)):
+                most_recent_sync = last_sync
+
+
+            # Device title based on perspective
+            if view_mode == "parent":
+                dev_title = "My watch" if conn.provider in ("garmin", "apple_health", "fitbit") else f"My {conn.provider.title()}"
+            else:
+                dev_title = f"{subject_title}'s {conn.provider.title()}"
+
+            # Determine sync status
+            if conn.connection_status in ("disconnected", "revoked"):
+                status_state = SyncStatusState.DISCONNECTED
+                status_label = "Disconnected" if view_mode == "parent" else "✕ Disconnected"
+            elif gateway_sync.is_syncing:
+                status_state = SyncStatusState.SYNCING
+                status_label = "Syncing" if view_mode == "parent" else "⟳ Syncing"
+            elif conn.connection_status in ("error", "failed") or (gateway_sync.errors and conn.provider in gateway_sync.errors):
+                status_state = SyncStatusState.ERROR
+                status_label = "Error" if view_mode == "parent" else "✕ Error"
+            elif last_sync:
+                sync_dt = last_sync if last_sync.tzinfo is not None else last_sync.replace(tzinfo=timezone.utc)
+                diff_secs = (now_dt - sync_dt).total_seconds()
+                if diff_secs <= 1800:  # within 30 mins
+                    status_state = SyncStatusState.UP_TO_DATE
+                    status_label = "✓ Connected" if view_mode == "parent" else "✓ Up to date"
+                elif diff_secs <= 86400:  # within 24 hours
+                    status_state = SyncStatusState.CONNECTED
+                    status_label = "✓ Connected"
+                else:
+                    status_state = SyncStatusState.DELAYED
+                    status_label = "Delayed" if view_mode == "parent" else "⚠ Delayed"
+            else:
+                status_state = SyncStatusState.CONNECTED
+                status_label = "✓ Connected"
+
+            rel_time = self.format_relative_sync_time(last_sync, now_dt)
+
+            device_items.append(
+                DeviceSyncStatusItem(
+                    connection_id=conn.id,
+                    provider=conn.provider,
+                    device_name=f"{conn.provider.title()} Watch",
+                    device_title=dev_title,
+                    status=status_state,
+                    status_label=status_label,
+                    last_sync_at=last_sync,
+                    last_sync_relative=rel_time,
+                    is_syncing=gateway_sync.is_syncing
+                )
+            )
+
+        # Compute overall status
+        if not device_items:
+            overall_state = SyncStatusState.DISCONNECTED
+            overall_label = "Disconnected"
+        elif any(d.status == SyncStatusState.ERROR for d in device_items):
+            overall_state = SyncStatusState.ERROR
+            overall_label = "✕ Error"
+        elif any(d.status == SyncStatusState.SYNCING for d in device_items):
+            overall_state = SyncStatusState.SYNCING
+            overall_label = "⟳ Syncing"
+        elif all(d.status == SyncStatusState.UP_TO_DATE for d in device_items):
+            overall_state = SyncStatusState.UP_TO_DATE
+            overall_label = "✓ Connected" if view_mode == "parent" else "✓ Up to date"
+        elif any(d.status == SyncStatusState.DELAYED for d in device_items):
+            overall_state = SyncStatusState.DELAYED
+            overall_label = "⚠ Delayed"
+        else:
+            overall_state = SyncStatusState.CONNECTED
+            overall_label = "✓ Connected"
+
+        return CareSubjectSyncStatusResponse(
+            subject_id=subject_id,
+            view_mode=view_mode,
+            overall_status=overall_state,
+            overall_status_label=overall_label,
+            devices=device_items,
+            last_sync_at=most_recent_sync,
+            last_sync_relative=self.format_relative_sync_time(most_recent_sync, now_dt)
+        )
+
 
     async def get_connection_permissions(
         self,

@@ -129,6 +129,11 @@ from app.domains.wearables.domain.clinical_correlation import (
     WearableClinicalCorrelationEngine
 )
 
+from app.domains.wearables.domain.exceptions import (
+    WearableServiceUnavailableError,
+    WearableErrorHandler
+)
+
 __all__ = [
     "WearableIdentity",
     "WearableDeviceConnection",
@@ -218,8 +223,11 @@ __all__ = [
     "MultimodalWearableCheckinCorrelator",
     "ClinicalCorrelationContext",
     "ClinicalCorrelationTrend",
-    "WearableClinicalCorrelationEngine"
+    "WearableClinicalCorrelationEngine",
+    "WearableServiceUnavailableError",
+    "WearableErrorHandler"
 ]
+
 
 
 

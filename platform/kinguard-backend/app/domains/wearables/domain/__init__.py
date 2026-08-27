@@ -94,6 +94,12 @@ from app.domains.wearables.domain.database_strategy import (
     ProjectionMaterializationPolicy,
     WearableDatabaseStrategyManager
 )
+from app.domains.wearables.domain.retention_policy import (
+    DataRetentionCategory,
+    ExpiryAction,
+    RetentionRule,
+    DataRetentionPolicy
+)
 
 __all__ = [
     "WearableIdentity",
@@ -162,8 +168,13 @@ __all__ = [
     "StorageTier",
     "WearableAnalyticsProjection",
     "ProjectionMaterializationPolicy",
-    "WearableDatabaseStrategyManager"
+    "WearableDatabaseStrategyManager",
+    "DataRetentionCategory",
+    "ExpiryAction",
+    "RetentionRule",
+    "DataRetentionPolicy"
 ]
+
 
 
 

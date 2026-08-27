@@ -199,3 +199,39 @@ WEARABLE_PERMISSION_METADATA: Dict[str, Dict[str, Any]] = {
 }
 
 
+class WearableConsentStatusResponse(BaseModel):
+    """Consent status and mandatory pre-connection disclosures for wearable health information."""
+    subject_id: uuid.UUID
+    family_id: uuid.UUID
+    is_consent_granted: bool
+    status: str  # active, pending, revoked, not_requested
+    disclosures: List[str] = Field(
+        default_factory=lambda: [
+            "Activity",
+            "Sleep",
+            "Heart rate"
+        ]
+    )
+    revocation_policy: str = "You can disconnect this device at any time."
+    granted_scopes: Dict[str, bool] = Field(default_factory=dict)
+    granted_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+
+
+class WearableConsentGrantRequest(BaseModel):
+    """Explicit grant of consent by parent or authorized coordinator."""
+    grantor_profile_id: Optional[uuid.UUID] = None
+    grantee_profile_id: Optional[uuid.UUID] = None
+    scopes: Dict[str, bool] = Field(
+        default_factory=lambda: {
+            "activity": True,
+            "sleep": True,
+            "heart_rate": True
+        }
+    )
+    acknowledgement_text: str = Field(
+        default="I understand that KinGuard will receive Activity, Sleep, and Heart rate data from connected wearables, and I can disconnect at any time."
+    )
+
+
+

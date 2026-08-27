@@ -315,7 +315,21 @@ async def test_wearables_rest_api_endpoints(test_db_session: AsyncSession):
     )
 
     session.add(subject)
+
+    # Active Wearable Consent
+    consent = Consent(
+        id=uuid.uuid4(),
+        family_id=family.id,
+        subject_id=subject.id,
+        grantor_profile_id=uuid.uuid4(),
+        grantee_profile_id=user_id,
+        consent_type="wearable_health_data",
+        scope={"activity": True, "sleep": True, "heart_rate": True},
+        status="active"
+    )
+    session.add(consent)
     await session.commit()
+
 
 
     # Override dependencies

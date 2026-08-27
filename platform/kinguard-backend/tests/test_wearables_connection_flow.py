@@ -23,7 +23,8 @@ from app.domains.family.infrastructure.models import (
     FamilyMembership,
     CareSubject,
     WearableConnection,
-    WearableDataSource
+    WearableDataSource,
+    Consent
 )
 from app.domains.wearables.gateway import MockWearableDataGateway
 from app.domains.wearables.schemas import OpenWearablesWebhookPayload
@@ -48,23 +49,41 @@ async def test_db_session():
 async def test_connection_flow_zero_credential_boundary(test_db_session: AsyncSession):
     session = test_db_session
 
-    # 1. Setup Family and Parent (Ramesh in Chennai)
+    # Setup parent profile & care subject
     parent_id = uuid.uuid4()
     parent = AppProfile(
         id=parent_id,
-        iam_subject_id="iam_ramesh_chennai",
-        email="ramesh@chennai.in",
+        iam_subject_id="iam_ramesh_001",
+        email="ramesh@family.org",
         display_name="Ramesh Sharma",
         timezone="Asia/Kolkata"
     )
     session.add(parent)
 
-    family = Family(id=uuid.uuid4(), name="Sharma Care Circle", primary_coordinator_profile_id=parent_id)
+    coordinator_id = uuid.uuid4()
+    coordinator = AppProfile(
+        id=coordinator_id,
+        iam_subject_id="iam_anjali_001",
+        email="anjali@family.org",
+        display_name="Anjali Sharma",
+        timezone="Europe/London"
+    )
+    session.add(coordinator)
+
+    family = Family(id=uuid.uuid4(), name="Sharma Care Circle", primary_coordinator_profile_id=coordinator_id)
     session.add(family)
 
-    subject_id = uuid.uuid4()
+    membership = FamilyMembership(
+        id=uuid.uuid4(),
+        family_id=family.id,
+        profile_id=parent_id,
+        membership_role="care_recipient",
+        status="active"
+    )
+    session.add(membership)
+
     subject = CareSubject(
-        id=subject_id,
+        id=uuid.uuid4(),
         family_id=family.id,
         profile_id=parent_id,
         fhir_patient_id="synthetic-pat-ramesh-001",
@@ -75,7 +94,21 @@ async def test_connection_flow_zero_credential_boundary(test_db_session: AsyncSe
     )
     session.add(subject)
 
+    # Active Consent for Wearable Health Data
+    consent = Consent(
+        id=uuid.uuid4(),
+        family_id=family.id,
+        subject_id=subject.id,
+        grantor_profile_id=parent_id,
+        grantee_profile_id=coordinator_id,
+        consent_type="wearable_health_data",
+        scope={"activity": True, "sleep": True, "heart_rate": True},
+        status="active"
+    )
+    session.add(consent)
+
     await session.commit()
+
 
     gateway = MockWearableDataGateway()
     service = WearableService(session=session, gateway=gateway)

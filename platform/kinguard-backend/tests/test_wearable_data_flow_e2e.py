@@ -32,9 +32,11 @@ from app.domains.family.infrastructure.models import (
     WearableConnection,
     WearableDataSource,
     AIInsight,
-    Notification
+    Notification,
+    Consent
 )
 from app.domains.wearables.gateway import MockWearableDataGateway
+
 from app.domains.wearables.schemas import WearableActivitySummary, WearableSleepSummary, WearableRecoverySummary
 from app.domains.wearables.services import WearableService
 from app.domains.events.outbox import OutboxService
@@ -100,7 +102,21 @@ async def test_wearable_data_flow_complete_lifecycle(test_db_session: AsyncSessi
         status="active"
     )
     session.add(subject)
+
+    # Active Consent for Wearable Health Data
+    consent = Consent(
+        id=uuid.uuid4(),
+        family_id=family.id,
+        subject_id=subject.id,
+        grantor_profile_id=ramesh_id,
+        grantee_profile_id=anjali_id,
+        consent_type="wearable_health_data",
+        scope={"activity": True, "sleep": True, "heart_rate": True},
+        status="active"
+    )
+    session.add(consent)
     await session.commit()
+
 
     # -------------------------------------------------------------------------
     # STAGE 1 & 2: Parent connects wearable -> KinGuard creates wearable connection

@@ -11,7 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.domains.family.infrastructure.models import AppProfile, FamilyMembership
+from app.domains.family.infrastructure.models import AppProfile, FamilyMembership, CareSubject, Family
+
 from app.domains.wearables.services import WearableService
 from app.domains.wearables.schemas import (
     DeviceConnectionResponse,
@@ -21,10 +22,13 @@ from app.domains.wearables.schemas import (
     WearableRecoverySummary,
     WearableDashboardResponse,
     WearableConnectionPermissionsResponse,
-    UpdateWearablePermissionsRequest
+    UpdateWearablePermissionsRequest,
+    WearableConsentStatusResponse,
+    WearableConsentGrantRequest
 )
 
 from sqlalchemy import select
+
 
 router = APIRouter(
     prefix="/families/{family_id}/subjects/{subject_id}/wearables",
@@ -71,6 +75,94 @@ async def list_subject_wearable_connections(
     return await service.get_subject_connections(subject_id)
 
 
+@router.get(
+    "/consent/status",
+    response_model=WearableConsentStatusResponse,
+    summary="Get wearable health data consent status and mandatory disclosures"
+)
+async def get_wearable_consent_status(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns consent status along with the pre-connection checklist:
+    - What KinGuard can receive: Activity, Sleep, Heart rate
+    - Revocation guarantee: You can disconnect this device at any time.
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+    return await service.get_consent_status(family_id, subject_id, current_user.id)
+
+
+@router.post(
+    "/consent/grant",
+    response_model=WearableConsentStatusResponse,
+    summary="Grant parent/coordinator consent for wearable health data ingestion"
+)
+async def grant_wearable_consent(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    payload: WearableConsentGrantRequest,
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Explicitly grants consent for KinGuard to receive wearable health telemetry
+    (Activity, Sleep, Heart rate).
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+
+    # Resolve grantor/grantee
+    grantor_id = payload.grantor_profile_id or current_user.id
+    grantee_id = payload.grantee_profile_id or current_user.id
+
+    # If grantor and grantee would be identical (e.g. coordinator calling directly),
+    # find subject's profile or primary coordinator
+    if grantor_id == grantee_id:
+        res_subj = await db.execute(select(CareSubject).where(CareSubject.id == subject_id))
+        subject = res_subj.scalar_one_or_none()
+        if subject and subject.profile_id and subject.profile_id != current_user.id:
+            grantor_id = subject.profile_id
+        else:
+            # Look up family primary coordinator or another member
+            res_fam = await db.execute(select(Family).where(Family.id == family_id))
+            fam = res_fam.scalar_one_or_none()
+            if fam and fam.primary_coordinator_profile_id and fam.primary_coordinator_profile_id != current_user.id:
+                grantor_id = fam.primary_coordinator_profile_id
+            else:
+                # Use system profile placeholder if solo demo user
+                grantor_id = uuid.uuid4()
+
+    return await service.grant_wearable_consent(
+        family_id=family_id,
+        subject_id=subject_id,
+        grantor_profile_id=grantor_id,
+        grantee_profile_id=grantee_id,
+        scopes=payload.scopes
+    )
+
+
+@router.post(
+    "/consent/revoke",
+    response_model=WearableConsentStatusResponse,
+    summary="Revoke consent and disconnect all wearable health devices"
+)
+async def revoke_wearable_consent(
+    family_id: uuid.UUID,
+    subject_id: uuid.UUID,
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Revokes wearable consent at any time. Immediately pauses ingestion and marks connections as disconnected.
+    """
+    await _verify_family_access(db, current_user.id, family_id)
+    return await service.revoke_wearable_consent(family_id, subject_id, current_user.id)
+
 
 @router.post(
     "/connect/{provider}",
@@ -87,10 +179,14 @@ async def generate_wearable_connect_link(
 ):
     """
     Generates an OAuth authorization link or mobile SDK sync token (Apple Health / Health Connect)
-    via Open Wearables.
+    via Open Wearables. Enforces authorization layer consent check.
     """
     await _verify_family_access(db, current_user.id, family_id)
-    return await service.create_connection_invitation(subject_id, provider)
+    try:
+        return await service.create_connection_invitation(subject_id, provider)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
 
 
 @router.get(

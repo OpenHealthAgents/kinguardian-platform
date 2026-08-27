@@ -36,7 +36,9 @@ from app.domains.wearables.schemas import (
     OpenWearablesWebhookPayload,
     WearableConnectionPermissionsResponse,
     WearablePermissionDetail,
-    WEARABLE_PERMISSION_METADATA
+    WEARABLE_PERMISSION_METADATA,
+    WearableConsentStatusResponse,
+    WearableConsentGrantRequest
 )
 
 
@@ -48,8 +50,10 @@ from app.domains.family.infrastructure.models import (
     Notification,
     WearableConnection,
     WearableDataSource,
-    MonitoringPreference
+    MonitoringPreference,
+    Consent
 )
+
 from app.domains.wearables.domain.entities import WearableMetric, WearableDailySummary
 from app.domains.wearables.domain.value_objects import (
     DeviceProvider,
@@ -119,6 +123,12 @@ class WearableService:
 
         wearable_user_id = self.get_wearable_user_id(subject_id)
 
+        # 0. Enforce KinGuard Authorization Layer Consent Boundary
+        # Wearable data is protected health information (PHI). Active consent is strictly required.
+        has_consent = await self.verify_wearable_consent(subject_id=subject.id)
+        if not has_consent:
+            raise ValueError("Active parent/coordinator wearable health data consent is required before connecting a device.")
+
         # 1. Maintain WearableConnection in PostgreSQL (Pending state)
         res_conn = await self.session.execute(
             select(WearableConnection).where(
@@ -146,6 +156,167 @@ class WearableService:
 
         # 2. Open Wearables connection flow
         return await self.gateway.create_connection_invitation(wearable_user_id, provider)
+
+    async def verify_wearable_consent(
+        self,
+        subject_id: uuid.UUID,
+        requester_profile_id: Optional[uuid.UUID] = None
+    ) -> bool:
+        """
+        Enforces authorization layer check for active wearable health data consent.
+        Returns True if an active consent record exists for the subject/family.
+        """
+        query = select(Consent).where(
+            Consent.subject_id == subject_id,
+            Consent.status == "active"
+        )
+        if requester_profile_id:
+            query = query.where(
+                (Consent.grantor_profile_id == requester_profile_id) |
+                (Consent.grantee_profile_id == requester_profile_id)
+            )
+        res = await self.session.execute(query)
+        active_consent = res.scalar_one_or_none()
+        return active_consent is not None
+
+    async def get_consent_status(
+        self,
+        family_id: uuid.UUID,
+        subject_id: uuid.UUID,
+        requester_profile_id: Optional[uuid.UUID] = None
+    ) -> WearableConsentStatusResponse:
+        """
+        Retrieves current consent status and the mandatory pre-connection disclosures:
+        - What KinGuard can receive: Activity, Sleep, Heart rate
+        - Revocation guarantee: You can disconnect this device at any time.
+        """
+        query = select(Consent).where(
+            Consent.family_id == family_id,
+            Consent.subject_id == subject_id,
+            Consent.status == "active"
+        )
+        if requester_profile_id:
+            query = query.where(
+                (Consent.grantor_profile_id == requester_profile_id) |
+                (Consent.grantee_profile_id == requester_profile_id)
+            )
+        res = await self.session.execute(query)
+        consent = res.scalar_one_or_none()
+
+        if consent:
+            return WearableConsentStatusResponse(
+                subject_id=subject_id,
+                family_id=family_id,
+                is_consent_granted=True,
+                status="active",
+                disclosures=["Activity", "Sleep", "Heart rate"],
+                revocation_policy="You can disconnect this device at any time.",
+                granted_scopes=consent.scope or {"activity": True, "sleep": True, "heart_rate": True},
+                granted_at=consent.granted_at,
+                expires_at=consent.expires_at
+            )
+
+        return WearableConsentStatusResponse(
+            subject_id=subject_id,
+            family_id=family_id,
+            is_consent_granted=False,
+            status="not_requested",
+            disclosures=["Activity", "Sleep", "Heart rate"],
+            revocation_policy="You can disconnect this device at any time.",
+            granted_scopes={},
+            granted_at=None,
+            expires_at=None
+        )
+
+    async def grant_wearable_consent(
+        self,
+        family_id: uuid.UUID,
+        subject_id: uuid.UUID,
+        grantor_profile_id: uuid.UUID,
+        grantee_profile_id: uuid.UUID,
+        scopes: Optional[Dict[str, bool]] = None
+    ) -> WearableConsentStatusResponse:
+        """
+        Explicitly records consent granted by parent/coordinator in the KinGuard authorization layer.
+        """
+        if grantor_profile_id == grantee_profile_id:
+            raise ValueError("Grantor profile and grantee profile must be distinct.")
+
+        effective_scopes = scopes or {
+            "activity": True,
+            "sleep": True,
+            "heart_rate": True
+        }
+
+        # Check existing consent
+        res = await self.session.execute(
+            select(Consent).where(
+                Consent.family_id == family_id,
+                Consent.subject_id == subject_id,
+                Consent.grantor_profile_id == grantor_profile_id,
+                Consent.grantee_profile_id == grantee_profile_id
+            )
+        )
+        existing = res.scalar_one_or_none()
+        if existing:
+            existing.status = "active"
+            existing.scope = effective_scopes
+            existing.revoked_at = None
+            existing.version += 1
+            existing.updated_at = datetime.utcnow()
+            consent_obj = existing
+        else:
+            consent_obj = Consent(
+                id=uuid.uuid4(),
+                family_id=family_id,
+                subject_id=subject_id,
+                grantor_profile_id=grantor_profile_id,
+                grantee_profile_id=grantee_profile_id,
+                consent_type="wearable_health_data",
+                scope=effective_scopes,
+                status="active"
+            )
+            self.session.add(consent_obj)
+
+        await self.session.commit()
+        return await self.get_consent_status(family_id, subject_id, grantee_profile_id)
+
+    async def revoke_wearable_consent(
+        self,
+        family_id: uuid.UUID,
+        subject_id: uuid.UUID,
+        revoking_profile_id: uuid.UUID
+    ) -> WearableConsentStatusResponse:
+        """
+        Revokes consent at any time. Immediately pauses ingestion and marks connections as disconnected.
+        """
+        res = await self.session.execute(
+            select(Consent).where(
+                Consent.family_id == family_id,
+                Consent.subject_id == subject_id,
+                Consent.status == "active",
+                (Consent.grantor_profile_id == revoking_profile_id) | (Consent.grantee_profile_id == revoking_profile_id)
+            )
+        )
+        consents = res.scalars().all()
+        for c in consents:
+            c.status = "revoked"
+            c.revoked_at = datetime.utcnow()
+
+        # Disconnect all active connections
+        res_conns = await self.session.execute(
+            select(WearableConnection).where(
+                WearableConnection.subject_id == subject_id,
+                WearableConnection.connection_status.in_(["connected", "active", "pending"])
+            )
+        )
+        for conn in res_conns.scalars().all():
+            conn.connection_status = "disconnected"
+            conn.disconnected_at = datetime.utcnow()
+
+        await self.session.commit()
+        return await self.get_consent_status(family_id, subject_id, revoking_profile_id)
+
 
 
     async def get_activity_history(

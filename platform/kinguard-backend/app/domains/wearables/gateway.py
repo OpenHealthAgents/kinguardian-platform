@@ -1,12 +1,31 @@
 """
-Open Wearables Gateway Module.
-Provides Hexagonal Ports & Adapters for communicating with the self-hosted Open Wearables platform.
+Wearable Data Gateway Module (Hexagonal Anti-Corruption Layer).
+Treats Open Wearables purely as an EXTERNAL INFRASTRUCTURE CAPABILITY.
+
+Architectural Topology:
+Mobile App
+    ↓
+KinGuard API
+    ↓
+WearableDataGateway (Anti-Corruption Layer)
+    ↓
+Open Wearables (External Capability Platform)
+    ↓
+Wearable Provider (Garmin, Oura, Apple Health, Health Connect, Whoop, Fitbit)
+
+Ownership Boundary:
+1. KinGuard Backend OWNS:
+   - "This wearable/health-data identity belongs to this KinGuard parent (CareSubject)."
+   - Family Circle RBAC, Consent Grants, and Dual-Timezone Presentation.
+   - Transactional Outbox Event Staging & Guardian Moment AI Synthesis.
+2. Open Wearables OWNS:
+   - "This provider account/device produced these normalized measurements."
+   - Third-party OAuth token refreshes, rate-limiting, and webhook ingestion.
 
 Guarantees:
-- Zero duplication: All third-party wearable provider logic (Garmin, Oura, Apple Health, Whoop, Fitbit)
-  is handled by Open Wearables.
+- Zero duplication: No provider-specific SDK or OAuth logic resides in KinGuard.
+- Schema isolation: Open Wearables internal schemas are translated via ACL into KinGuard domain DTOs.
 - Resilience: All outbound calls are protected by a CircuitBreaker and strict HTTP timeouts.
-- Fallback: Gracefully degrades to cached biometrics or mock baselines on upstream network partitions.
 """
 
 import abc
@@ -34,8 +53,11 @@ from app.domains.wearables.schemas import (
 logger = get_logger(__name__)
 
 
-class IOpenWearablesGateway(abc.ABC):
-    """Port interface for Open Wearables integration."""
+class WearableDataGateway(abc.ABC):
+    """
+    Primary Port interface for wearable telemetry retrieval.
+    Acts as the Hexagonal Boundary isolating KinGuard from external wearable platforms.
+    """
 
     @abc.abstractmethod
     async def get_user_connections(self, user_id: str) -> List[DeviceConnectionResponse]:
@@ -78,7 +100,12 @@ class IOpenWearablesGateway(abc.ABC):
         pass
 
 
-class HttpOpenWearablesGateway(IOpenWearablesGateway):
+# Backwards compatibility alias
+IOpenWearablesGateway = WearableDataGateway
+
+
+class HttpOpenWearablesGateway(WearableDataGateway):
+
     """
     Production HTTP Adapter for Open Wearables API.
     Interacts with Open Wearables backend endpoints protected by CircuitBreaker.

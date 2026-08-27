@@ -2,6 +2,15 @@
 Wearable Domain Service Module.
 Orchestrates care-subject wearable mappings, metrics querying, webhook event handling,
 and Guardian AI anomaly detection.
+
+ARCHITECTURAL PRINCIPLES:
+1. Open Wearables is treated as an EXTERNAL INFRASTRUCTURE CAPABILITY.
+2. KinGuard Backend OWNS the identity relationship:
+   “This wearable/health-data identity belongs to this KinGuard parent (CareSubject).”
+3. Open Wearables OWNS:
+   “This provider account/device produced these normalized measurements.”
+4. Anti-Corruption Layer (ACL): Open Wearables-specific schemas never pollute KinGuard
+   domain models. All communication passes through WearableDataGateway into KinGuard DTOs.
 """
 
 import uuid
@@ -14,7 +23,7 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.logging import get_logger
-from app.domains.wearables.gateway import IOpenWearablesGateway, HttpOpenWearablesGateway
+from app.domains.wearables.gateway import WearableDataGateway, HttpOpenWearablesGateway
 from app.domains.wearables.schemas import (
     DeviceConnectionResponse,
     DeviceConnectUrlResponse,
@@ -36,13 +45,14 @@ logger = get_logger(__name__)
 
 class WearableService:
     """
-    Business logic and orchestration service for wearable device telemetry.
+    Business logic and domain orchestration service for wearable health telemetry.
+    Maintains the invariant: CareSubject (Parent) <-> Wearable Health-Data Identity.
     """
 
     def __init__(
         self,
         session: AsyncSession,
-        gateway: Optional[IOpenWearablesGateway] = None,
+        gateway: Optional[WearableDataGateway] = None,
         outbox_svc: Optional[OutboxService] = None
     ):
         self.session = session
@@ -52,9 +62,12 @@ class WearableService:
     @staticmethod
     def get_wearable_user_id(subject_id: uuid.UUID) -> str:
         """
-        Derives the deterministic Open Wearables user identifier for a KinGuard care subject.
+        Derives the deterministic Open Wearables external identity for a KinGuard care subject.
+        KinGuard owns this identity mapping:
+        KinGuard CareSubject (Parent) <---> Open Wearables External ID ("kinguard_subject_{uuid}").
         """
         return f"kinguard_subject_{subject_id}"
+
 
     async def get_subject_connections(self, subject_id: uuid.UUID) -> List[DeviceConnectionResponse]:
         """Fetch all connected wearable devices for a subject."""

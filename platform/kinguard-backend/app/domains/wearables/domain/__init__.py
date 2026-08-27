@@ -63,6 +63,13 @@ from app.domains.wearables.domain.availability import (
     WearableDataAvailabilityResult,
     WearableDataAvailabilityEvaluator
 )
+from app.domains.wearables.domain.quality import (
+    QualityViolationType,
+    QualityViolation,
+    QualityAuditReport,
+    WearableDataQualityService
+)
+
 
 __all__ = [
     "WearableIdentity",
@@ -110,8 +117,13 @@ __all__ = [
     "DataAvailabilityPillar",
     "DataQualityClassification",
     "WearableDataAvailabilityResult",
-    "WearableDataAvailabilityEvaluator"
+    "WearableDataAvailabilityEvaluator",
+    "QualityViolationType",
+    "QualityViolation",
+    "QualityAuditReport",
+    "WearableDataQualityService"
 ]
+
 
 
 

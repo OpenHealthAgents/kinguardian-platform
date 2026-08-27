@@ -123,6 +123,11 @@ from app.domains.wearables.domain.multimodal_checkin_correlation import (
     MultimodalCorrelationAssessment,
     MultimodalWearableCheckinCorrelator
 )
+from app.domains.wearables.domain.clinical_correlation import (
+    ClinicalCorrelationContext,
+    ClinicalCorrelationTrend,
+    WearableClinicalCorrelationEngine
+)
 
 __all__ = [
     "WearableIdentity",
@@ -210,8 +215,12 @@ __all__ = [
     "CreatedCareTask",
     "WearableCareCoordinatorService",
     "MultimodalCorrelationAssessment",
-    "MultimodalWearableCheckinCorrelator"
+    "MultimodalWearableCheckinCorrelator",
+    "ClinicalCorrelationContext",
+    "ClinicalCorrelationTrend",
+    "WearableClinicalCorrelationEngine"
 ]
+
 
 
 

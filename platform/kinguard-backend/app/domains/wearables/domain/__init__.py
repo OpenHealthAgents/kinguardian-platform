@@ -38,6 +38,7 @@ from app.domains.wearables.domain.policies import (
     SleepDisruptionPolicy,
     AutonomicRecoveryPolicy
 )
+from app.domains.wearables.domain.normalizer import WearableMetricNormalizer
 
 __all__ = [
     "WearableIdentity",
@@ -45,6 +46,7 @@ __all__ = [
     "WearableDailySummary",
     "WearableAnomalyDiagnostic",
     "WearableMetric",
+    "WearableMetricNormalizer",
     "DeviceProvider",
     "ConnectionStatus",
     "AnomalySeverity",
@@ -66,4 +68,3 @@ __all__ = [
     "SleepDisruptionPolicy",
     "AutonomicRecoveryPolicy",
 ]
-

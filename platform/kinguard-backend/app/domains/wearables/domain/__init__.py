@@ -80,7 +80,13 @@ from app.domains.wearables.domain.source_priority_policy import (
     PolicyResolvedMetric,
     ConfigurableSourcePriorityEngine
 )
-
+from app.domains.wearables.domain.aggregation_policy import (
+    AggregationMethod,
+    SourceProvenance,
+    MetricAggregationRule,
+    AggregatedWearableMetric,
+    MetricAggregationPolicy
+)
 
 __all__ = [
     "WearableIdentity",
@@ -139,8 +145,14 @@ __all__ = [
     "SourcePriorityRule",
     "SourcePriorityPolicy",
     "PolicyResolvedMetric",
-    "ConfigurableSourcePriorityEngine"
+    "ConfigurableSourcePriorityEngine",
+    "AggregationMethod",
+    "SourceProvenance",
+    "MetricAggregationRule",
+    "AggregatedWearableMetric",
+    "MetricAggregationPolicy"
 ]
+
 
 
 

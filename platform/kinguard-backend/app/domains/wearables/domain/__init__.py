@@ -57,6 +57,12 @@ from app.domains.wearables.domain.baselines import (
     WearableBaselineComparison,
     WearableBaselineCalculator
 )
+from app.domains.wearables.domain.availability import (
+    DataAvailabilityPillar,
+    DataQualityClassification,
+    WearableDataAvailabilityResult,
+    WearableDataAvailabilityEvaluator
+)
 
 __all__ = [
     "WearableIdentity",
@@ -100,8 +106,13 @@ __all__ = [
     "BaselineWindow",
     "WearableBaselineComparison",
     "WearableBaselineCalculator",
-    "WearableGuardianMoment"
+    "WearableGuardianMoment",
+    "DataAvailabilityPillar",
+    "DataQualityClassification",
+    "WearableDataAvailabilityResult",
+    "WearableDataAvailabilityEvaluator"
 ]
+
 
 
 

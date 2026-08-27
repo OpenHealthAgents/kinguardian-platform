@@ -74,6 +74,13 @@ from app.domains.wearables.domain.multidevice import (
     ResolvedWearableMetric,
     MultiDeviceDataSynthesizer
 )
+from app.domains.wearables.domain.source_priority_policy import (
+    SourcePriorityRule,
+    SourcePriorityPolicy,
+    PolicyResolvedMetric,
+    ConfigurableSourcePriorityEngine
+)
+
 
 __all__ = [
     "WearableIdentity",
@@ -128,8 +135,13 @@ __all__ = [
     "WearableDataQualityService",
     "MetricSourcePriorityConfig",
     "ResolvedWearableMetric",
-    "MultiDeviceDataSynthesizer"
+    "MultiDeviceDataSynthesizer",
+    "SourcePriorityRule",
+    "SourcePriorityPolicy",
+    "PolicyResolvedMetric",
+    "ConfigurableSourcePriorityEngine"
 ]
+
 
 
 

@@ -830,7 +830,7 @@ wheels = [
 ]
 
 [[package]]
-name = "kinguard-backend"
+name = "kinguardian-backend"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

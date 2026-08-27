@@ -683,15 +683,26 @@ class GetWearableMetricsTool(KinGuardDomainTool):
             }
 
 
-# ==========================================
-# Controlled Tool Registry
-# ==========================================
+from app.domains.agent.wearable_tools import (
+    GetWearableConnectionsTool,
+    GetWearableSummaryTool,
+    GetActivityTrendTool,
+    GetSleepTrendTool,
+    GetHeartRateTrendTool,
+    GetMetricHistoryTool,
+    GetWearableSyncStatusTool
+)
+
 
 class ControlledToolRegistry:
     """
     Controlled Domain Tool Registry for bezs-agent.
     Registers domain tools, generates tool definitions, and safely executes tools
     with independent authorization checks following least privilege.
+
+    SECURITY INVARIANT:
+    - Never exposes `raw_database_query`
+    - Never exposes unrestricted Open Wearables API access
     """
     TOOL_CLASSES: List[Type[KinGuardDomainTool]] = [
         GetParentSummaryTool,
@@ -706,8 +717,16 @@ class ControlledToolRegistry:
         SendFamilyMessageTool,
         PrepareAppointmentTool,
         CreateInsightTool,
-        GetWearableMetricsTool
+        GetWearableMetricsTool,
+        GetWearableConnectionsTool,
+        GetWearableSummaryTool,
+        GetActivityTrendTool,
+        GetSleepTrendTool,
+        GetHeartRateTrendTool,
+        GetMetricHistoryTool,
+        GetWearableSyncStatusTool
     ]
+
 
 
     def __init__(

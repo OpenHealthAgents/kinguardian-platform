@@ -473,8 +473,9 @@ async def test_ai_context_builder_and_wearables_tool_integration(test_db_session
     assert subj_ctx.wearables["latest_activity"]["steps"] == 5840
 
     prompt = context_payload.to_prompt_context()
-    assert "Wearable Telemetry (Open Wearables)" in prompt
-    assert "5840" in prompt
+    assert "Wearable Telemetry" in prompt
+    assert "5,840" in prompt or "5840" in prompt
+
 
     # 2. Controlled Tool Registry test
     tool_registry = ControlledToolRegistry(

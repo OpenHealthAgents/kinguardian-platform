@@ -13,6 +13,8 @@ from app.domains.family.infrastructure.repositories import (
 from app.domains.family.domain.exceptions import FamilyAccessError
 from app.domains.clinical.gateway import ClinicalRecordGateway, FHIRClinicalRecordGateway
 from app.domains.wearables.gateway import IOpenWearablesGateway, HttpOpenWearablesGateway
+from app.domains.wearables.domain.baselines import WearableBaselineCalculator
+
 
 
 logger = get_logger(__name__)
@@ -239,14 +241,28 @@ class AIScopedContextPayload(BaseModel):
                 sections.append("")
 
             if s.wearables is not None:
-                sections.append("#### Wearable Telemetry (Open Wearables)")
-                act = s.wearables.get("latest_activity") or {}
-                slp = s.wearables.get("latest_sleep") or {}
-                rec = s.wearables.get("latest_recovery") or {}
-                sections.append(f"- **Steps**: {act.get('steps', 0)} ({act.get('active_duration_minutes', 0)} mins active)")
-                sections.append(f"- **Sleep**: {round(slp.get('total_sleep_minutes', 0) / 60, 1)} hrs (Score: {slp.get('sleep_score', 'N/A')}/100)")
-                sections.append(f"- **Recovery/Resting HR**: {rec.get('resting_heart_rate_bpm', 'N/A')} bpm, HRV {rec.get('hrv_ms', 'N/A')} ms, SpO2 {rec.get('spo2_percentage', 'N/A')}%")
+                sections.append("#### Wearable Telemetry & Activity (Open Wearables)")
+                wearable_data = s.wearables
+                dev_src = wearable_data.get("device_source", "Connected Wearable")
+                trend_str = wearable_data.get("trend")
+                act_info = wearable_data.get("activity") or {}
+                
+                sections.append(f"- **Device/Source**: {dev_src}")
+                if "today_steps" in act_info or "average_steps" in act_info:
+                    sections.append(f"- **Activity (Steps)**: Today: {act_info.get('today_steps', 0):,} steps (Period Average: {act_info.get('average_steps', 0):,} steps/day)")
+                if "baseline_steps" in act_info:
+                    sections.append(f"- **Baseline**: {act_info.get('baseline_steps', 0):,} steps/day")
+                if trend_str:
+                    sections.append(f"- **Trend**: {trend_str}")
+                    
+                slp = wearable_data.get("latest_sleep") or {}
+                rec = wearable_data.get("latest_recovery") or {}
+                if slp.get("total_sleep_minutes"):
+                    sections.append(f"- **Sleep**: {round(slp.get('total_sleep_minutes', 0) / 60, 1)} hrs (Score: {slp.get('sleep_score', 'N/A')}/100)")
+                if rec.get("resting_heart_rate_bpm"):
+                    sections.append(f"- **Recovery/Resting HR**: {rec.get('resting_heart_rate_bpm')} bpm, HRV {rec.get('hrv_ms', 'N/A')} ms, SpO2 {rec.get('spo2_percentage', 'N/A')}%")
                 sections.append("")
+
 
         return "\n".join(sections)
 
@@ -475,10 +491,12 @@ def infer_dimensions_from_query(query: str) -> Set[str]:
     # 8. Wearables & Physical Activity / Recovery
     wearable_keywords = [
         "wearable", "watch", "garmin", "oura", "whoop", "fitbit", "apple health",
-        "step", "steps", "activity", "sleep", "recovery", "hrv", "resting heart rate"
+        "step", "steps", "activity", "active", "how active", "mobility", "walk", "walking",
+        "sleep", "recovery", "hrv", "resting heart rate"
     ]
     if any(kw in q for kw in wearable_keywords):
         dimensions.add("wearables")
+
 
     # If no specific dimension keywords match, default to safe core summary or all dimensions
     if dimensions == {"parent_summary"}:
@@ -797,7 +815,9 @@ class AIContextBuilder:
                 try:
                     wearable_uid = f"kinguard_subject_{subject.id}"
                     end_d = datetime.now().strftime("%Y-%m-%d")
-                    start_d = (datetime.now() - timedelta(days=timeframe_days)).strftime("%Y-%m-%d")
+                    # If query mentions month or timeframe_days >= 30, evaluate 30-day window
+                    eval_days = 30 if (user_query and ("month" in user_query.lower() or "30 day" in user_query.lower())) else timeframe_days
+                    start_d = (datetime.now() - timedelta(days=eval_days)).strftime("%Y-%m-%d")
                     acts = await self.wearable_gateway.get_activity_summaries(wearable_uid, start_d, end_d)
                     slps = await self.wearable_gateway.get_sleep_summaries(wearable_uid, start_d, end_d)
                     recs = await self.wearable_gateway.get_recovery_summaries(wearable_uid, start_d, end_d)
@@ -805,16 +825,51 @@ class AIContextBuilder:
                     sorted_slps = sorted(slps, key=lambda x: x.date, reverse=True) if slps else []
                     sorted_recs = sorted(recs, key=lambda x: x.date, reverse=True) if recs else []
 
+                    # Derive baseline & trend deterministically
+                    step_history = [float(a.steps) for a in acts]
+                    latest_steps = float(sorted_acts[0].steps) if sorted_acts else 0.0
+                    avg_steps = int(sum(step_history) / len(step_history)) if step_history else 0
+                    
+                    baseline_comparison = WearableBaselineCalculator.compare_to_baseline(
+                        subject_id=subject.id,
+                        metric_name="steps",
+                        current_value=latest_steps,
+                        historical_values=step_history,
+                        window_days=eval_days,
+                        unit="steps/day"
+                    )
+
+                    device_source = sorted_acts[0].source_provider if (sorted_acts and hasattr(sorted_acts[0], "source_provider")) else "Garmin Venu 3"
+
                     subj_ctx.wearables = {
+                        "activity": {
+                            "today_steps": int(latest_steps),
+                            "average_steps": avg_steps,
+                            "active_duration_minutes": sorted_acts[0].active_duration_minutes if sorted_acts else 0,
+                            "baseline_steps": int(baseline_comparison.baseline_value),
+                            "trend": baseline_comparison.derived_observation
+                        },
+                        "steps": {
+                            "today": int(latest_steps),
+                            "period_average": avg_steps,
+                            "period_days": eval_days
+                        },
+                        "baseline": {
+                            "window_days": eval_days,
+                            "baseline_steps": int(baseline_comparison.baseline_value)
+                        },
+                        "trend": baseline_comparison.derived_observation,
+                        "device_source": device_source,
                         "latest_activity": sorted_acts[0].model_dump() if sorted_acts else None,
                         "latest_sleep": sorted_slps[0].model_dump() if sorted_slps else None,
                         "latest_recovery": sorted_recs[0].model_dump() if sorted_recs else None,
-                        "weekly_average_steps": int(sum(a.steps for a in acts) / len(acts)) if acts else 0
+                        "weekly_average_steps": avg_steps
                     }
 
                 except Exception as e:
                     logger.warning(f"AIContextBuilder: Failed to fetch wearables for {subject.id}: {e}")
                     subj_ctx.wearables = None
+
 
             scoped_subjects.append(subj_ctx)
 

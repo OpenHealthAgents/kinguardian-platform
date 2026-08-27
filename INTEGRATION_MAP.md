@@ -82,21 +82,35 @@ flowchart TD
 - **Circuit Breaker**: `failure_threshold: 3`, `recovery_timeout: 15s`, `half_open_probes: 1`.
 - **Degradation Policy**: When breaker is OPEN or LLM fails, returns safe fallback insight: *"KinGuard couldn't generate the insight right now. You can review the underlying health information."*
 
-### 2.5 Observability & Telemetry (`bezs-observability` / `watcher24`)
-- **Protocol**: OpenTelemetry (OTLP HTTP / gRPC)
-- **Base URL Setting**: `OBSERVABILITY_URL`
-- **Adapter**: `TelemetryService` / `MetricsCollector` (`app/core/telemetry.py`)
-- **Dispatch**: Non-blocking background buffer with zero interference to primary request latency.
+### 2.6 Wearable Aggregation Platform (`open-wearables`)
+- **Protocol**: HTTP REST API (`/v1/users`, `/v1/connections`, `/v1/metrics`) & Inbound HMAC Webhooks
+- **Base URL Setting**: `OPEN_WEARABLES_BASE_URL`, `OPEN_WEARABLES_API_KEY` (SecretStr)
+- **Gateway Adapter**: `OpenWearablesGateway` / `MockWearableDataGateway` (`app/domains/wearables/gateway.py`)
+- **Database Catalog Isolation**: Uses independent `open_wearables_db` PostgreSQL catalog.
+- **Failover / Error Boundary**: On provider outage, returns sanitized `WEARABLE_SERVICE_UNAVAILABLE` with message: *"We couldn't update your health data right now. Your connection is still intact."*
+
+### 2.7 Ingestion & ETL Pipelines (`bezs-pipeline`)
+- **Protocol**: Pipeline Connectors / Extractors / Transformers / Loaders
+- **Integration Mechanism**: Internal transformation engine for bulk telemetry and EHR legacy imports. Writes clinical records solely through owner REST APIs.
+
+### 2.8 Clinical Application Surface (`bezs-hms`)
+- **Protocol**: Next.js / React Hospital Portal
+- **Integration Mechanism**: Interacts with `bezs-emr-core`, `bezs-filenest`, and `bezs-iam` for hospital staff, physician, and administrative UI workflows.
 
 ---
 
 ## 3. Communication Channels & Protocols Summary
 
-| Service | Target Port / Protocol | Auth Method | Idempotency Header | Fallback Strategy |
-| :--- | :--- | :--- | :--- | :--- |
-| **`bezs-iam`** | `4000/http` | RS256 JWKS | N/A (Read-only) | Cached JWKS public key set |
-| **`bezs-emr-core`** | `8001/http` | Bearer Token | `Idempotency-Key` on mutations | Degraded in-memory clinical stub |
-| **`bezs-emr-gql`** | `8000/http` | Bearer Token | N/A (Read projections) | Cached subject timeline |
-| **`bezs-filenest`** | `8080/http` | HMAC API Key | `Idempotency-Key: upload-{sha256}` | Fast-fail with retry guidance |
-| **`bezs-agent`** | `8002/http` | Bearer Token | N/A (Guarded non-idempotent) | Safe fallback insight message |
-| **`bezs-observability`** | `4318/http` (OTLP) | Service Secret | N/A | Non-blocking drop on buffer full |
+| Service | Target Port / Protocol | Architectural Domain | Auth Method | Idempotency Header | Fallback Strategy |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`bezs-iam`** | `4000/http` | **identity/auth** | RS256 JWKS | N/A (Read-only) | Cached JWKS public key set |
+| **`bezs-emr-core`** | `8001/http` | **FHIR clinical record** | Bearer Token | `Idempotency-Key` on mutations | Degraded in-memory clinical stub |
+| **`bezs-emr-gql`** | `8000/http` | **clinical orchestration** | Bearer Token | N/A (Read projections) | Cached subject timeline |
+| **`bezs-emr-mcp`** | `8003/stdio/http` | **clinical agent tools** | MCP Protocol Token | Parameter Validation | Tool execution error rejection |
+| **`bezs-agent`** | `8002/http` | **AI runtime** | Bearer Token | N/A (Guarded non-idempotent) | Safe fallback insight message |
+| **`bezs-filenest`** | `8080/http` | **health documents** | HMAC API Key | `Idempotency-Key: upload-{sha256}` | Fast-fail with retry guidance |
+| **`bezs-pipeline`** | Ingestion library | **ingestion/ETL** | Internal worker auth | Batch checkpointing | Dead letter queue & retry |
+| **`bezs-observability`** | `4318/http` (OTLP) | **telemetry/audit** | Service Secret | N/A | Non-blocking drop on buffer full |
+| **`open-wearables`** | `8004/http` | **wearable aggregation** | Service API Key + HMAC | Webhook Event ID deduplication | Sanitized `WEARABLE_SERVICE_UNAVAILABLE` |
+| **`bezs-hms`** | `3000/http` | **clinical application surface** | IAM Session / Better Auth | Form submission CSRF / Idempotency | User-friendly reload toast |
+

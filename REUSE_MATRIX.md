@@ -1,33 +1,34 @@
-# Reuse Matrix
+# Repository Reuse Matrix
 
-## Scope and confidence
+## Scope and Architecture Overview
 
-This is a read-only inventory of the checked-out projects as of 2026-08-24. “Observed” means backed by source, manifests, or Compose configuration; a recommendation is explicitly future-state work.
+This matrix defines the authoritative reuse boundaries, integration roles, protocols, and architectural responsibilities across the 10 ecosystem repositories:
 
-| Capability | Existing implementation(s) | Evidence | Reuse decision | Next step |
+| Repository / Service | Architectural Domain | Integration Role & Protocol | Reuse Decision & Strategy | Data & Security Boundary |
 |---|---|---|---|---|
-| Identity / session management | `bezs-iam`, FileNest `iam`, Observability `apps/iam`; HMS uses Better Auth | each has a Prisma schema; IAM URLs appear in backend and EMR config | **Do not merge immediately.** They are separate deployables with different schemas. | Define issuer, audience, key-rotation and organization-claim compatibility; then select a platform IdP. |
-| FHIR clinical API | `bezs-emr-core` | FastAPI routes, SQLAlchemy models, Alembic migrations | **Reuse as system of record API.** | Expose a versioned client package from the existing gateway client rather than copying HTTP calls. |
-| EMR façade | `bezs-emr-gql` (currently REST, despite its name) | `README.md`, `app/routers/__init__.py` | **Reuse as BFF/gateway** for clients that need its auth and orchestration. | Keep REST contract stable; only add GraphQL behind a separate versioned endpoint if justified. |
-| Clinical voice/AI | `bezs-agent` | HTTP and WebSocket routers in `api/` | **Reuse through API**, not in-process imports. | Publish OpenAPI/WebSocket protocol and align auth claims. |
-| File storage | FileNest backend plus Node/React/Next.js/Python SDKs | `platform/bezs-filenest/sdks/` | **Reuse SDKs first.** HMS currently carries `vendor/filenest`. | Replace vendored copies with versioned SDK dependencies and add compatibility tests. |
-| Family-care domain | `kinguard-backend` | `app/domains/family`, `documents`, `events` | **Owner-specific.** Do not fold into FHIR without a bounded-context decision. | Integrate using adapter ports and events; retain its own migrations. |
-| Wearable aggregation | `open-wearables` | FastAPI backend, React portal, Celery workers | **Reuse through its REST API.** | Map wearable readings to EMR Observations in an explicit adapter, not shared tables. |
-| Telemetry ingestion / SDKs | Observability Go/Python services and JS/Python/Go/Rust SDKs | `platform/bezs-observability/sdk/` | **Reuse SDKs.** | Standardize one event envelope and configuration names before platform-wide adoption. |
-| ETL/search | `bezs-pipeline` | connectors/extractors/transformers/loaders factories | **Reuse internally as a pipeline library.** | Avoid treating it as an EMR write path until ownership and provenance contracts exist. |
-| Web UI primitives | HMS, IAM, FileNest web, Observability console, Wearables frontend | individual package manifests | **Candidate only.** Shared tooling is not currently a workspace. | Start with a small versioned design-token/component package after UI API audit. |
-| Mobile app | `kinguard-mobile` Expo/React Native | `package.json`, `app/`, `src/` | **Consumer, not a shared package.** | Use generated/service SDKs and typed API clients. |
+| **`bezs-iam`** | **identity/auth** | OIDC / OAuth2 / RS256 JWKS | **Reuse as Platform Identity Provider.** Stateless token validation. | Owns authentication, user credentials, sessions, and JWKS key rotation. Passwords never touch KinGuard. |
+| **`bezs-emr-core`** | **FHIR clinical record** | FHIR R4 REST API (`application/fhir+json`) | **Reuse as Clinical System of Record.** Manages Patient, Observation, Condition, MedicationStatement resources. | Owns authoritative clinical records and FHIR schemas. KinGuard accesses via `FHIRClinicalRecordGateway`. |
+| **`bezs-emr-gql`** | **clinical orchestration** | GraphQL / REST Gateway & BFF | **Reuse for Clinical Orchestration.** Provides aggregated patient timelines and clinical projections. | Orchestrates complex cross-resource clinical queries without exposing internal database schemas. |
+| **`bezs-emr-mcp`** | **clinical agent tools** | Model Context Protocol (MCP) | **Reuse for Clinical Agent Tooling.** Equips LLM agents with structured read/write clinical actions. | Enforces tool authorization, schema validation, and clinical parameter bounds before tool execution. |
+| **`bezs-agent`** | **AI runtime** | REST / WebSockets / MCP Server | **Reuse as AI Runtime.** Powers conversational Q&A, empathetic synthesis, and proactive trend evaluation. | Autonomous agent execution. Non-diagnostic invariant enforced (telemetry context is never automated clinical diagnosis). |
+| **`bezs-filenest`** | **health documents** | REST API with HMAC-SHA256 & Pre-signed URLs | **Reuse for Health Documents & WORM Storage.** Stores lab reports, discharge summaries, and clinical scans. | Owns binary blob storage, SHA-256 integrity verification, and encryption-at-rest. KinGuard stores only metadata pointers. |
+| **`bezs-pipeline`** | **ingestion/ETL** | Connectors / Extractors / Transformers / Loaders | **Reuse for Ingestion & ETL Pipelines.** Batch data transformation, legacy EHR migrations, and search indexing. | Internal pipeline and transformation engine. Writes to clinical records only through verified owner APIs. |
+| **`bezs-observability`** | **telemetry/audit** | OpenTelemetry (OTLP HTTP / gRPC) / watcher24 | **Reuse for Platform Telemetry & Audit.** Metrics, traces, logs, and compliance audit streams. | Telemetry and operational metrics. Strict Zero-PHI invariant: never logs raw biometric readings. |
+| **`open-wearables`** | **wearable aggregation** | REST API & Inbound HMAC Webhooks | **Reuse for Wearable Aggregation.** Aggregates Garmin, Apple Health, Oura, Whoop, Fitbit, and Health Connect. | Separate deployment & catalog (`open_wearables_db`). KinGuard queries normalized metrics via `WearableDataGateway`. |
+| **`bezs-hms`** | **existing healthcare application surface** | Next.js / React Hospital Portal & EHR UI | **Reuse as Clinical & Hospital Application Surface.** Clinical staff, physician, and administrative UI. | Web client for provider workflows. Integrates with EMR Core, FileNest, and IAM. |
 
-## Duplication risks
+---
 
-1. Authentication is duplicated, but schemas and deployment boundaries differ; centralization is a migration, not a safe deletion.
-2. FileNest SDK source is both published-under-project and vendored in HMS; version drift is likely.
-3. Several FastAPI services implement JWT verification, health checks, configuration, and HTTP adapters. Extract only tested, framework-neutral pieces after their claim semantics agree.
-4. Multiple React/Next applications have similar stacks, but no root Node workspace exists. Do not introduce a build-system migration merely to share one component.
+## Duplication Risks & Architectural Guardrails
 
-## Reuse guardrails
+1. **Identity & Auth Boundary**:
+   - `bezs-iam` is the single source of truth for identity authentication.
+   - Mobile and web clients authenticate with IAM $\to$ KinGuard verifies claims $\to$ KinGuard securely proxies to upstream services via service credentials.
+2. **Clinical Data Boundary**:
+   - `bezs-emr-core` owns FHIR data; `open-wearables` owns device sync pipelines; `kinguard-backend` owns family circles and care coordination.
+   - Database schemas are strictly isolated; cross-service communication occurs solely via versioned APIs and gateways.
+3. **Zero Secret Leakage**:
+   - Third-party API keys (Open Wearables, FileNest HMAC keys, EMR service keys) reside exclusively on backend secret managers.
+4. **Zero Raw Health Metric Value Logging**:
+   - `bezs-observability` and application loggers record operational events, latencies, and counts, but never emit raw PHI / biometric measurements.
 
-- Share contracts and libraries through versioned packages; do not import between deployable applications by relative path.
-- Keep PHI-bearing clinical and family-care persistence behind owner APIs.
-- Make every proposed shared library independently tested and semantically versioned.
-- Treat `platform/` projects as independently releasable until a workspace and release policy exist.

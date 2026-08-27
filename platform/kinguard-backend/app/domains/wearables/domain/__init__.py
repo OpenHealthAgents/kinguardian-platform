@@ -100,6 +100,11 @@ from app.domains.wearables.domain.retention_policy import (
     RetentionRule,
     DataRetentionPolicy
 )
+from app.domains.wearables.domain.privacy import (
+    WearableDataScope,
+    WearableAccessGrant,
+    WearablePrivacyAuthorizer
+)
 
 __all__ = [
     "WearableIdentity",
@@ -172,8 +177,12 @@ __all__ = [
     "DataRetentionCategory",
     "ExpiryAction",
     "RetentionRule",
-    "DataRetentionPolicy"
+    "DataRetentionPolicy",
+    "WearableDataScope",
+    "WearableAccessGrant",
+    "WearablePrivacyAuthorizer"
 ]
+
 
 
 

@@ -320,6 +320,37 @@ class UnifiedWearableMetricsResponse(BaseModel):
     has_more: bool = False
 
 
+class WearableActivityDerivedSummary(BaseModel):
+    """Derived read model for physical activity vs baseline."""
+    today: int = Field(..., description="Today's step count")
+    baseline: int = Field(..., description="Calculated 7-day baseline step goal/average")
+    change_percent: int = Field(..., description="Percentage change relative to baseline (+/-)")
+
+
+class WearableSleepDerivedSummary(BaseModel):
+    """Derived read model for sleep duration vs baseline."""
+    duration_minutes: int = Field(..., description="Latest nocturnal sleep duration in minutes")
+    baseline_minutes: int = Field(..., description="Calculated 7-day baseline sleep duration in minutes")
+
+
+class WearableHeartRateDerivedSummary(BaseModel):
+    """Derived read model for cardiovascular recovery vitals vs baseline."""
+    value: int = Field(..., description="Latest resting heart rate in bpm")
+    baseline: int = Field(..., description="Calculated 7-day baseline resting heart rate in bpm")
+
+
+class WearableDerivedSummaryResponse(BaseModel):
+    """
+    Mobile-friendly derived wearable summary read model.
+    Encapsulates derived health dimensions and baselines rather than raw provider payloads.
+    """
+    activity: WearableActivityDerivedSummary
+    sleep: WearableSleepDerivedSummary
+    resting_heart_rate: WearableHeartRateDerivedSummary
+    last_sync_at: Optional[datetime] = None
+
+
+
 
 
 

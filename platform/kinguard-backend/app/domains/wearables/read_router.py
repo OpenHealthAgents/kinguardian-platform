@@ -43,8 +43,10 @@ from app.domains.wearables.schemas import (
     WearableConnectionFlowDescriptor,
     WearableDisconnectResponse,
     WearableMetricItem,
-    UnifiedWearableMetricsResponse
+    UnifiedWearableMetricsResponse,
+    WearableDerivedSummaryResponse
 )
+
 
 
 
@@ -198,10 +200,32 @@ async def get_subject_wearable_connections(
 
 @router.get(
     "/summary",
+    response_model=WearableDerivedSummaryResponse,
+    summary="Get mobile-friendly derived wearable summary read model"
+)
+async def get_subject_wearable_summary(
+    subject_id: uuid.UUID,
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns mobile-friendly derived summary information:
+    - Activity: today, baseline, change_percent
+    - Sleep: duration_minutes, baseline_minutes
+    - Resting Heart Rate: value, baseline
+    - Last sync timestamp
+    """
+    await _verify_subject_access(db, current_user.id, subject_id)
+    return await service.get_derived_summary(subject_id)
+
+
+@router.get(
+    "/dashboard",
     response_model=WearableDashboardResponse,
     summary="Get aggregated wearable dashboard summary"
 )
-async def get_subject_wearable_summary(
+async def get_subject_wearable_dashboard(
     subject_id: uuid.UUID,
     current_user: AppProfile = Depends(get_current_user),
     service: WearableService = Depends(get_wearable_service),
@@ -213,6 +237,7 @@ async def get_subject_wearable_summary(
     """
     await _verify_subject_access(db, current_user.id, subject_id)
     return await service.get_wearable_dashboard(subject_id)
+
 
 
 @router.get(

@@ -42,8 +42,14 @@ from app.domains.wearables.schemas import (
     WearableConnectionFlowDescriptor,
     WearableDisconnectResponse,
     WearableMetricItem,
-    UnifiedWearableMetricsResponse
+    UnifiedWearableMetricsResponse,
+
+    WearableActivityDerivedSummary,
+    WearableSleepDerivedSummary,
+    WearableHeartRateDerivedSummary,
+    WearableDerivedSummaryResponse
 )
+
 
 
 
@@ -649,6 +655,63 @@ class WearableService:
             has_activity_anomaly=has_anomaly,
             anomaly_description=anomaly_desc
         )
+
+    async def get_derived_summary(
+        self,
+        subject_id: uuid.UUID
+    ) -> WearableDerivedSummaryResponse:
+        """
+        Derives mobile-friendly summary read model (activity, sleep, resting heart rate vs baselines)
+        for a care subject.
+        """
+        wearable_user_id = self.get_wearable_user_id(subject_id)
+
+        # 7-day query window
+        activities = await self.get_activity_history(subject_id, days=7)
+        sleeps = await self.get_sleep_history(subject_id, days=7)
+        recoveries = await self.get_recovery_history(subject_id, days=7)
+        sync_status = await self.get_sync_status(subject_id)
+
+        sorted_acts = sorted(activities, key=lambda x: x.date, reverse=True) if activities else []
+        sorted_slps = sorted(sleeps, key=lambda x: x.date, reverse=True) if sleeps else []
+        sorted_recs = sorted(recoveries, key=lambda x: x.date, reverse=True) if recoveries else []
+
+        # 1. Activity: Today, baseline, change_percent
+        today_steps = sorted_acts[0].steps if sorted_acts else 0
+        total_steps = sum(a.steps for a in sorted_acts)
+        baseline_steps = int(total_steps / len(sorted_acts)) if sorted_acts else 6000
+        change_pct = int(((today_steps - baseline_steps) / baseline_steps) * 100) if baseline_steps > 0 else 0
+
+        # 2. Sleep: Duration minutes, baseline minutes
+        today_sleep_mins = sorted_slps[0].total_sleep_minutes if sorted_slps else 420
+        total_sleep_mins = sum(s.total_sleep_minutes for s in sorted_slps)
+        baseline_sleep_mins = int(total_sleep_mins / len(sorted_slps)) if sorted_slps else 420
+
+        # 3. Resting Heart Rate: Value, baseline
+        today_rhr = sorted_recs[0].resting_heart_rate_bpm if sorted_recs and sorted_recs[0].resting_heart_rate_bpm else 68
+        rhrs = [r.resting_heart_rate_bpm for r in sorted_recs if r.resting_heart_rate_bpm is not None]
+        baseline_rhr = int(sum(rhrs) / len(rhrs)) if rhrs else 68
+
+        # 4. Last sync at
+        last_sync = sync_status.last_successful_sync_at or (sorted_acts[0].measured_at if sorted_acts and hasattr(sorted_acts[0], 'measured_at') else datetime.utcnow())
+
+        return WearableDerivedSummaryResponse(
+            activity=WearableActivityDerivedSummary(
+                today=today_steps,
+                baseline=baseline_steps,
+                change_percent=change_pct
+            ),
+            sleep=WearableSleepDerivedSummary(
+                duration_minutes=today_sleep_mins,
+                baseline_minutes=baseline_sleep_mins
+            ),
+            resting_heart_rate=WearableHeartRateDerivedSummary(
+                value=today_rhr,
+                baseline=baseline_rhr
+            ),
+            last_sync_at=last_sync
+        )
+
 
     def verify_webhook_signature(self, payload_bytes: bytes, signature_header: Optional[str]) -> bool:
         """

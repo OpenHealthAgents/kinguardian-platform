@@ -126,14 +126,23 @@ async def test_wearable_read_api_endpoints_and_pagination(test_db_session: Async
 
         # ---------------------------------------------------------------------
         # 3. GET /subjects/{subject_id}/wearables/summary
+        # Derived read model (activity, sleep, resting_heart_rate vs baselines)
         # ---------------------------------------------------------------------
         resp_summary = await client.get(f"/api/v1/subjects/{subject.id}/wearables/summary")
         assert resp_summary.status_code == 200
         summary_data = resp_summary.json()
-        assert summary_data["subject_id"] == str(subject.id)
-        assert "weekly_average_steps" in summary_data
-        assert "weekly_average_sleep_hours" in summary_data
-        assert "has_activity_anomaly" in summary_data
+        assert "activity" in summary_data
+        assert "today" in summary_data["activity"]
+        assert "baseline" in summary_data["activity"]
+        assert "change_percent" in summary_data["activity"]
+        assert "sleep" in summary_data
+        assert "duration_minutes" in summary_data["sleep"]
+        assert "baseline_minutes" in summary_data["sleep"]
+        assert "resting_heart_rate" in summary_data
+        assert "value" in summary_data["resting_heart_rate"]
+        assert "baseline" in summary_data["resting_heart_rate"]
+        assert "last_sync_at" in summary_data
+
 
         # ---------------------------------------------------------------------
         # 4. GET /subjects/{subject_id}/wearables/activity (Paginated)

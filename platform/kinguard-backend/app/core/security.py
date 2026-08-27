@@ -1,17 +1,17 @@
 """
 ================================================================================
-KinGuard Core Security & Zero-Trust Authentication Module
+KinGuardian Core Security & Zero-Trust Authentication Module
 ================================================================================
 Architecture & Rationale:
 -------------------------
 1. Identity Delegation (bezs-iam):
-   KinGuard delegates identity provisioning, credential hashing, and multi-factor
+   KinGuardian delegates identity provisioning, credential hashing, and multi-factor
    authentication to the external IAM platform (`bezs-iam`).
-   KinGuard acts as a zero-trust resource server that consumes cryptographically
+   KinGuardian acts as a zero-trust resource server that consumes cryptographically
    signed Bearer JWT tokens.
 
 2. Zero-Trust Local Profile Hydration:
-   Upon receiving a valid JWT, KinGuard extracts the immutable subject identifier (`sub`),
+   Upon receiving a valid JWT, KinGuardian extracts the immutable subject identifier (`sub`),
    validates standard OIDC claims (iss, aud, exp, iat), and hydrates or associates
    an internal `AppProfile` record. This separates auth identity from clinical care metadata.
 
@@ -21,6 +21,7 @@ Architecture & Rationale:
    memberships and explicit Granular Consents before any domain handler executes.
 ================================================================================
 """
+
 
 import uuid
 from typing import Optional, List, Dict, Any, Set

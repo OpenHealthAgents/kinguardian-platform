@@ -5,13 +5,14 @@ and Guardian AI anomaly detection.
 
 ARCHITECTURAL PRINCIPLES:
 1. Open Wearables is treated as an EXTERNAL INFRASTRUCTURE CAPABILITY.
-2. KinGuard Backend OWNS the identity relationship:
-   “This wearable/health-data identity belongs to this KinGuard parent (CareSubject).”
+2. KinGuardian Backend OWNS the identity relationship:
+   “This wearable/health-data identity belongs to this KinGuardian parent (CareSubject).”
 3. Open Wearables OWNS:
    “This provider account/device produced these normalized measurements.”
-4. Anti-Corruption Layer (ACL): Open Wearables-specific schemas never pollute KinGuard
-   domain models. All communication passes through WearableDataGateway into KinGuard DTOs.
+4. Anti-Corruption Layer (ACL): Open Wearables-specific schemas never pollute KinGuardian
+   domain models. All communication passes through WearableDataGateway into KinGuardian DTOs.
 """
+
 
 import uuid
 import hmac

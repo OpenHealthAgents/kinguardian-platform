@@ -1,10 +1,10 @@
-# KinGuard Platform Architecture & System Design
+# KinGuardian Platform Architecture & System Design
 
 ## 1. Final Architectural Principle & System Topology
 
-KinGuard is the **Family Health Intelligence and Coordination Layer** that sits at the center of the healthcare ecosystem, backed by specialized infrastructure layers:
+KinGuardian is the **Family Health Intelligence and Coordination Layer** that sits at the center of the healthcare ecosystem, backed by specialized infrastructure layers:
 
-- **KinGuard**: **Family Intelligence & Coordination Layer** (owns the **Family Care Graph**, contextual baselines, Guardian Moments, and task routing).
+- **KinGuardian**: **Family Intelligence & Coordination Layer** (owns the **Family Care Graph**, contextual baselines, Guardian Moments, and task routing).
 - **Open Wearables**: **Wearable Connectivity & Normalization Layer** (vendor OAuth, device streams, unit/timestamp normalization).
 - **FHIR R4 (`bezs-emr-core`)**: **Clinical Record Layer** (authoritative EMR system of record).
 - **FileNest (`bezs-filenest`)**: **Document Layer** (immutable WORM storage, SHA-256 integrity, lab scans).
@@ -14,8 +14,8 @@ KinGuard is the **Family Health Intelligence and Coordination Layer** that sits 
 ### The Platform Layer Breakdown
 
 ```
-                         KinGuard
-                  Family Health Layer
+                        KinGuardian
+                    Family Health Layer
                          │
        ┌─────────────────┼──────────────────┐
        │                 │                  │
@@ -39,8 +39,8 @@ KinGuard is the **Family Health Intelligence and Coordination Layer** that sits 
 
 ### The Family Care Graph Invariant
 
-The **Family Care Graph** is the core KinGuard-owned aggregate tying the entire ecosystem together:
-- **Evidence vs Decision Ownership**: Open Wearables provides the raw/normalized wearable evidence; KinGuard's Family Care Graph decides:
+The **Family Care Graph** is the core KinGuardian-owned aggregate tying the entire ecosystem together:
+- **Evidence vs Decision Ownership**: Open Wearables provides the raw/normalized wearable evidence; KinGuardian's Family Care Graph decides:
   1. **Which parent it belongs to** (CareSubject identity mapping and device source tracking).
   2. **Who is permitted to see it** (Granular consent grants and RBAC scope gates).
   3. **What changed** (Deterministic rolling baselines and metric comparisons).
@@ -63,7 +63,7 @@ graph TB
         Ingress["Ingress Controller / API Gateway (TLS 1.3, DDoS, Rate Limiting)"]
     end
 
-    subgraph KinGuard_Container ["KinGuard Application Runtime (Modular Monolith)"]
+    subgraph KinGuardian_Container ["KinGuardian Application Runtime (Modular Monolith)"]
         FastAPI["FastAPI ASGI App (:8000)"]
         AuthMiddleware["Stateless JWT Token Validator (RS256)"]
         AppServices["Application Orchestration Layer"]
@@ -71,6 +71,7 @@ graph TB
         ResilienceEngine["Resilience Engine (Timeouts, Bounded Retries, Circuit Breakers)"]
         OutboxWorker["Background Outbox / Cron Scheduler"]
     end
+
 
     subgraph Internal_Persistence ["Core Persistence & Caching"]
         PostgreSQL[("PostgreSQL 16 (Relational SoR, Outbox, Audit Logs)")]

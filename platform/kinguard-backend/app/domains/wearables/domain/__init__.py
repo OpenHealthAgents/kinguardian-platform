@@ -87,6 +87,13 @@ from app.domains.wearables.domain.aggregation_policy import (
     AggregatedWearableMetric,
     MetricAggregationPolicy
 )
+from app.domains.wearables.domain.database_strategy import (
+    MaterializationReason,
+    StorageTier,
+    WearableAnalyticsProjection,
+    ProjectionMaterializationPolicy,
+    WearableDatabaseStrategyManager
+)
 
 __all__ = [
     "WearableIdentity",
@@ -150,8 +157,14 @@ __all__ = [
     "SourceProvenance",
     "MetricAggregationRule",
     "AggregatedWearableMetric",
-    "MetricAggregationPolicy"
+    "MetricAggregationPolicy",
+    "MaterializationReason",
+    "StorageTier",
+    "WearableAnalyticsProjection",
+    "ProjectionMaterializationPolicy",
+    "WearableDatabaseStrategyManager"
 ]
+
 
 
 

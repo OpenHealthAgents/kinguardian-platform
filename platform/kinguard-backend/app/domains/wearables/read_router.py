@@ -41,8 +41,11 @@ from app.domains.wearables.schemas import (
     WearableSubjectOverview,
     CreateWearableConnectionRequest,
     WearableConnectionFlowDescriptor,
-    WearableDisconnectResponse
+    WearableDisconnectResponse,
+    WearableMetricItem,
+    UnifiedWearableMetricsResponse
 )
+
 
 
 
@@ -356,3 +359,39 @@ async def get_subject_heart_rate_paginated(
             has_previous=page > 1
         )
     )
+
+
+@router.get(
+    "/metrics",
+    response_model=UnifiedWearableMetricsResponse,
+    summary="Unified query endpoint for multi-dimensional wearable metrics"
+)
+async def get_subject_unified_metrics(
+    subject_id: uuid.UUID,
+    metric: Optional[str] = Query(default=None, description="Metric type filter (e.g. steps, distance, active_minutes, calories, sleep_duration, resting_heart_rate, heart_rate_variability, blood_oxygen)"),
+    from_: Optional[str] = Query(default=None, alias="from", description="Start date/time filter (YYYY-MM-DD)"),
+    to: Optional[str] = Query(default=None, description="End date/time filter (YYYY-MM-DD)"),
+    provider: Optional[str] = Query(default=None, description="Filter by device provider (garmin, apple_health, fitbit, oura)"),
+    source: Optional[str] = Query(default=None, description="Filter by source device name or reference"),
+    cursor: Optional[str] = Query(default=None, description="Opaque cursor token for cursor-based pagination"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of metric records to return"),
+    current_user: AppProfile = Depends(get_current_user),
+    service: WearableService = Depends(get_wearable_service),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Unified multi-dimensional query endpoint for normalized wearable metrics.
+    Supports filtering across metrics, providers, sources, date windows, and cursor pagination.
+    """
+    await _verify_subject_access(db, current_user.id, subject_id)
+    return await service.get_unified_metrics(
+        subject_id=subject_id,
+        metric=metric,
+        from_date=from_,
+        to_date=to,
+        provider=provider,
+        source=source,
+        cursor=cursor,
+        limit=limit
+    )
+

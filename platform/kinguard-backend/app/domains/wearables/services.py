@@ -40,8 +40,11 @@ from app.domains.wearables.schemas import (
     WearableConsentStatusResponse,
     WearableConsentGrantRequest,
     WearableConnectionFlowDescriptor,
-    WearableDisconnectResponse
+    WearableDisconnectResponse,
+    WearableMetricItem,
+    UnifiedWearableMetricsResponse
 )
+
 
 
 
@@ -1013,4 +1016,235 @@ class WearableService:
             "notifications_dispatched": len(generated_notifications),
             "guardian_moment": generated_insights[0].title if generated_insights else None
         }
+
+    async def get_unified_metrics(
+        self,
+        subject_id: uuid.UUID,
+        metric: Optional[str] = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+        provider: Optional[str] = None,
+        source: Optional[str] = None,
+        cursor: Optional[str] = None,
+        limit: int = 20
+    ) -> UnifiedWearableMetricsResponse:
+        """
+        Unified endpoint for querying multi-dimensional wearable metrics (steps, heart rate,
+        sleep duration, HRV, etc.) with provider/source filtering and cursor-based pagination.
+        """
+        wearable_user_id = self.get_wearable_user_id(subject_id)
+
+        # Parse date range
+        end_d = to_date or datetime.utcnow().strftime("%Y-%m-%d")
+        start_d = from_date or (datetime.utcnow() - timedelta(days=90)).strftime("%Y-%m-%d")
+
+        # Fetch telemetry from Open Wearables Gateway
+        activities = await self.gateway.get_daily_activity(wearable_user_id, start_d, end_d)
+        sleeps = await self.gateway.get_sleep(wearable_user_id, start_d, end_d)
+        recoveries = await self.gateway.get_heart_rate(wearable_user_id, start_d, end_d)
+
+        # Normalize into domain WearableMetric items
+        metrics: List[WearableMetricItem] = []
+
+        # 1. Activities
+        for act in activities:
+            try:
+                measured_at = datetime.fromisoformat(act.date)
+            except Exception:
+                measured_at = datetime.utcnow()
+
+            # Steps
+            metrics.append(
+                WearableMetricItem(
+                    subject_id=subject_id,
+                    metric="steps",
+                    value=act.steps,
+                    unit="steps",
+                    measured_at=measured_at,
+                    source_provider=act.source_provider or "garmin",
+                    source_device=source or "Garmin Venu",
+                    source_reference=f"act_{act.date}",
+                    metadata={"calories": act.calories_burned_kcal, "distance_meters": act.distance_meters}
+                )
+            )
+            # Distance
+            if act.distance_meters is not None:
+                metrics.append(
+                    WearableMetricItem(
+                        subject_id=subject_id,
+                        metric="distance",
+                        value=act.distance_meters,
+                        unit="meters",
+                        measured_at=measured_at,
+                        source_provider=act.source_provider or "garmin",
+                        source_device=source or "Garmin Venu",
+                        source_reference=f"act_{act.date}"
+                    )
+                )
+            # Active Minutes
+            if act.active_duration_minutes is not None:
+                metrics.append(
+                    WearableMetricItem(
+                        subject_id=subject_id,
+                        metric="active_minutes",
+                        value=act.active_duration_minutes,
+                        unit="minutes",
+                        measured_at=measured_at,
+                        source_provider=act.source_provider or "garmin",
+                        source_device=source or "Garmin Venu",
+                        source_reference=f"act_{act.date}"
+                    )
+                )
+            # Calories
+            if act.calories_burned_kcal is not None:
+                metrics.append(
+                    WearableMetricItem(
+                        subject_id=subject_id,
+                        metric="calories",
+                        value=act.calories_burned_kcal,
+                        unit="kcal",
+                        measured_at=measured_at,
+                        source_provider=act.source_provider or "garmin",
+                        source_device=source or "Garmin Venu",
+                        source_reference=f"act_{act.date}"
+                    )
+                )
+
+        # 2. Sleep
+        for slp in sleeps:
+            try:
+                measured_at = datetime.fromisoformat(slp.date)
+            except Exception:
+                measured_at = datetime.utcnow()
+
+            # Sleep Duration
+            metrics.append(
+                WearableMetricItem(
+                    subject_id=subject_id,
+                    metric="sleep_duration",
+                    value=slp.total_sleep_minutes,
+                    unit="minutes",
+                    measured_at=measured_at,
+                    source_provider=slp.source_provider or "garmin",
+                    source_device=source or "Garmin Venu",
+                    source_reference=f"sleep_{slp.date}",
+                    metadata={"efficiency": slp.efficiency_percentage}
+                )
+            )
+            # Sleep Score
+            if slp.sleep_score is not None:
+                metrics.append(
+                    WearableMetricItem(
+                        subject_id=subject_id,
+                        metric="sleep_score",
+                        value=slp.sleep_score,
+                        unit="score",
+                        measured_at=measured_at,
+                        source_provider=slp.source_provider or "garmin",
+                        source_device=source or "Garmin Venu",
+                        source_reference=f"sleep_{slp.date}"
+                    )
+                )
+
+        # 3. Recovery / Heart Rate
+        for rec in recoveries:
+            try:
+                measured_at = datetime.fromisoformat(rec.date)
+            except Exception:
+                measured_at = datetime.utcnow()
+
+            # Resting Heart Rate
+            if rec.resting_heart_rate_bpm is not None:
+                metrics.append(
+                    WearableMetricItem(
+                        subject_id=subject_id,
+                        metric="resting_heart_rate",
+                        value=rec.resting_heart_rate_bpm,
+                        unit="bpm",
+                        measured_at=measured_at,
+                        source_provider=rec.source_provider or "garmin",
+                        source_device=source or "Garmin Venu",
+                        source_reference=f"rec_{rec.date}"
+                    )
+                )
+            # Heart Rate Variability (HRV)
+            if rec.hrv_ms is not None:
+                metrics.append(
+                    WearableMetricItem(
+                        subject_id=subject_id,
+                        metric="heart_rate_variability",
+                        value=rec.hrv_ms,
+                        unit="ms",
+                        measured_at=measured_at,
+                        source_provider=rec.source_provider or "garmin",
+                        source_device=source or "Garmin Venu",
+                        source_reference=f"rec_{rec.date}"
+                    )
+                )
+            # Blood Oxygen (SpO2)
+            if rec.spo2_percentage is not None:
+                metrics.append(
+                    WearableMetricItem(
+                        subject_id=subject_id,
+                        metric="blood_oxygen",
+                        value=rec.spo2_percentage,
+                        unit="%",
+                        measured_at=measured_at,
+                        source_provider=rec.source_provider or "garmin",
+                        source_device=source or "Garmin Venu",
+                        source_reference=f"rec_{rec.date}"
+                    )
+                )
+
+        # Apply Filters
+        filtered = metrics
+        if metric:
+            m_lower = metric.lower().strip()
+            filtered = [
+                m for m in filtered
+                if m.metric.lower() == m_lower
+                or (m_lower in ("heart_rate", "heart-rate") and m.metric == "resting_heart_rate")
+                or (m_lower in ("sleep", "sleep_duration") and m.metric in ("sleep_duration", "sleep_score"))
+            ]
+
+        if provider:
+            p_lower = provider.lower().strip()
+            filtered = [m for m in filtered if m.source_provider.lower() == p_lower]
+
+        if source:
+            s_lower = source.lower().strip()
+            filtered = [
+                m for m in filtered
+                if (m.source_device and s_lower in m.source_device.lower())
+                or (m.source_reference and s_lower in m.source_reference.lower())
+            ]
+
+        # Sort descending by measured_at
+        filtered.sort(key=lambda x: x.measured_at, reverse=True)
+
+        # Cursor pagination
+        offset = 0
+        if cursor:
+            try:
+                import base64
+                offset = int(base64.b64decode(cursor.encode()).decode())
+            except Exception:
+                offset = 0
+
+        total_items = len(filtered)
+        paginated_items = filtered[offset : offset + limit]
+        has_more = (offset + limit) < total_items
+
+        next_cursor = None
+        if has_more:
+            import base64
+            next_cursor = base64.b64encode(str(offset + limit).encode()).decode()
+
+        return UnifiedWearableMetricsResponse(
+            items=paginated_items,
+            total_items=total_items,
+            next_cursor=next_cursor,
+            has_more=has_more
+        )
+
 

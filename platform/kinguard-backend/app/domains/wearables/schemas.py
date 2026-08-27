@@ -299,6 +299,28 @@ class WearableDisconnectResponse(BaseModel):
     disconnected_at: datetime
 
 
+class WearableMetricItem(BaseModel):
+    """Normalized domain metric representation for a care subject."""
+    subject_id: uuid.UUID
+    metric: str = Field(..., description="Metric type identifier (e.g. steps, heart_rate, sleep_duration, hrv)")
+    value: Any = Field(..., description="Biometric metric value (scalar, time duration, or stage breakdown)")
+    unit: str = Field(..., description="Standardized measurement unit (e.g. steps, bpm, minutes, ms, %)")
+    measured_at: datetime = Field(..., description="Measurement timestamp (UTC)")
+    source_provider: str = Field(..., description="Origin provider (garmin, apple_health, fitbit, oura, etc.)")
+    source_device: Optional[str] = Field(None, description="Hardware model or device identifier if available")
+    source_reference: Optional[str] = Field(None, description="External Open Wearables event or reading reference")
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class UnifiedWearableMetricsResponse(BaseModel):
+    """Unified paginated wearable metrics response supporting multi-dimension filtering."""
+    items: List[WearableMetricItem] = Field(default_factory=list)
+    total_items: int = Field(0, description="Total matching items in the queried range")
+    next_cursor: Optional[str] = Field(None, description="Opaque cursor token for next page")
+    has_more: bool = False
+
+
+
 
 
 

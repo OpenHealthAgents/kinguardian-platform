@@ -13,6 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-multi-postgres.sh:/docker-entrypoint-initdb.d/init-multi-postgres.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U iam_user -d kinguard_db"]
       interval: 5s
@@ -67,7 +68,6 @@ services:
       OPEN_WEARABLES_URL: ${OPEN_WEARABLES_URL:-http://open-wearables:8000}
       OPEN_WEARABLES_API_KEY: ${OPEN_WEARABLES_API_KEY:-dev_open_wearables_secret_key}
     depends_on:
-
       postgres:
         condition: service_healthy
       redis:
@@ -101,6 +101,7 @@ services:
         condition: service_healthy
     command: ["python", "-m", "app.workers.outbox_worker"]
 
+  # ── Open Wearables Aggregator Service (Isolated Schema Architecture) ────────
   open-wearables:
     build:
       context: ./platform/open-wearables/backend
@@ -110,7 +111,8 @@ services:
     ports:
       - "8007:8000"
     environment:
-      DATABASE_URL: postgresql+asyncpg://iam_user:iam_password@postgres:5432/kinguard_db
+      # STRICT ISOLATION: Open Wearables connects to its own isolated database `open_wearables_db`
+      DATABASE_URL: postgresql+asyncpg://open_wearables_user:open_wearables_password@postgres:5432/open_wearables_db
       REDIS_URL: redis://redis:6379/1
     depends_on:
       postgres:
@@ -121,4 +123,5 @@ services:
 volumes:
   postgres_data:
   redis_data:
+
 

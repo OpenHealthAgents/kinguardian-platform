@@ -486,7 +486,8 @@ class OpenWearablesGateway(WearableDataGateway):
 class MockWearableDataGateway(WearableDataGateway):
     """
     In-memory Mock Adapter for local development, integration tests, and CI/CD pipelines.
-    Provides realistic default telemetry for Indian care subjects (e.g. Ramesh Sharma in Chennai).
+    Provides realistic default telemetry for Indian care subjects (Dad & Mom in Chennai).
+    Allows the scenario engine to dynamically change wearable data.
     """
 
     def __init__(self):
@@ -516,83 +517,204 @@ class MockWearableDataGateway(WearableDataGateway):
         if workouts is not None:
             self._user_workouts[user_id] = workouts
 
+    def set_subject_activity(
+        self,
+        user_id: str,
+        steps: int,
+        active_minutes: int = 40,
+        date_str: Optional[str] = None
+    ):
+        """Allows scenario engine to modify subject activity data."""
+        self._ensure_default_seed(user_id)
+        d_str = date_str or datetime.utcnow().strftime("%Y-%m-%d")
+        existing = self._user_activity.get(user_id, [])
+        updated = [a for a in existing if a.date != d_str]
+        updated.insert(
+            0,
+            WearableActivitySummary(
+                date=d_str,
+                steps=steps,
+                active_duration_minutes=active_minutes,
+                calories_burned_kcal=2100.0,
+                distance_meters=round(steps * 0.75, 1),
+                source_provider="garmin" if "mom" not in user_id.lower() else "apple_health"
+            )
+        )
+        self._user_activity[user_id] = updated
+
+    def set_subject_sleep(
+        self,
+        user_id: str,
+        total_sleep_minutes: int,
+        sleep_score: int = 82,
+        date_str: Optional[str] = None
+    ):
+        """Allows scenario engine to modify subject sleep data."""
+        self._ensure_default_seed(user_id)
+        d_str = date_str or datetime.utcnow().strftime("%Y-%m-%d")
+        existing = self._user_sleep.get(user_id, [])
+        updated = [s for s in existing if s.date != d_str]
+        updated.insert(
+            0,
+            WearableSleepSummary(
+                date=d_str,
+                total_sleep_minutes=total_sleep_minutes,
+                sleep_score=sleep_score,
+                deep_sleep_minutes=int(total_sleep_minutes * 0.2),
+                light_sleep_minutes=int(total_sleep_minutes * 0.55),
+                rem_sleep_minutes=int(total_sleep_minutes * 0.25),
+                efficiency_percentage=92.0,
+                source_provider="garmin" if "mom" not in user_id.lower() else "apple_health"
+            )
+        )
+        self._user_sleep[user_id] = updated
+
+    def set_subject_heart_rate(
+        self,
+        user_id: str,
+        resting_heart_rate_bpm: int = 64,
+        hrv_ms: float = 48.0,
+        date_str: Optional[str] = None
+    ):
+        """Allows scenario engine to modify subject resting heart rate / vitals data."""
+        self._ensure_default_seed(user_id)
+        d_str = date_str or datetime.utcnow().strftime("%Y-%m-%d")
+        existing = self._user_recovery.get(user_id, [])
+        updated = [r for r in existing if r.date != d_str]
+        updated.insert(
+            0,
+            WearableRecoverySummary(
+                date=d_str,
+                resting_heart_rate_bpm=resting_heart_rate_bpm,
+                hrv_ms=hrv_ms,
+                spo2_percentage=98.0,
+                source_provider="garmin" if "mom" not in user_id.lower() else "apple_health"
+            )
+        )
+        self._user_recovery[user_id] = updated
+
+    def apply_scenario_drop(
+        self,
+        user_id: str,
+        metric: str = "steps",
+        percentage_drop: float = 20.0
+    ):
+        """Simulates a rapid telemetry change for scenario evaluation."""
+        self._ensure_default_seed(user_id)
+        if metric in ("steps", "activity"):
+            curr = self._user_activity.get(user_id, [])
+            if curr:
+                new_steps = int(curr[0].steps * (1.0 - (percentage_drop / 100.0)))
+                self.set_subject_activity(user_id, steps=new_steps)
+        elif metric == "sleep":
+            curr_s = self._user_sleep.get(user_id, [])
+            if curr_s:
+                new_sleep = int(curr_s[0].total_sleep_minutes * (1.0 - (percentage_drop / 100.0)))
+                self.set_subject_sleep(user_id, total_sleep_minutes=new_sleep)
+
     def _ensure_default_seed(self, user_id: str):
         today = datetime.utcnow()
         today_str = today.strftime("%Y-%m-%d")
+        is_mom = any(kw in user_id.lower() for kw in ("mom", "kaveri", "sunita", "mother"))
 
         if user_id not in self._user_connections:
-            self._user_connections[user_id] = [
-                DeviceConnectionResponse(
-                    id=str(uuid.uuid4()),
-                    provider="garmin",
-                    status="active",
-                    provider_user_id="garmin_user_9921",
-                    last_synced_at=datetime.utcnow(),
-                    capabilities={"activity": True, "sleep": True, "recovery": True}
-                ),
-                DeviceConnectionResponse(
-                    id=str(uuid.uuid4()),
-                    provider="apple_health",
-                    status="active",
-                    provider_user_id="apple_health_ramesh",
-                    last_synced_at=datetime.utcnow(),
-                    capabilities={"activity": True, "sleep": True, "heart_rate": True}
-                )
-            ]
+            if is_mom:
+                self._user_connections[user_id] = [
+                    DeviceConnectionResponse(
+                        id=str(uuid.uuid4()),
+                        provider="apple_health",
+                        status="active",
+                        provider_user_id="apple_health_mom",
+                        last_synced_at=datetime.utcnow(),
+                        capabilities={"activity": True, "sleep": True, "heart_rate": True}
+                    )
+                ]
+            else:
+                self._user_connections[user_id] = [
+                    DeviceConnectionResponse(
+                        id=str(uuid.uuid4()),
+                        provider="garmin",
+                        status="active",
+                        provider_user_id="garmin_user_dad",
+                        last_synced_at=datetime.utcnow(),
+                        capabilities={"activity": True, "sleep": True, "recovery": True}
+                    ),
+                    DeviceConnectionResponse(
+                        id=str(uuid.uuid4()),
+                        provider="apple_health",
+                        status="active",
+                        provider_user_id="apple_health_ramesh",
+                        last_synced_at=datetime.utcnow(),
+                        capabilities={"activity": True, "sleep": True, "heart_rate": True}
+                    )
+                ]
 
+        # Seed Activity: Dad (5,840 steps baseline) | Mom (4,200 steps baseline)
         if user_id not in self._user_activity:
+            base_steps = 4200 if is_mom else 5840
+            provider_name = "apple_health" if is_mom else "garmin"
             activities = []
             for i in range(14):
                 d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
                 activities.append(
                     WearableActivitySummary(
                         date=d_str,
-                        steps=5840 - (i * 120),
-                        active_duration_minutes=48 - (i * 2),
-                        calories_burned_kcal=2150.0 - (i * 15),
-                        distance_meters=4120.0 - (i * 80),
-                        floors_climbed=6,
-                        source_provider="garmin"
+                        steps=base_steps - (i * 120 if not is_mom else i * 50),
+                        active_duration_minutes=35 if is_mom else 48 - (i * 2),
+                        calories_burned_kcal=1850.0 if is_mom else 2150.0 - (i * 15),
+                        distance_meters=round((base_steps - (i * 120 if not is_mom else i * 50)) * 0.75, 1),
+                        floors_climbed=4 if is_mom else 6,
+                        source_provider=provider_name
                     )
                 )
             self._user_activity[user_id] = activities
 
+        # Seed Sleep: Dad (440 mins / 7h 20m) | Mom (465 mins / 7h 45m)
         if user_id not in self._user_sleep:
+            base_sleep = 465 if is_mom else 440
+            sleep_score = 88 if is_mom else 84
+            provider_name = "apple_health" if is_mom else "garmin"
             sleeps = []
             for i in range(14):
                 d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
                 sleeps.append(
                     WearableSleepSummary(
                         date=d_str,
-                        total_sleep_minutes=440 + (i * 5),
-                        deep_sleep_minutes=75,
-                        light_sleep_minutes=240,
-                        rem_sleep_minutes=95,
-                        awake_minutes=30,
-                        sleep_score=84 - (i % 5),
-                        efficiency_percentage=93.5,
-                        source_provider="garmin"
+                        total_sleep_minutes=base_sleep + (i * 5 if not is_mom else i * 2),
+                        deep_sleep_minutes=80 if is_mom else 75,
+                        light_sleep_minutes=260 if is_mom else 240,
+                        rem_sleep_minutes=100 if is_mom else 95,
+                        awake_minutes=25 if is_mom else 30,
+                        sleep_score=sleep_score - (i % 5 if not is_mom else i % 4),
+                        efficiency_percentage=94.0 if is_mom else 93.5,
+                        source_provider=provider_name
                     )
                 )
             self._user_sleep[user_id] = sleeps
 
+        # Seed Recovery / Heart Rate: Dad (RHR 64 bpm) | Mom (HR 72 bpm, RHR 68 bpm)
         if user_id not in self._user_recovery:
+            base_rhr = 68 if is_mom else 64
+            hrv_val = 52.0 if is_mom else 48.5
+            provider_name = "apple_health" if is_mom else "garmin"
             recoveries = []
             for i in range(14):
                 d_str = (today - timedelta(days=i)).strftime("%Y-%m-%d")
                 recoveries.append(
                     WearableRecoverySummary(
                         date=d_str,
-                        resting_heart_rate_bpm=64 + (i % 4),
-                        hrv_ms=48.5 - (i * 0.5),
-                        spo2_percentage=98.2,
+                        resting_heart_rate_bpm=base_rhr + (i % 4),
+                        hrv_ms=hrv_val - (i * 0.5),
+                        spo2_percentage=98.5 if is_mom else 98.2,
                         skin_temperature_celsius=36.4,
-                        recovery_score=82 - (i % 6),
-                        respiratory_rate_bpm=14.2,
-                        source_provider="garmin"
+                        recovery_score=85 if is_mom else 82 - (i % 6),
+                        respiratory_rate_bpm=14.0 if is_mom else 14.2,
+                        source_provider=provider_name
                     )
                 )
             self._user_recovery[user_id] = recoveries
+
+
 
 
 

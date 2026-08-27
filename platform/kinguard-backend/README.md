@@ -1,6 +1,7 @@
-# KinGuard Backend
+# KinGuardian Backend
 
-KinGuard is the platform backend for the two-sided cross-border parent health application.
+KinGuardian is the platform backend for the two-sided cross-border parent health application.
+
 
 ## Prerequisites
 - Python 3.12+

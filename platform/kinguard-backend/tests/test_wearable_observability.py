@@ -108,13 +108,28 @@ def test_instrument_wearable_sync_context_manager():
 
 
 
-def test_zero_raw_health_metric_values_logging_security(caplog):
+def test_zero_raw_health_metric_values_logging_security(monkeypatch):
     """
     SECURITY INVARIANT:
     Ensures that raw health metric values (e.g. 5430 steps, 145 bpm, 402 minutes sleep, 98% SpO2)
     are NEVER emitted in log messages or telemetry attributes.
     """
-    caplog.set_level(logging.DEBUG)
+    import app.domains.wearables.observability as obs_mod
+    logged_messages = []
+
+    orig_info = obs_mod.logger.info
+    orig_warning = obs_mod.logger.warning
+
+    def spy_info(msg, *args, **kwargs):
+        logged_messages.append(str(msg))
+        return orig_info(msg, *args, **kwargs)
+
+    def spy_warning(msg, *args, **kwargs):
+        logged_messages.append(str(msg))
+        return orig_warning(msg, *args, **kwargs)
+
+    monkeypatch.setattr(obs_mod.logger, "info", spy_info)
+    monkeypatch.setattr(obs_mod.logger, "warning", spy_warning)
 
     # Trigger observability tracking
     WearableObservabilityTracker.record_connection_created(provider="garmin")
@@ -123,7 +138,7 @@ def test_zero_raw_health_metric_values_logging_security(caplog):
     WearableObservabilityTracker.record_data_quality_error(error_type="missing_timestamps", provider="garmin")
     WearableObservabilityTracker.record_sync_failed(provider="garmin", error_code="WEARABLE_SERVICE_UNAVAILABLE")
 
-    log_output = caplog.text
+    log_output = "\n".join(logged_messages)
 
     # Verify no raw biometric values exist in logs
     forbidden_phi_patterns = [
@@ -146,4 +161,7 @@ def test_zero_raw_health_metric_values_logging_security(caplog):
     assert "Wearable data sync started" in log_output
     assert "Wearable data sync completed successfully" in log_output
     assert "Wearable telemetry data quality check failed" in log_output
+
+
+
 

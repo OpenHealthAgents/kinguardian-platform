@@ -8,14 +8,14 @@ services:
     environment:
       POSTGRES_USER: iam_user
       POSTGRES_PASSWORD: iam_password
-      POSTGRES_DB: kinguard_db
+      POSTGRES_DB: kinguardian_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-multi-postgres.sh:/docker-entrypoint-initdb.d/init-multi-postgres.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U iam_user -d kinguard_db"]
+      test: ["CMD-SHELL", "pg_isready -U iam_user -d kinguardian_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -53,7 +53,7 @@ services:
       - "8000:8000"
     environment:
       ENVIRONMENT: development
-      DATABASE_URL: postgresql+asyncpg://iam_user:iam_password@postgres:5432/kinguard_db
+      DATABASE_URL: postgresql+asyncpg://iam_user:iam_password@postgres:5432/kinguardian_db
       REDIS_URL: redis://redis:6379/0
       NATS_URL: nats://nats:4222
       IAM_JWKS_URL: ${IAM_JWKS_URL:-http://host.docker.internal:5001/api/auth/jwks}
@@ -85,7 +85,8 @@ services:
     restart: unless-stopped
     environment:
       ENVIRONMENT: development
-      DATABASE_URL: postgresql+asyncpg://iam_user:iam_password@postgres:5432/kinguard_db
+      DATABASE_URL: postgresql+asyncpg://iam_user:iam_password@postgres:5432/kinguardian_db
+
       REDIS_URL: redis://redis:6379/0
       NATS_URL: nats://nats:4222
       IAM_JWKS_URL: ${IAM_JWKS_URL:-http://host.docker.internal:5001/api/auth/jwks}

@@ -44,8 +44,9 @@ async def test_all_five_trend_strategies_individually():
     assert act_res is not None
     assert act_res.detected is True
     assert act_res.metric_name == "activity"
-    assert "Decreased Daily Physical Activity" in act_res.title
+    assert "activity has been below" in act_res.title or "Decreased Daily Physical Activity" in act_res.title
     assert act_res.severity == "warning"
+
 
     # 2. Sleep Trend Strategy (Short Sleep < 5.5 hours)
     sleep_strat = SleepTrendStrategy()

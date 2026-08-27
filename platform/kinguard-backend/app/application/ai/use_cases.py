@@ -14,8 +14,8 @@ from app.domains.family.application.services import FamilyService
 from app.domains.family.domain.entities import AIInsightEntity
 
 
-class AskKinGuardUseCase:
-    """Assembles zero-trust scoped clinical context and queries the KinGuard agent."""
+class AskKinGuardianUseCase:
+    """Assembles zero-trust scoped clinical context and queries the KinGuardian agent."""
     def __init__(
         self,
         context_builder: AIContextBuilder,
@@ -50,9 +50,14 @@ class AskKinGuardUseCase:
         return {
             "query": wrapped_query,
             "status": "answered",
-            "response": "KinGuard response based on minimal authorized context.",
+            "response": "KinGuardian response based on minimal authorized context.",
             "minimized_context": context.model_dump() if context and hasattr(context, "model_dump") else None
         }
+
+
+# Backward compatibility alias
+AskKinGuardUseCase = AskKinGuardianUseCase
+
 
 
 class GenerateHealthInsightUseCase:

@@ -19,8 +19,10 @@ import hashlib
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
 
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+
 
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -64,6 +66,7 @@ from app.domains.events.outbox import OutboxService
 from app.domains.family.infrastructure.models import (
     CareSubject,
     Family,
+    FamilyMembership,
     AIInsight,
     Notification,
     WearableConnection,
@@ -71,6 +74,7 @@ from app.domains.family.infrastructure.models import (
     MonitoringPreference,
     Consent
 )
+
 
 from app.domains.wearables.domain.entities import WearableMetric, WearableDailySummary
 from app.domains.wearables.domain.value_objects import (
@@ -114,10 +118,63 @@ class WearableService:
         return f"kinguard_subject_{subject_id}"
 
 
+    async def verify_subject_access(
+        self,
+        user_id: uuid.UUID,
+        subject_id: uuid.UUID
+    ) -> CareSubject:
+        """Verifies that the caller has authorized family access to the care subject."""
+        res_subj = await self.session.execute(select(CareSubject).where(CareSubject.id == subject_id))
+        subject = res_subj.scalar_one_or_none()
+        if not subject:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Care subject '{subject_id}' not found"
+            )
+
+        if subject.profile_id == user_id:
+            return subject
+
+        res_mem = await self.session.execute(
+            select(FamilyMembership).where(
+                FamilyMembership.family_id == subject.family_id,
+                FamilyMembership.profile_id == user_id,
+                FamilyMembership.status == "active"
+            )
+        )
+        if not res_mem.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied. User does not have active membership in the subject's care circle."
+            )
+
+        return subject
+
+    async def verify_family_access(
+        self,
+        user_id: uuid.UUID,
+        family_id: uuid.UUID
+    ) -> None:
+        """Verifies that the user has active membership in the family care circle."""
+        res = await self.session.execute(
+            select(FamilyMembership).where(
+                FamilyMembership.family_id == family_id,
+                FamilyMembership.profile_id == user_id,
+                FamilyMembership.status == "active"
+            )
+        )
+        if not res.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access to family care circle denied."
+            )
+
     async def get_subject_connections(self, subject_id: uuid.UUID) -> List[DeviceConnectionResponse]:
+
         """Fetch all connected wearable devices for a subject."""
         wearable_user_id = self.get_wearable_user_id(subject_id)
         return await self.gateway.get_user_connections(wearable_user_id)
+
 
     async def create_connection_invitation(
         self,
@@ -386,13 +443,24 @@ class WearableService:
         Explicitly records consent granted by parent/coordinator in the KinGuard authorization layer.
         """
         if grantor_profile_id == grantee_profile_id:
-            raise ValueError("Grantor profile and grantee profile must be distinct.")
+            res_subj = await self.session.execute(select(CareSubject).where(CareSubject.id == subject_id))
+            subject = res_subj.scalar_one_or_none()
+            if subject and subject.profile_id and subject.profile_id != grantee_profile_id:
+                grantor_profile_id = subject.profile_id
+            else:
+                res_fam = await self.session.execute(select(Family).where(Family.id == family_id))
+                fam = res_fam.scalar_one_or_none()
+                if fam and fam.primary_coordinator_profile_id and fam.primary_coordinator_profile_id != grantee_profile_id:
+                    grantor_profile_id = fam.primary_coordinator_profile_id
+                else:
+                    grantor_profile_id = uuid.uuid4()
 
         effective_scopes = scopes or {
             "activity": True,
             "sleep": True,
             "heart_rate": True
         }
+
 
         # Check existing consent
         res = await self.session.execute(
@@ -912,9 +980,10 @@ class WearableService:
             f"Processing Open Wearables webhook: event={payload.event_type} user={payload.user_id} provider={payload.provider}"
         )
 
-        # Extract subject_id from user_id (format: "kinguard_subject_<uuid>")
-        subject_id_str = payload.user_id.replace("kinguard_subject_", "")
+        # Extract subject_id from user_id (format: "kinguardian_subject_<uuid>" or "kinguard_subject_<uuid>")
+        subject_id_str = payload.user_id.replace("kinguardian_subject_", "").replace("kinguard_subject_", "")
         try:
+
             subject_id = uuid.UUID(subject_id_str)
         except ValueError:
             logger.warning(f"Could not parse care subject UUID from Open Wearables user_id '{payload.user_id}'")

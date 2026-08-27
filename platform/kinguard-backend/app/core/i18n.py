@@ -48,8 +48,9 @@ LANGUAGE_REGISTRY: Dict[str, LanguageMetadata] = {
 TRANSLATION_CATALOGS: Dict[str, Dict[str, str]] = {
     "en": {
         # General UI & Common
-        "app.name": "KinGuard",
+        "app.name": "KinGuardian",
         "welcome.greeting": "Welcome back, {name}!",
+
         "common.error": "An error occurred. Please try again.",
         "common.success": "Operation completed successfully.",
 

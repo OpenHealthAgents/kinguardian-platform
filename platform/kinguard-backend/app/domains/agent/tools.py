@@ -61,7 +61,7 @@ class AgentToolResult(BaseModel):
 
 class KinGuardDomainTool(abc.ABC):
     """
-    Base class for all KinGuard domain tools exposed to bezs-agent.
+    Base class for all KinGuardian domain tools exposed to bezs-agent.
     Enforces independent authorization and least privilege.
     """
     name: str
@@ -214,9 +214,14 @@ class KinGuardDomainTool(abc.ABC):
             )
 
 
+# Platform alias
+KinGuardianDomainTool = KinGuardDomainTool
+
+
 # ==========================================
 # 12 Domain Tool Implementations
 # ==========================================
+
 
 class GetParentSummaryTool(KinGuardDomainTool):
     name = "get_parent_summary"

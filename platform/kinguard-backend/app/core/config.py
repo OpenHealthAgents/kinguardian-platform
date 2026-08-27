@@ -11,9 +11,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """
-    KinGuard Backend Typed Configuration.
+    KinGuardian Backend Typed Configuration.
     All environment variables are validated at startup.
     """
+    PROJECT_NAME: str = Field(default="KinGuardian Platform", description="Application display name")
+    APP_NAME: str = Field(default="kinguardian", description="Application system identifier")
 
     # ── Environment & Logging ────────────────────────────────────────────────
     ENVIRONMENT: Literal["development", "testing", "staging", "production"] = Field(
@@ -28,9 +30,10 @@ class Settings(BaseSettings):
 
     # ── Core Database & Cache ────────────────────────────────────────────────
     DATABASE_URL: str = Field(
-        default="postgresql+asyncpg://iam_user:iam_password@localhost:5432/kinguard_db",
+        default="postgresql+asyncpg://iam_user:iam_password@localhost:5432/kinguardian_db",
         description="Async SQLAlchemy database connection string"
     )
+
     REDIS_URL: str = Field(
         default="redis://localhost:6379/0",
         description="Redis connection URI for caching and distributed locking"
@@ -55,16 +58,16 @@ class Settings(BaseSettings):
         description="OIDC JWKS public key discovery URL"
     )
     IAM_AUDIENCE: str = Field(
-        default="kinguard-platform-api",
+        default="kinguardian-platform-api",
         description="Expected JWT audience (aud) claim identifier"
     )
     JWT_SECRET_KEY: SecretStr = Field(
-        default=SecretStr("kinguard-secret-key-32-bytes-minimum-length-key!"),
+        default=SecretStr("kinguardian-secret-key-32-bytes-minimum-length-key!"),
         description="Secret key for local HMAC token signing/verification (masked in logs)"
     )
     JWT_ALGORITHM: str = Field(default="HS256", description="Default JWT cryptographic algorithm")
     ENCRYPTION_KEY: SecretStr = Field(
-        default=SecretStr("kinguard-phi-aes-256-gcm-master-encryption-key"),
+        default=SecretStr("kinguardian-phi-aes-256-gcm-master-encryption-key"),
         description="Master encryption key for sensitive PHI at rest (masked in logs)"
     )
 
@@ -91,7 +94,7 @@ class Settings(BaseSettings):
         description="FileNest authentication API key (masked in logs)"
     )
     FILENEST_PROJECT_ID: str = Field(
-        default="dev_project_kinguard",
+        default="dev_project_kinguardian",
         description="FileNest tenant project identifier"
     )
 
@@ -123,7 +126,8 @@ class Settings(BaseSettings):
 
     # ── Event Messaging & NATS JetStream ─────────────────────────────────────
     NATS_URL: str = Field(default="nats://localhost:4222", description="NATS JetStream cluster connection URI")
-    NATS_STREAM_NAME: str = Field(default="KINGUARD_EVENTS", description="NATS JetStream event stream name")
+    NATS_STREAM_NAME: str = Field(default="KINGUARDIAN_EVENTS", description="NATS JetStream event stream name")
+
     EVENT_BUS_TYPE: Literal["in_memory", "nats"] = Field(
         default="in_memory",
         description="Event bus implementation engine"

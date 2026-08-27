@@ -351,3 +351,8 @@ class KinGuardEMRMCPBridge:
                 "Is the current medication dosage well tolerated?"
             ]
         }
+
+
+# Platform alias
+KinGuardianEMRMCPBridge = KinGuardEMRMCPBridge
+

@@ -40,19 +40,7 @@ def get_wearable_service(session: AsyncSession = Depends(get_db)) -> WearableSer
     return WearableService(session=session)
 
 
-async def _verify_family_access(db: AsyncSession, profile_id: uuid.UUID, family_id: uuid.UUID) -> None:
-    res = await db.execute(
-        select(FamilyMembership).where(
-            FamilyMembership.family_id == family_id,
-            FamilyMembership.profile_id == profile_id,
-            FamilyMembership.status == "active"
-        )
-    )
-    if not res.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access to family care circle denied."
-        )
+    return WearableService(session=session)
 
 
 @router.get(
@@ -64,14 +52,13 @@ async def list_subject_wearable_connections(
     family_id: uuid.UUID,
     subject_id: uuid.UUID,
     current_user: AppProfile = Depends(get_current_user),
-    service: WearableService = Depends(get_wearable_service),
-    db: AsyncSession = Depends(get_db)
+    service: WearableService = Depends(get_wearable_service)
 ):
     """
     Returns all active and historical wearable device connections (Garmin, Oura, Apple Health, Fitbit)
     associated with the care subject.
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
     return await service.get_subject_connections(subject_id)
 
 
@@ -84,15 +71,14 @@ async def get_wearable_consent_status(
     family_id: uuid.UUID,
     subject_id: uuid.UUID,
     current_user: AppProfile = Depends(get_current_user),
-    service: WearableService = Depends(get_wearable_service),
-    db: AsyncSession = Depends(get_db)
+    service: WearableService = Depends(get_wearable_service)
 ):
     """
     Returns consent status along with the pre-connection checklist:
-    - What KinGuard can receive: Activity, Sleep, Heart rate
+    - What KinGuardian can receive: Activity, Sleep, Heart rate
     - Revocation guarantee: You can disconnect this device at any time.
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
     return await service.get_consent_status(family_id, subject_id, current_user.id)
 
 
@@ -106,35 +92,17 @@ async def grant_wearable_consent(
     subject_id: uuid.UUID,
     payload: WearableConsentGrantRequest,
     current_user: AppProfile = Depends(get_current_user),
-    service: WearableService = Depends(get_wearable_service),
-    db: AsyncSession = Depends(get_db)
+    service: WearableService = Depends(get_wearable_service)
 ):
     """
-    Explicitly grants consent for KinGuard to receive wearable health telemetry
+    Explicitly grants consent for KinGuardian to receive wearable health telemetry
     (Activity, Sleep, Heart rate).
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
 
     # Resolve grantor/grantee
     grantor_id = payload.grantor_profile_id or current_user.id
     grantee_id = payload.grantee_profile_id or current_user.id
-
-    # If grantor and grantee would be identical (e.g. coordinator calling directly),
-    # find subject's profile or primary coordinator
-    if grantor_id == grantee_id:
-        res_subj = await db.execute(select(CareSubject).where(CareSubject.id == subject_id))
-        subject = res_subj.scalar_one_or_none()
-        if subject and subject.profile_id and subject.profile_id != current_user.id:
-            grantor_id = subject.profile_id
-        else:
-            # Look up family primary coordinator or another member
-            res_fam = await db.execute(select(Family).where(Family.id == family_id))
-            fam = res_fam.scalar_one_or_none()
-            if fam and fam.primary_coordinator_profile_id and fam.primary_coordinator_profile_id != current_user.id:
-                grantor_id = fam.primary_coordinator_profile_id
-            else:
-                # Use system profile placeholder if solo demo user
-                grantor_id = uuid.uuid4()
 
     return await service.grant_wearable_consent(
         family_id=family_id,
@@ -143,6 +111,7 @@ async def grant_wearable_consent(
         grantee_profile_id=grantee_id,
         scopes=payload.scopes
     )
+
 
 
 @router.post(
@@ -160,7 +129,7 @@ async def revoke_wearable_consent(
     """
     Revokes wearable consent at any time. Immediately pauses ingestion and marks connections as disconnected.
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
     return await service.revoke_wearable_consent(family_id, subject_id, current_user.id)
 
 
@@ -181,7 +150,7 @@ async def generate_wearable_connect_link(
     Generates an OAuth authorization link or mobile SDK sync token (Apple Health / Health Connect)
     via Open Wearables. Enforces authorization layer consent check.
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
     try:
         return await service.create_connection_invitation(subject_id, provider)
     except ValueError as e:
@@ -206,7 +175,7 @@ async def get_connection_permissions(
     Returns the granular permissions/scope granted to a wearable device connection,
     along with clear, human-readable explanations of what data is shared.
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
     try:
         return await service.get_connection_permissions(subject_id, provider_or_id)
     except ValueError as e:
@@ -230,7 +199,7 @@ async def update_connection_permissions(
     """
     Updates the granted telemetry scopes (e.g. activity, sleep, heart_rate, workouts, weight).
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
     try:
         return await service.update_connection_permissions(subject_id, provider_or_id, payload.permissions)
     except ValueError as e:
@@ -255,7 +224,7 @@ async def get_subject_activity_history(
     Returns daily aggregated activity metrics (steps, active minutes, calories burned)
     synced from connected wearable devices.
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
     return await service.get_activity_history(subject_id, days=days)
 
 
@@ -275,7 +244,7 @@ async def get_subject_sleep_history(
     """
     Returns daily sleep duration, sleep scores, efficiency percentages, and sleep stages (deep, REM, light).
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
     return await service.get_sleep_history(subject_id, days=days)
 
 
@@ -296,7 +265,7 @@ async def get_subject_recovery_history(
     Returns resting heart rate, Heart Rate Variability (HRV), blood oxygen saturation (SpO2),
     and recovery scores.
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
     return await service.get_recovery_history(subject_id, days=days)
 
 
@@ -316,5 +285,5 @@ async def get_subject_wearable_dashboard(
     Optimized single-roundtrip endpoint returning connected providers, latest activity/sleep/recovery vitals,
     weekly averages, and baseline trend anomaly diagnostics.
     """
-    await _verify_family_access(db, current_user.id, family_id)
+    await service.verify_family_access(current_user.id, family_id)
     return await service.get_wearable_dashboard(subject_id)

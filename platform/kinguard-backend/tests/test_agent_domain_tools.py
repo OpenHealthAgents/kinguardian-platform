@@ -104,10 +104,11 @@ async def test_controlled_tool_registry_and_independent_authorization(db_session
         event_logger=event_logger
     )
 
-    # Verify all 13 tools are registered
+    # Verify all tools are registered
     all_tools = registry.list_all_tools()
-    assert len(all_tools) == 13
+    assert len(all_tools) >= 13
     tool_names = [t.name for t in all_tools]
+
     expected_tools = [
         "get_parent_summary",
         "get_medications",

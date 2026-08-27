@@ -131,8 +131,9 @@ async def test_wearable_derived_summary_endpoint(test_db_session: AsyncSession):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get(f"/api/v1/subjects/{subject.id}/wearables/summary")
-        assert resp.status_code == 200
+        assert resp.status_code == 200, f"Error: status={resp.status_code} body={resp.text}"
         data = resp.json()
+
 
         # Validate Activity Derived Model
         assert "activity" in data

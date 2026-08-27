@@ -74,37 +74,6 @@ def get_wearable_service(
     return WearableService(session=db, gateway=gateway)
 
 
-async def _verify_subject_access(
-    db: AsyncSession,
-    user_id: uuid.UUID,
-    subject_id: uuid.UUID
-) -> CareSubject:
-    """Verifies that the caller has authorized family access to the care subject."""
-    res_subj = await db.execute(select(CareSubject).where(CareSubject.id == subject_id))
-    subject = res_subj.scalar_one_or_none()
-    if not subject:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Care subject '{subject_id}' not found"
-        )
-
-    if subject.profile_id == user_id:
-        return subject
-
-    res_mem = await db.execute(
-        select(FamilyMembership).where(
-            FamilyMembership.family_id == subject.family_id,
-            FamilyMembership.profile_id == user_id,
-            FamilyMembership.status == "active"
-        )
-    )
-    if not res_mem.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied. User does not have active membership in the subject's care circle."
-        )
-
-    return subject
 
 
 @router.get(
@@ -122,7 +91,7 @@ async def get_subject_wearables_overview(
     Returns the root wearable overview for a care subject, including active connections,
     latest daily vitals, and synchronization health.
     """
-    await _verify_subject_access(db, current_user.id, subject_id)
+    await service.verify_subject_access(current_user.id, subject_id)
     wearable_user_id = service.get_wearable_user_id(subject_id)
 
     connections = await service.get_subject_connections(subject_id)
@@ -161,7 +130,7 @@ async def create_subject_wearable_connection(
     Initiates a wearable device connection flow for a care subject.
     Returns a connection flow descriptor with the hosted authorization URL and zero vendor credentials.
     """
-    await _verify_subject_access(db, current_user.id, subject_id)
+    await service.verify_subject_access(current_user.id, subject_id)
     try:
         return await service.create_connection_descriptor(
             subject_id=subject_id,
@@ -197,7 +166,7 @@ async def get_subject_wearable_connections(
     Returns all active, pending, and historical wearable connections (Apple Watch, Garmin, Fitbit, Oura)
     associated with the care subject.
     """
-    await _verify_subject_access(db, current_user.id, subject_id)
+    await service.verify_subject_access(current_user.id, subject_id)
     return await service.get_subject_connections(subject_id)
 
 
@@ -219,7 +188,7 @@ async def get_subject_wearable_summary(
     - Resting Heart Rate: value, baseline
     - Last sync timestamp
     """
-    await _verify_subject_access(db, current_user.id, subject_id)
+    await service.verify_subject_access(current_user.id, subject_id)
     return await service.get_derived_summary(subject_id)
 
 
@@ -254,8 +223,9 @@ async def get_subject_wearable_sync_status(
       My watch
       ✓ Connected
     """
-    subject = await _verify_subject_access(db, current_user.id, subject_id)
+    subject = await service.verify_subject_access(current_user.id, subject_id)
     # Default view mode: if caller is the care subject -> 'parent', else -> 'coordinator'
+
     effective_mode = view_mode or ("parent" if subject.profile_id == current_user.id else "coordinator")
     return await service.get_care_subject_sync_status(subject_id, view_mode=effective_mode)
 
@@ -275,7 +245,7 @@ async def get_subject_wearable_dashboard(
     Returns the complete aggregated wearable dashboard summary with weekly averages,
     baseline goals, and anomaly detections.
     """
-    await _verify_subject_access(db, current_user.id, subject_id)
+    await service.verify_subject_access(current_user.id, subject_id)
     return await service.get_wearable_dashboard(subject_id)
 
 
@@ -299,7 +269,7 @@ async def get_subject_activity_paginated(
     """
     Returns paginated daily activity time-series telemetry (steps, distance, active minutes, calories).
     """
-    await _verify_subject_access(db, current_user.id, subject_id)
+    await service.verify_subject_access(current_user.id, subject_id)
 
     # Resolve date range
     if not end_date:
@@ -349,7 +319,7 @@ async def get_subject_sleep_paginated(
     """
     Returns paginated sleep architecture time-series telemetry (total sleep, stages, score).
     """
-    await _verify_subject_access(db, current_user.id, subject_id)
+    await service.verify_subject_access(current_user.id, subject_id)
 
     if not end_date:
         end_date = datetime.utcnow().strftime("%Y-%m-%d")
@@ -397,7 +367,7 @@ async def get_subject_heart_rate_paginated(
     """
     Returns paginated cardiovascular and recovery vitals time-series telemetry (RHR, HRV, SpO2).
     """
-    await _verify_subject_access(db, current_user.id, subject_id)
+    await service.verify_subject_access(current_user.id, subject_id)
 
     if not end_date:
         end_date = datetime.utcnow().strftime("%Y-%m-%d")
@@ -449,7 +419,7 @@ async def get_subject_unified_metrics(
     Unified multi-dimensional query endpoint for normalized wearable metrics.
     Supports filtering across metrics, providers, sources, date windows, and cursor pagination.
     """
-    await _verify_subject_access(db, current_user.id, subject_id)
+    await service.verify_subject_access(current_user.id, subject_id)
     return await service.get_unified_metrics(
         subject_id=subject_id,
         metric=metric,

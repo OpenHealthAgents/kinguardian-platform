@@ -54,12 +54,11 @@ def custom_openapi_generator(app: FastAPI) -> Dict[str, Any]:
         return app.openapi_schema
 
     openapi_schema = get_openapi(
-        title="KinGuard Platform API",
+        title="KinGuardian Platform API",
         version="0.1.0",
         description=(
             "Enterprise two-sided cross-border parent healthcare coordination platform API. "
-            "Enforces strict HIPAA/FHIR compliance, deterministic transactional consistency, "
-            "and least-privilege consent governance."
+            "Connects coordinators globally with aging parents and local caregivers."
         ),
         routes=app.routes,
         tags=TAGS_METADATA

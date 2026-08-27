@@ -48,9 +48,10 @@ def test_docker_compose_deployment_topology_and_schema_isolation():
     kinguard_db_url = services["api"]["environment"]["DATABASE_URL"]
     open_wearables_db_url = open_wearables_svc["environment"]["DATABASE_URL"]
 
-    assert "kinguard_db" in kinguard_db_url
+    assert ("kinguardian_db" in kinguard_db_url or "kinguard_db" in kinguard_db_url)
     assert "open_wearables_db" in open_wearables_db_url
-    assert kinguard_db_url != open_wearables_db_url, "KinGuard and Open Wearables must not share PostgreSQL databases"
+    assert kinguard_db_url != open_wearables_db_url, "KinGuardian and Open Wearables must not share PostgreSQL databases"
+
 
     # 4. Multi-database init script mounted on Postgres
     postgres_volumes = services["postgres"]["volumes"]

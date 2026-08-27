@@ -54,13 +54,14 @@ logger = get_logger(__name__)
 setup_logging()
 
 app = FastAPI(
-    title="KinGuard Platform API",
+    title="KinGuardian Platform API",
     description="Scalable two-sided cross-border parent health application backend.",
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
+
 
 from app.core.openapi import custom_openapi_generator
 app.openapi = lambda: custom_openapi_generator(app)

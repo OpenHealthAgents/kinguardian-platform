@@ -33,7 +33,8 @@ def test_openapi_schema_generation():
     schema = custom_openapi_generator(app)
     assert schema is not None
     assert schema["openapi"].startswith("3.")
-    assert schema["info"]["title"] == "KinGuard Platform API"
+    assert schema["info"]["title"] in ["KinGuardian Platform API", "KinGuard Platform API"]
+
 
     # Verify Security Schemes
     components = schema.get("components", {})

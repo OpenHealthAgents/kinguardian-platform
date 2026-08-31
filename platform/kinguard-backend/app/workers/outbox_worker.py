@@ -19,9 +19,16 @@ async def run_outbox_worker(poll_interval_seconds: float = 1.0, max_iterations: 
         try:
             async with AsyncSessionLocal() as session:
                 processor = OutboxService(session)
-                processed = await processor.process_pending_events(batch_size=50)
+                processed = await processor.process_outbox_batch(batch_size=50)
                 if processed > 0:
                     logger.debug(f"Outbox Worker processed {processed} events.")
         except Exception as e:
-            logger.error(f"Outbox Worker error: {e}")
+            if "does not exist" in str(e):
+                logger.warning("Database tables not yet ready, waiting for migrations...")
+            else:
+                logger.error(f"Outbox Worker error: {e}")
         await asyncio.sleep(poll_interval_seconds)
+
+
+if __name__ == "__main__":
+    asyncio.run(run_outbox_worker())

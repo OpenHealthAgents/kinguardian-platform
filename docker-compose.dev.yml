@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -45,8 +43,8 @@ services:
 
   api:
     build:
-      context: ./platform/kinguardian-backend
-      dockerfile: Dockerfile
+      context: ./platform
+      dockerfile: ./kinguard-backend/Dockerfile
     container_name: drgodly-api
     restart: unless-stopped
     ports:
@@ -67,22 +65,30 @@ services:
       OBSERVABILITY_URL: ${OBSERVABILITY_URL:-http://host.docker.internal:4318}
       OPEN_WEARABLES_URL: ${OPEN_WEARABLES_URL:-http://open-wearables:8000}
       OPEN_WEARABLES_API_KEY: ${OPEN_WEARABLES_API_KEY:-dev_open_wearables_secret_key}
+    volumes:
+      - ./platform/kinguard-backend/app:/app/app
+      - ./platform/kinguard-backend/migrations:/app/migrations
+      - ./platform/kinguard-backend/scripts:/app/scripts
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     command: >
-      sh -c "alembic upgrade head &&
+      sh -c "python -m alembic upgrade head &&
              python scripts/seed_development_data.py &&
-             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+             python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
   worker:
     build:
-      context: ./platform/kinguardian-backend
-      dockerfile: Dockerfile
+      context: ./platform
+      dockerfile: ./kinguard-backend/Dockerfile
     container_name: drgodly-worker
     restart: unless-stopped
+    volumes:
+      - ./platform/kinguard-backend/app:/app/app
+      - ./platform/kinguard-backend/migrations:/app/migrations
+      - ./platform/kinguard-backend/scripts:/app/scripts
     environment:
       ENVIRONMENT: development
       DATABASE_URL: postgresql+asyncpg://iam_user:iam_password@postgres:5432/kinguardian_db
@@ -100,6 +106,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      api:
+        condition: service_started
+    healthcheck:
+      disable: true
     command: ["python", "-m", "app.workers.outbox_worker"]
 
   # ── Open Wearables Aggregator Service (Isolated Schema Architecture) ────────
@@ -113,8 +123,19 @@ services:
       - "8007:8000"
     environment:
       # STRICT ISOLATION: Open Wearables connects to its own isolated database `open_wearables_db`
+      SECRET_KEY: ${OPEN_WEARABLES_SECRET_KEY:-dev_open_wearables_secret_key_32_bytes}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: open_wearables_db
+      DB_USER: open_wearables_user
+      DB_PASSWORD: open_wearables_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 1
       DATABASE_URL: postgresql+asyncpg://open_wearables_user:open_wearables_password@postgres:5432/open_wearables_db
       REDIS_URL: redis://redis:6379/1
+      ENVIRONMENT: local
+    command: ["bash", "scripts/start/app.sh"]
     depends_on:
       postgres:
         condition: service_healthy

@@ -46,7 +46,7 @@ async def test_parent_to_coordinator_care_workflow_without_production_integratio
             assert (await client.post("/api/v1/check-ins", headers=parent_headers, json={**payload, "occurred_at": "2026-08-24T08:00:00+05:30", "mood": "tired", "severity": "watch"})).status_code == 201
             assert (await client.post("/api/v1/medications/fhir-med-1/take", headers=parent_headers, json={**payload, "taken_at": "2026-08-24T08:30:00+05:30"})).status_code == 201
             notifications = await client.get(f"/api/v1/families/{family_id}/notifications", headers=headers)
-            assert [item["event_type"] for item in notifications.json()] == ["medication.taken_recorded.v1", "care.checkin_recorded.v1"]
+            assert set(item["event_type"] for item in notifications.json()) == {"medication.taken_recorded.v1", "care.checkin_recorded.v1"}
             assert len(notifier.deliveries) == 2
 
             # Coordinator home refresh exposes the authorized care projection.

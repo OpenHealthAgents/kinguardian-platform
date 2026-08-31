@@ -55,6 +55,10 @@ LAKSHMI_SUBJECT_ID = uuid.UUID("cccccccc-cccc-4ccc-8ccc-cccccccccccc")
 
 
 async def seed_development_data(session: AsyncSession) -> dict:
+    existing_profile = await session.get(AppProfile, ANJALI_ID)
+    if existing_profile:
+        return {"status": "already_seeded"}
+
     utc_now = datetime.now(timezone.utc)
 
     # 1. Profiles

@@ -113,13 +113,13 @@ async def get_current_user(
     """
     if not credentials:
         if settings.ENVIRONMENT == "development":
-            # Return a default mock profile for local Swagger verification
+            # Return Anjali (primary coordinator) for local dev and Swagger verification
             service = build_family_service(db_session)
             mock_profile_entity = await service.get_or_create_profile(
-                iam_subject_id="iam_mock_subject_123",
-                email="coordinator.mock@kinguardian.com",
-                display_name="Mock Coordinator",
-                timezone="America/New_York"
+                iam_subject_id="iam_anjali_london_001",
+                email="anjali.coordinator@example.com",
+                display_name="Anjali",
+                timezone="Europe/London"
             )
             profile = await db_session.get(AppProfile, mock_profile_entity.id)
             return profile

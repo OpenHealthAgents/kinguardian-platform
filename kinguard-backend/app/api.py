@@ -150,8 +150,9 @@ async def complete_task(task_id: uuid.UUID, body: TaskComplete, session: AsyncSe
         raise HTTPException(422, "completed_at must include an offset/timezone")
     task.status, task.completed_at = "completed", body.completed_at
     await record(session, actor_id=actor.id, family_id=task.family_id, action="care.task_completed.v1", resource_type="care_task", resource_id=task.id, payload={"subject_id": str(task.subject_id)})
+    response_data = view(task)
     await session.commit()
-    return view(task)
+    return response_data
 
 
 @router.post("/documents", status_code=201)

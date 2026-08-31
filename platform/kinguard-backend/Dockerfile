@@ -15,8 +15,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install uv package manager
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
+# Copy filenest SDK dependency so path dependency is satisfied
+COPY bezs-filenest/sdks/python /build/bezs-filenest/sdks/python
+
 # Copy project definition and lockfile
-COPY pyproject.toml uv.lock ./
+WORKDIR /build/kinguard-backend
+COPY kinguard-backend/pyproject.toml kinguard-backend/uv.lock ./
+
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
 
 # Install production dependencies only into virtualenv
 RUN uv sync --frozen --no-dev --no-cache
@@ -40,10 +46,10 @@ RUN groupadd -g 10001 kinguard && \
     useradd -u 10001 -g kinguard -s /bin/bash -m kinguard
 
 # Copy virtualenv from builder stage
-COPY --from=builder --chown=kinguard:kinguard /build/.venv /app/.venv
+COPY --from=builder --chown=kinguard:kinguard /app/.venv /app/.venv
 
 # Copy application source code
-COPY --chown=kinguard:kinguard . .
+COPY --chown=kinguard:kinguard kinguard-backend/ .
 
 # Environment configuration
 ENV PATH="/app/.venv/bin:$PATH" \

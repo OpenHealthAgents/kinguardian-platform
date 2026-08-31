@@ -9,7 +9,7 @@ Each deployable service owns its schema, migrations, and write authority. Other 
 | Data domain / store | Owner | Evidence | Authorized writers | Access from other services |
 |---|---|---|---|---|
 | FHIR clinical resources and terminology | `bezs-emr-core` | SQLAlchemy models; Alembic under `migrations/` | EMR core | REST through EMR core/gateway |
-| Family care, documents metadata, notifications, outbox | `kinguardian-backend` | `app/domains/family/infrastructure/models.py`, `domains/events/models.py` | Kinguard backend worker/API | its API/events; FileNest ID is a reference only |
+| Family care, documents metadata, notifications, outbox | `kinguardian-backend` | `app/domains/family/infrastructure/models.py`, `domains/events/models.py` | KinGuardian backend worker/API | its API/events; FileNest ID is a reference only |
 | File metadata, projects, upload sessions, webhooks, outbox | FileNest backend | backend Alembic migrations and `app/models/` | FileNest backend | FileNest API/SDKs |
 | IAM users, sessions, OAuth/app metadata | each IAM deployment (`bezs-iam`, FileNest IAM, Observability IAM) | separate Prisma schemas | respective IAM service | auth/OIDC/API boundary only; no assumed shared identity database |
 | HMS application data | `bezs-hms` | Prisma schema/migrations | HMS | HMS APIs / FHIR gateway for clinical data |

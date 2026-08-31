@@ -35,12 +35,12 @@ def test_data_ownership_registry_integrity():
     Verifies that all required domain concepts are registered with their authoritative System of Record.
     """
     assert DataOwnershipRegistry.get_owner_for_concept("Medication Prescriptions") == SystemOfRecord.FHIR_EMR
-    assert DataOwnershipRegistry.get_owner_for_concept("Medication Adherence") == SystemOfRecord.KINGUARD
-    assert DataOwnershipRegistry.get_owner_for_concept("Parent & Care Circle") == SystemOfRecord.KINGUARD
+    assert DataOwnershipRegistry.get_owner_for_concept("Medication Adherence") == SystemOfRecord.KINGUARDIAN
+    assert DataOwnershipRegistry.get_owner_for_concept("Parent & Care Circle") == SystemOfRecord.KINGUARDIAN
     assert DataOwnershipRegistry.get_owner_for_concept("Patient Demographics") == SystemOfRecord.FHIR_EMR
     assert DataOwnershipRegistry.get_owner_for_concept("File Binary Storage") == SystemOfRecord.FILENEST
     assert DataOwnershipRegistry.get_owner_for_concept("AI Conversational Session") == SystemOfRecord.BEZS_AGENT
-    assert DataOwnershipRegistry.get_owner_for_concept("AI Insight Application Metadata") == SystemOfRecord.KINGUARD
+    assert DataOwnershipRegistry.get_owner_for_concept("AI Insight Application Metadata") == SystemOfRecord.KINGUARDIAN
 
 
 def test_kinguardian_schema_adheres_to_data_ownership_rules():

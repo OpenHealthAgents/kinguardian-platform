@@ -11,7 +11,8 @@ from dataclasses import dataclass
 class SystemOfRecord(str, Enum):
     """Authoritative Systems of Record."""
     FHIR_EMR = "FHIR / EMR"
-    KINGUARD = "KinGuardian Platform"
+    KINGUARDIAN = "KinGuardian Platform"
+    KINGUARD = KINGUARDIAN  # Alias for backward compatibility
     FILENEST = "FileNest WORM Storage"
     BEZS_AGENT = "bezs-agent AI Orchestrator"
     IAM = "IAM Identity Provider"
@@ -36,14 +37,14 @@ DATA_OWNERSHIP_CATALOG: List[DataFieldOwnership] = [
     ),
     DataFieldOwnership(
         domain_concept="Medication Adherence Tracking",
-        owner_system=SystemOfRecord.KINGUARD,
+        owner_system=SystemOfRecord.KINGUARDIAN,
         field_or_resource="medication_adherence_events (status, confirmed_at, dual-time timestamps)",
         kinguardian_representation="Authoritative Entity (AdherenceEvent)",
         anti_duplication_rule="KinGuardian is the single source of truth for adherence confirmations and reminders."
     ),
     DataFieldOwnership(
         domain_concept="Parent & Care Circle Relationships",
-        owner_system=SystemOfRecord.KINGUARD,
+        owner_system=SystemOfRecord.KINGUARDIAN,
         field_or_resource="care_subjects, family_members, family_invitations, consents",
         kinguardian_representation="Authoritative Aggregate Root (Family, CareSubject, Consent)",
         anti_duplication_rule="All family membership hierarchies and access delegations are exclusively managed by KinGuardian."
@@ -78,7 +79,7 @@ DATA_OWNERSHIP_CATALOG: List[DataFieldOwnership] = [
     ),
     DataFieldOwnership(
         domain_concept="AI Insight Application Metadata & Approvals",
-        owner_system=SystemOfRecord.KINGUARD,
+        owner_system=SystemOfRecord.KINGUARDIAN,
         field_or_resource="ai_insights, ai_actions, care_tasks (status, severity, user_feedback)",
         kinguardian_representation="Authoritative Entity (AIInsight, AIAction, CareTask)",
         anti_duplication_rule="User decisions, human-in-the-loop approvals, and task execution states are owned by KinGuardian."

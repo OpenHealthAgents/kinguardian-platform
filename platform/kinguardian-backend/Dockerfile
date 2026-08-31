@@ -19,8 +19,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 COPY bezs-filenest/sdks/python /build/bezs-filenest/sdks/python
 
 # Copy project definition and lockfile
-WORKDIR /build/kinguard-backend
-COPY kinguard-backend/pyproject.toml kinguard-backend/uv.lock ./
+WORKDIR /build/kinguardian-backend
+COPY kinguardian-backend/pyproject.toml kinguardian-backend/uv.lock ./
 
 ENV UV_PROJECT_ENVIRONMENT=/app/.venv
 
@@ -42,14 +42,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Create unprivileged system user for container security
-RUN groupadd -g 10001 kinguard && \
-    useradd -u 10001 -g kinguard -s /bin/bash -m kinguard
+RUN groupadd -g 10001 kinguardian && \
+    useradd -u 10001 -g kinguardian -s /bin/bash -m kinguardian
 
 # Copy virtualenv from builder stage
-COPY --from=builder --chown=kinguard:kinguard /app/.venv /app/.venv
+COPY --from=builder --chown=kinguardian:kinguardian /app/.venv /app/.venv
 
 # Copy application source code
-COPY --chown=kinguard:kinguard kinguard-backend/ .
+COPY --chown=kinguardian:kinguardian kinguardian-backend/ .
 
 # Environment configuration
 ENV PATH="/app/.venv/bin:$PATH" \
@@ -59,7 +59,7 @@ ENV PATH="/app/.venv/bin:$PATH" \
     ENVIRONMENT=production
 
 # Switch to non-root user
-USER kinguard
+USER kinguardian
 
 # Expose HTTP API port
 EXPOSE 8000

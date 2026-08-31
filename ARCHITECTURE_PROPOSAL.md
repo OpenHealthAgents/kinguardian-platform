@@ -6,7 +6,7 @@ Keep the current applications independently deployable. Introduce a thin platfor
 
 ```mermaid
 flowchart TB
-  UX[Mobile and web applications] --> BFF[Product BFFs: Kinguard backend / HMS]
+  UX[Mobile and web applications] --> BFF[Product BFFs: KinGuardian backend / HMS]
   BFF --> IAM[Selected platform identity provider]
   BFF --> EMRGW[EMR gateway]
   EMRGW --> EMR[EMR core: FHIR system of record]
@@ -26,7 +26,7 @@ flowchart TB
 | Identity | Run a short discovery, then designate one supported issuer | Three IAM implementations exist; their interchangeability is unproven | Issuer/audience/claim contract, migration plan, and integration tests approved |
 | Client reuse | Generate/package language clients from versioned OpenAPI | Avoid copied REST adapters and vendored SDK drift | HMS and mobile/backend use a pinned client package |
 | EMR gateway | Keep current REST gateway; make GraphQL a separate, evidence-driven decision | Existing `bezs-emr-gql` is REST and clients already target REST paths | A federated-read use case, schema ownership, and query-cost controls exist |
-| Events | Introduce an outbox-to-event contract per owning service | FileNest and Kinguard backend already contain outbox concepts | Named event envelope, idempotency key, retention, and retry policy |
+| Events | Introduce an outbox-to-event contract per owning service | FileNest and KinGuardian backend already contain outbox concepts | Named event envelope, idempotency key, retention, and retry policy |
 | Shared code | Start with small, versioned libraries for auth validation, API clients, and UI tokens | Root has no Node/Python workspace and projects are independently versioned | First library has consumers, CI, semantic releases, and rollback path |
 
 ## Delivery sequence

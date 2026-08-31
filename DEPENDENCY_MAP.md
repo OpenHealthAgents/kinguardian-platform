@@ -46,13 +46,13 @@ Arrows indicate configured or implemented calls, not proof that every service is
 1. Start each project’s declared database/broker before its API or worker. Compose files provide the authoritative local ordering.
 2. Start an identity provider before services configured with a JWKS URL, then verify issuer/audience compatibility.
 3. Start EMR core before `bezs-emr-gql` and before agent EHR features.
-4. Start FileNest’s storage and messaging dependencies before enabling document flows in Kinguard backend.
+4. Start FileNest’s storage and messaging dependencies before enabling document flows in KinGuardian backend.
 5. Start Observability’s Redis and ClickHouse before gateway/analytics/realtime services.
 
 ## Source anchors
 
 - Root development stack: `docker-compose.dev.yml`.
-- Kinguard external bindings: `platform/kinguardian-backend/app/core/config.py`.
+- KinGuardian external bindings: `platform/kinguardian-backend/app/core/config.py`.
 - EMR core datastore requirements: `platform/bezs-emr-core/docker-compose.dev.yml`.
 - Gateway resources: `platform/bezs-emr-gql/app/routers/__init__.py`.
 - Observability topology: `platform/bezs-observability/apps/*/docs/overview.md`.

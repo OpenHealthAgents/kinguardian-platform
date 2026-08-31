@@ -44,7 +44,7 @@ services:
   api:
     build:
       context: ./platform
-      dockerfile: ./kinguard-backend/Dockerfile
+      dockerfile: ./kinguardian-backend/Dockerfile
     container_name: drgodly-api
     restart: unless-stopped
     ports:
@@ -66,9 +66,9 @@ services:
       OPEN_WEARABLES_URL: ${OPEN_WEARABLES_URL:-http://open-wearables:8000}
       OPEN_WEARABLES_API_KEY: ${OPEN_WEARABLES_API_KEY:-dev_open_wearables_secret_key}
     volumes:
-      - ./platform/kinguard-backend/app:/app/app
-      - ./platform/kinguard-backend/migrations:/app/migrations
-      - ./platform/kinguard-backend/scripts:/app/scripts
+      - ./platform/kinguardian-backend/app:/app/app
+      - ./platform/kinguardian-backend/migrations:/app/migrations
+      - ./platform/kinguardian-backend/scripts:/app/scripts
     depends_on:
       postgres:
         condition: service_healthy
@@ -82,13 +82,13 @@ services:
   worker:
     build:
       context: ./platform
-      dockerfile: ./kinguard-backend/Dockerfile
+      dockerfile: ./kinguardian-backend/Dockerfile
     container_name: drgodly-worker
     restart: unless-stopped
     volumes:
-      - ./platform/kinguard-backend/app:/app/app
-      - ./platform/kinguard-backend/migrations:/app/migrations
-      - ./platform/kinguard-backend/scripts:/app/scripts
+      - ./platform/kinguardian-backend/app:/app/app
+      - ./platform/kinguardian-backend/migrations:/app/migrations
+      - ./platform/kinguardian-backend/scripts:/app/scripts
     environment:
       ENVIRONMENT: development
       DATABASE_URL: postgresql+asyncpg://iam_user:iam_password@postgres:5432/kinguardian_db

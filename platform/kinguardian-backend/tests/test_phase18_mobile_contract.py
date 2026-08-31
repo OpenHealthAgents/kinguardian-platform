@@ -53,15 +53,15 @@ def test_openapi_schema_generation():
 def get_mobile_file(subpath: str) -> Path:
     repo_root = Path(__file__).resolve().parents[3]
     for base in [
-        repo_root / "kinguard-mobile",
         repo_root / "kinguardian-mobile",
-        Path("d:/Kalyan/kinguard-platform/kinguard-mobile"),
+        repo_root / "kinguard-mobile",
         Path("d:/Kalyan/kinguardian-platform/kinguardian-mobile"),
+        Path("d:/Kalyan/kinguard-platform/kinguard-mobile"),
     ]:
         candidate = base / subpath
         if candidate.exists():
             return candidate
-    return repo_root / "kinguard-mobile" / subpath
+    return repo_root / "kinguardian-mobile" / subpath
 
 
 def test_mobile_contract_examples_validation():

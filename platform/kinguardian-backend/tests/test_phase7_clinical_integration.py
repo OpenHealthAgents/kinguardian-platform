@@ -165,8 +165,8 @@ def test_fhir_anti_duplication_rule():
     
     assert ownership_map["Medication Prescriptions & Dosage"].owner_system == SystemOfRecord.FHIR_EMR
     assert ownership_map["Patient Demographics & Medical Identity"].owner_system == SystemOfRecord.FHIR_EMR
-    assert ownership_map["Medication Adherence Tracking"].owner_system == SystemOfRecord.KINGUARD
-    assert ownership_map["Parent & Care Circle Relationships"].owner_system == SystemOfRecord.KINGUARD
+    assert ownership_map["Medication Adherence Tracking"].owner_system == SystemOfRecord.KINGUARDIAN
+    assert ownership_map["Parent & Care Circle Relationships"].owner_system == SystemOfRecord.KINGUARDIAN
     assert ownership_map["AI Conversational Session & Reasoning Context"].owner_system == SystemOfRecord.BEZS_AGENT
     assert ownership_map["File Binary Storage (PDF, Images, DICOM)"].owner_system == SystemOfRecord.FILENEST
 
